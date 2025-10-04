@@ -1,0 +1,18 @@
+# Ignore any zip files (including nested)
+**/*.zip
+
+# Ignore node_modules folders anywhere
+**/node_modules/
+
+# Ignore build artifacts
+**/dist/
+
+# Ignore package lock files anywhere
+**/package-lock.json
+
+# Common lockfiles
+pnpm-lock.yaml
+yarn.lock
+
+# Ignore local lambdas packaged output
+lambda.zip

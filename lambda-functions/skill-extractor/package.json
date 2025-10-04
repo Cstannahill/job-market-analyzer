@@ -1,0 +1,23 @@
+{
+  "name": "job-posting-skill-extractor",
+  "version": "1.0.0",
+  "description": "Lambda function to extract skills from job postings",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "npx tsup src",
+    "package": "npm run build && node ../../zip.js .",
+    "deploy": "npm run package && aws lambda update-function-code --function-name job-skill-extractor --zip-file fileb://lambda.zip"
+  },
+  "dependencies": {
+    "@aws-sdk/client-comprehend": "^3.901.0",
+    "@aws-sdk/client-dynamodb": "^3.902.0",
+    "@aws-sdk/client-s3": "^3.901.0",
+    "@aws-sdk/lib-dynamodb": "^3.902.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.155",
+    "@types/node": "^20.19.19",
+    "@types/uuid": "^9.0.8",
+    "typescript": "^5.9.3"
+  }
+}
