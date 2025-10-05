@@ -208,5 +208,3 @@ Mapping notes:
 - `lambda-functions/*/src` implements the Lambdas shown in the diagram (ingest, aggregator, resume extractor, read APIs).
 - `frontend/` is the React dashboard served through Amplify or CloudFront.
 - `zip.js` is the centralized packer used by per-lambda `package` scripts.
-
-If you'd like, I can also generate a PNG of the Mermaid diagram and add it to `docs/` for non-Mermaid renderers or include a Terraform/CloudFormation skeleton for the described architecture.
