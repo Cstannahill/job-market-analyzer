@@ -34,24 +34,27 @@ export const handler = async (event: S3Event, context: Context) => {
 
   try {
     // Process each uploaded file (usually just one)
-    for (const record of event.Records) {
-      const bucket = record.s3.bucket.name;
-      const key = decodeURIComponent(record.s3.object.key.replace(/\+/g, " "));
+    if (event?.Records && Array.isArray(event.Records)) {
+      for (const record of event?.Records) {
+        const bucket = record.s3.bucket.name;
+        const key = decodeURIComponent(
+          record.s3.object.key.replace(/\+/g, " ")
+        );
 
-      console.log(`Processing file: ${key} from bucket: ${bucket}`);
+        console.log(`Processing file: ${key} from bucket: ${bucket}`);
 
-      // Step 1: Get the file from S3
-      const jobPostingText = await getFileFromS3(bucket, key);
+        // Step 1: Get the file from S3
+        const jobPostingText = await getFileFromS3(bucket, key);
 
-      // Step 2: Extract skills using AWS Comprehend
-      const extractedData = await extractSkillsFromText(jobPostingText);
+        // Step 2: Extract skills using AWS Comprehend
+        const extractedData = await extractSkillsFromText(jobPostingText);
 
-      // Step 3: Save to DynamoDB
-      await saveToDatabase(key, jobPostingText, extractedData);
+        // Step 3: Save to DynamoDB
+        await saveToDatabase(key, jobPostingText, extractedData);
 
-      console.log(`Successfully processed: ${key}`);
+        console.log(`Successfully processed: ${key}`);
+      }
     }
-
     return {
       statusCode: 200,
       body: JSON.stringify({ message: "Job posting processed successfully" }),
@@ -74,7 +77,42 @@ async function getFileFromS3(bucket: string, key: string): Promise<string> {
   const response = await s3Client.send(command);
   const bodyContents = await streamToString(response.Body);
 
-  return bodyContents;
+  // Try to parse JSON and extract the job text (contents/content/description)
+  const stripHtml = (s: any) =>
+    String(s || "")
+      .replace(/<[^>]*>/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  let text = bodyContents;
+  try {
+    const parsed = JSON.parse(bodyContents);
+    if (parsed && typeof parsed === "object") {
+      if (Array.isArray(parsed)) {
+        // If an array of job objects, join their contents
+        const parts = parsed
+          .map((p) =>
+            p && (p.contents || p.content || p.description)
+              ? p.contents || p.content || p.description
+              : null
+          )
+          .filter(Boolean)
+          .map((p) => stripHtml(p));
+        if (parts.length) text = parts.join("\n\n");
+        else text = stripHtml(bodyContents);
+      } else {
+        const candidate =
+          parsed.contents || parsed.content || parsed.description || null;
+        if (candidate) text = stripHtml(candidate);
+        else text = stripHtml(JSON.stringify(parsed));
+      }
+    }
+  } catch (e) {
+    // not JSON, keep original bodyContents
+    text = stripHtml(bodyContents);
+  }
+
+  return text;
 }
 
 /**
@@ -233,8 +271,57 @@ async function saveToDatabase(
   // Extract a title from the filename or first line
   const title = extractTitle(sourceFile, rawText);
 
-  const jobPosting: JobPosting = {
-    posting_id: randomUUID(),
+  // Try to derive a canonical posting id from the filename: <source>-<id>.json
+  const filename =
+    (sourceFile || "").split("/").pop()?.split("\\").pop() || sourceFile;
+  const match = filename.match(/^(.+?)-(.+?)\.json$/i);
+  const canonicalId = match ? `${match[1]}-${match[2]}` : null;
+
+  // Try to parse the raw text to find an embedded id (fallback)
+  let parsed: any = null;
+  try {
+    parsed = JSON.parse(rawText);
+  } catch (e) {
+    parsed = null;
+  }
+
+  const embeddedId =
+    parsed?.id || parsed?.job_id || parsed?.jobId || parsed?.uuid || null;
+
+  // Prefer canonicalId derived from filename. If missing, try to infer a source prefix
+  // and use embeddedId to form a <source>-<id> posting id. Do NOT silently fall back
+  // to a random UUID because that can create undetectable duplicates.
+  let postingId: string | null = null;
+  if (canonicalId) {
+    postingId = canonicalId;
+  } else {
+    // try to infer a source prefix from parsed JSON or filename fragments
+    const sourceFromParsed =
+      parsed?.source || parsed?.source_name || parsed?.sourceKey || null;
+    let filenamePrefix: string | null = null;
+    const hyphenIndex = filename.indexOf("-");
+    if (hyphenIndex > 0) filenamePrefix = filename.slice(0, hyphenIndex);
+
+    const sourcePrefix = sourceFromParsed || filenamePrefix || null;
+
+    if (embeddedId && sourcePrefix) {
+      postingId = `${sourcePrefix}-${String(embeddedId)}`;
+      console.warn(
+        `Inferred posting_id=${postingId} from embedded id and prefix; consider standardizing S3 filenames to <source>-<id>.json`
+      );
+    } else {
+      // Can't form a safe canonical posting id — fail fast so the issue can be investigated
+      throw new Error(
+        `Unable to derive canonical posting_id for S3 file '${sourceFile}'. ` +
+          `Filename='${filename}', embeddedId='${String(embeddedId)}'. ` +
+          `Refusing to write random posting_id to avoid undetectable duplicates.`
+      );
+    }
+  }
+
+  // Build the DynamoDB item. If we couldn't form a canonical <source>-<id>, include jobId for linking.
+  const jobPosting: any = {
+    Id: postingId,
     title,
     skills: extractedData.skills,
     technologies: extractedData.technologies,
@@ -243,13 +330,46 @@ async function saveToDatabase(
     source_file: sourceFile,
   };
 
-  const command = new PutCommand({
-    TableName: process.env.DYNAMODB_TABLE_NAME || "JobPostings",
-    Item: jobPosting,
-  });
+  if (!canonicalId && embeddedId) {
+    // store the parsed job id so we can link later
+    jobPosting.jobId = String(embeddedId);
+  }
 
-  await docClient.send(command);
-  console.log(`Saved to DynamoDB: ${jobPosting.posting_id}`);
+  const tableName = process.env.DYNAMODB_TABLE_NAME || "JobPostings";
+
+  // If we have a canonical posting id derived from the S3 filename, make the Put conditional
+  // so we remain idempotent and avoid duplicating processing.
+  try {
+    if (canonicalId) {
+      const command = new PutCommand({
+        TableName: tableName,
+        Item: jobPosting,
+        ConditionExpression: "attribute_not_exists(posting_id)",
+      });
+      await docClient.send(command);
+      console.log(`Saved to DynamoDB (canonical): ${jobPosting.posting_id}`);
+    } else {
+      const command = new PutCommand({
+        TableName: tableName,
+        Item: jobPosting,
+      });
+      await docClient.send(command);
+      console.log(`Saved to DynamoDB: ${jobPosting.posting_id}`);
+    }
+  } catch (err: any) {
+    // If conditional check failed, it's a duplicate; log and continue
+    if (
+      err?.name === "ConditionalCheckFailedException" ||
+      err?.name === "ConditionalCheckFailed"
+    ) {
+      console.log(
+        `Skipping save; item already exists for posting_id=${postingId}`
+      );
+      return;
+    }
+    console.error("Error saving to DynamoDB:", err);
+    throw err;
+  }
 }
 
 /**

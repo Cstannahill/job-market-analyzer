@@ -4,7 +4,8 @@
   "description": "",
   "main": "zip.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "buildall": "cd lambda-functions/get-job-postings && npm install && npm run build && cd ../job-posting-aggregator && npm install && npm run build && cd ../skill-extractor && npm install && npm run build && cd ../skill-extractor-ai && npm install && npm run build && cd ../skill-extractor-algo && npm install && npm run build && cd ../..",
+    "packageall": "node zip.js lambda-functions/get-job-postings && node zip.js lambda-functions/job-posting-aggregator && node zip.js lambda-functions/skill-extractor && node zip.js lambda-functions/skill-extractor-ai && node zip.js lambda-functions/skill-extractor-algo"
   },
   "keywords": [],
   "author": "",

@@ -185,7 +185,7 @@ function App() {
         </Select>
 
         {(searchTerm || (selectedTech && selectedTech !== '__all__')) && (
-          <Button variant="outline" onClick={() => { setSearchTerm(''); setSelectedTech('__all__'); }}>
+          <Button variant="outline" className="text-white" onClick={() => { setSearchTerm(''); setSelectedTech('__all__'); }}>
             Clear Filters
           </Button>
         )}

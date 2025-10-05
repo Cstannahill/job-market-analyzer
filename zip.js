@@ -65,10 +65,12 @@ function createZip() {
     function addIfExists(fsPath, entryName, isDirectory = false) {
       if (fs.existsSync(fsPath)) {
         if (isDirectory) {
-          console.log(`Adding directory to zip: ${fsPath}`);
+          const dest = entryName === false ? "(root of zip)" : entryName;
+          console.log(`Adding directory to zip: ${fsPath} -> ${dest}`);
+          // If entryName === false, archiver will place the directory contents at the archive root
           archive.directory(fsPath, entryName);
         } else {
-          console.log(`Adding file to zip: ${fsPath}`);
+          console.log(`Adding file to zip: ${fsPath} -> ${entryName}`);
           archive.file(fsPath, { name: entryName });
         }
       } else {
@@ -80,7 +82,9 @@ function createZip() {
     const nodeModulesPath = path.join(targetDir, "node_modules");
     const packageJsonPath = path.join(targetDir, "package.json");
 
-    addIfExists(distPath, "dist", true);
+    // Add dist contents at the root of the zip (so files like index.js, package.json,
+    // and node_modules/* from inside dist end up at the zip root rather than under a dist/ folder)
+    addIfExists(distPath, false, true);
     addIfExists(nodeModulesPath, "node_modules", true);
     addIfExists(packageJsonPath, "package.json", false);
 
