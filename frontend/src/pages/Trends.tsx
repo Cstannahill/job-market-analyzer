@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Layout } from '../components/Layout';
 import { Spinner } from '../components/ui/spinner';
 import { Card, CardContent } from '../components/ui/card';
@@ -35,6 +35,18 @@ export default function Trends() {
     const [detailError, setDetailError] = useState<string | null>(null);
     const [detail, setDetail] = useState<SkillTrend | null>(null);
     const [detailHistory, setDetailHistory] = useState<SkillTrend[]>([]);
+    const [mobileOpen, setMobileOpen] = useState(false);
+    // mobileVisible controls whether drawer is mounted (so we can animate on close)
+    const [mobileVisible, setMobileVisible] = useState(false);
+    // keep track of the close timeout so we can clear on unmount
+    const mobileCloseTimeoutRef = useRef<number | null>(null);
+    useEffect(() => {
+        return () => {
+            if (mobileCloseTimeoutRef.current) {
+                window.clearTimeout(mobileCloseTimeoutRef.current);
+            }
+        };
+    }, []);
 
     const handleSelect = async (s: SkillTrend) => {
         setSelected(s);
@@ -106,6 +118,45 @@ export default function Trends() {
                         </CardContent>
                     </Card>
                 </aside>
+
+                {/* Mobile-only floating button to open insight drawer */}
+                <div className="md:hidden">
+                    <button
+                        className="mobile-insight-btn"
+                        onClick={() => {
+                            // mount then open to allow enter animation
+                            setMobileVisible(true);
+                            // small delay ensures class application
+                            window.setTimeout(() => setMobileOpen(true), 10);
+                        }}
+                        aria-label="Open insights"
+                    >
+                        Insights
+                    </button>
+                    {mobileVisible && (
+                        <>
+                            <div
+                                className={`mobile-insight-overlay ${mobileOpen ? 'open' : ''}`}
+                                onClick={() => {
+                                    setMobileOpen(false);
+                                    // delay unmount to allow animation
+                                    mobileCloseTimeoutRef.current = window.setTimeout(() => setMobileVisible(false), 300);
+                                }}
+                            />
+                            <div className={`mobile-insight-drawer ${mobileOpen ? 'open' : ''}`} role="dialog" aria-modal="true">
+                                <div className="mobile-insight-header">
+                                    <button className="close-btn" onClick={() => {
+                                        setMobileOpen(false);
+                                        mobileCloseTimeoutRef.current = window.setTimeout(() => setMobileVisible(false), 300);
+                                    }}>Close</button>
+                                </div>
+                                <div className="mobile-insight-body">
+                                    <SkillDetailPanel skill={detail ?? selected} history={detailHistory} />
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </div>
             </div>
         </Layout>
     );

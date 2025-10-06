@@ -27,6 +27,12 @@
   align-items: center;
 }
 
+/* allow header-left to shrink so long meta pills wrap instead of overflowing */
+.job-header-left,
+.company-name-row {
+  min-width: 0;
+}
+
 .company-badge {
   width: 48px;
   height: 48px;
@@ -186,6 +192,14 @@
   gap: 8px;
   align-items: center;
   margin-top: 6px;
+}
+
+/* make meta pills truncate if they're too long and allow wrapping */
+.company-name-row .meta-pill {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Responsive adjustments */
