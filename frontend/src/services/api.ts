@@ -15,6 +15,22 @@ export interface JobPosting {
   source_file: string;
 }
 
+// Extended model for new table fields
+export interface ExtendedJobPosting extends JobPosting {
+  benefits?: string[];
+  company_size?: string;
+  industry?: string;
+  processed_date?: string;
+  remote_status?: string;
+  requirements?: string[];
+  salary_mentioned?: boolean;
+  salary_range?: string;
+  salary_min?: number | null;
+  salary_max?: number | null;
+  salary_currency?: string | null;
+  seniority_level?: string;
+}
+
 export interface ApiResponse {
   success: boolean;
   count: number;
@@ -24,23 +40,225 @@ export interface ApiResponse {
 /**
  * Fetch all job postings from the API
  */
-export const getJobPostings = async (): Promise<JobPosting[]> => {
+const parseSalaryRange = (s: string | undefined | null) => {
+  if (!s) return { min: null, max: null, currency: null };
+  const trimmed = String(s).trim();
+  // Try to detect currency symbol (USD $, £, €, etc.) or trailing currency code
+  const currencyMatch =
+    trimmed.match(/\b([A-Z]{3})\b/) || trimmed.match(/(\$|£|€|¥)/);
+  const currency = currencyMatch ? currencyMatch[0] : null;
+
+  // Find numbers with optional commas and decimals
+  const nums = Array.from(
+    trimmed.matchAll(/([0-9]{1,3}(?:[,\d]*)(?:\.\d+)?)/g)
+  ).map((m) => m[0].replace(/,/g, ""));
+  const parsed = nums.map((n) => Number(n)).filter((n) => !isNaN(n));
+  if (parsed.length === 0) return { min: null, max: null, currency };
+  if (parsed.length === 1) return { min: parsed[0], max: parsed[0], currency };
+  // assume first two are min/max
+  return {
+    min: Math.min(parsed[0], parsed[1]),
+    max: Math.max(parsed[0], parsed[1]),
+    currency,
+  };
+};
+
+export const getJobPostings = async (): Promise<ExtendedJobPosting[]> => {
   try {
     const response = await axios.get(`${API_URL}/job-postings`);
 
-    let data = response.data;
+    let payload = response.data;
 
-    // Check if data has statusCode (Lambda didn't use proxy integration properly)
-    if (data.statusCode) {
-      // Parse the body string
-      data = JSON.parse(data.body);
+    // Lambda proxy-style responses sometimes come wrapped with statusCode/body
+    if (typeof payload === "object" && payload !== null) {
+      const proxy = payload as Record<string, unknown>;
+      if ("statusCode" in proxy && typeof proxy.body === "string") {
+        try {
+          payload = JSON.parse(proxy.body as string);
+        } catch {
+          // fall through and handle as-is
+        }
+      }
     }
 
-    if (data.success) {
-      return data.data;
-    }
+    // New table-backed API may return rows in a `items` or `data` array, or raw array
+    const pObj =
+      typeof payload === "object" && payload !== null
+        ? (payload as Record<string, unknown>)
+        : {};
+    const rows: unknown[] =
+      Array.isArray(pObj.items) && (pObj.items as unknown[]).length
+        ? (pObj.items as unknown[])
+        : Array.isArray(pObj.data) && (pObj.data as unknown[]).length
+        ? (pObj.data as unknown[])
+        : Array.isArray(payload)
+        ? (payload as unknown[])
+        : [];
 
-    throw new Error("API returned unsuccessful response");
+    // Map backend row shape to frontend JobPosting
+    const normalizeArray = (v: unknown): string[] => {
+      if (!v) return [];
+      if (Array.isArray(v)) return v.filter(Boolean).map((x) => String(x));
+      if (typeof v === "string") {
+        // Attempt to parse JSON-like strings: '[]' or '[{"S":"val"}]' or '"a,b"' or 'a, b'
+        const trimmed = v.trim();
+        // JSON array
+        if (
+          (trimmed.startsWith("[") && trimmed.endsWith("]")) ||
+          (trimmed.startsWith("{") && trimmed.endsWith("}"))
+        ) {
+          try {
+            const parsed = JSON.parse(trimmed);
+            // If parsed is array of objects with S keys (AWS style), extract S
+            if (Array.isArray(parsed)) {
+              return parsed
+                .map((p: unknown) => {
+                  if (
+                    p &&
+                    typeof p === "object" &&
+                    "S" in (p as Record<string, unknown>)
+                  )
+                    return (p as Record<string, unknown>)["S"];
+                  return p;
+                })
+                .flat()
+                .filter(Boolean)
+                .map((x) => String(x));
+            }
+            if (typeof parsed === "object")
+              return Object.values(parsed).map(String);
+          } catch {
+            // not JSON, fallthrough
+          }
+        }
+        // comma separated
+        if (trimmed.includes(","))
+          return trimmed
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+        // pipe or semicolon separated
+        if (trimmed.includes("|"))
+          return trimmed
+            .split("|")
+            .map((s) => s.trim())
+            .filter(Boolean);
+        if (trimmed.includes(";"))
+          return trimmed
+            .split(";")
+            .map((s) => s.trim())
+            .filter(Boolean);
+        // single value
+        return [trimmed];
+      }
+      // fallback
+      return [String(v)];
+    };
+
+    const mapped: ExtendedJobPosting[] = rows.map((row: unknown) => {
+      const r = row as Record<string, unknown>;
+      // Support a few common field names from the new table
+      const id =
+        (r.jobId as string) ||
+        (r.Id as string) ||
+        (r.id as string) ||
+        (r.pk as string) ||
+        (r.PK as string) ||
+        (r.JobId as string) ||
+        "";
+      const title =
+        (r.title as string) ||
+        (r.job_title as string) ||
+        (r.jobTitle as string) ||
+        "";
+      const raw_text =
+        (r.raw_text as string) ||
+        (r.description as string) ||
+        (r.job_description as string) ||
+        (r.body as string) ||
+        "";
+      const date =
+        (r.posted_date as string) ||
+        (r.postedAt as string) ||
+        (r.date as string) ||
+        (r.processed_date as string) ||
+        (r.created_at as string) ||
+        "";
+      const source_file =
+        (r.source as string) ||
+        (r.source_file as string) ||
+        (r.filename as string) ||
+        "";
+
+      const benefits = normalizeArray(
+        r.benefits ?? r.benefit_list ?? r.benefits_parsed
+      );
+      const company_size =
+        (r.company_size as string) || (r.companySize as string) || undefined;
+      const industry = (r.industry as string) || undefined;
+      const processed_date = (r.processed_date as string) || undefined;
+      const remote_status =
+        (r.remote_status as string) || (r.remote as string) || undefined;
+      const requirements = normalizeArray(
+        r.requirements ??
+          r.requirement_list ??
+          r.requirements_parsed ??
+          r.requirement
+      );
+      const salary_mentioned =
+        (r.salary_mentioned as boolean) ??
+        (r.salaryMentioned as boolean) ??
+        false;
+      const salary_range =
+        (r.salary_range as string) || (r.salary as string) || undefined;
+      const seniority_level = (r.seniority_level as string) || undefined;
+
+      const {
+        min: salary_min,
+        max: salary_max,
+        currency: salary_currency,
+      } = parseSalaryRange(salary_range);
+
+      const skills = normalizeArray(
+        r.skills ??
+          r.requirements ??
+          r.skill_list ??
+          r.Skills ??
+          r.skills_parsed
+      );
+      const technologies = normalizeArray(
+        r.technologies ??
+          r.tech ??
+          r.technologies_parsed ??
+          r.technologies_list ??
+          r.technologies_raw ??
+          r.technologies_normalized
+      );
+
+      return {
+        Id: String(id),
+        title: title,
+        skills,
+        technologies,
+        raw_text: raw_text,
+        date: String(date),
+        source_file: source_file,
+        benefits,
+        company_size,
+        industry,
+        processed_date,
+        remote_status,
+        requirements,
+        salary_mentioned,
+        salary_range,
+        salary_min,
+        salary_max,
+        salary_currency,
+        seniority_level,
+      } as ExtendedJobPosting;
+    });
+
+    return mapped;
   } catch (error) {
     console.error("Full error:", error);
     if (axios.isAxiosError(error)) {

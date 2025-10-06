@@ -8,10 +8,10 @@ type Props = {
 
 export const Layout: React.FC<Props> = ({ children }) => {
     return (
-        <div className="app">
+        <div className="app min-h-screen bg-gray-50 text-gray-900">
             <div className="page">
                 <Header />
-                <main className="container">{children}</main>
+                <main id="main-content" className="container mx-auto px-4 py-6">{children}</main>
                 <Footer />
             </div>
         </div>

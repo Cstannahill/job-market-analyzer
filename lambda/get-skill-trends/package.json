@@ -1,0 +1,20 @@
+{
+  "name": "get-skill-trends",
+  "version": "1.0.0",
+  "description": "Lambda function to query skill trends data",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "package": "pnpm build && node zip.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.902.0",
+    "@aws-sdk/lib-dynamodb": "^3.902.0",
+    "aws-lambda": "^1.0.7"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.138",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

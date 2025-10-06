@@ -44,6 +44,8 @@ interface EnrichedJobData {
   skills: string[];
   requirements: string[];
   seniority_level?: string;
+  location?: string;
+  company_name?: string;
   salary_mentioned: boolean;
   salary_range?: string;
   remote_status?: string;
@@ -259,8 +261,10 @@ For each job, extract:
 - seniority_level: "Entry", "Mid", "Senior", or "Lead" (infer from context)
 - salary_mentioned: boolean
 - salary_range: string if mentioned, null otherwise
+- location: string (city, state/country from job posting - e.g. "San Francisco, CA" or "Remote" or "London, UK")
 - remote_status: "Remote", "Hybrid", "On-site", or "Not specified"
 - benefits: array of benefits mentioned
+- company_name: string (infer from job posting)
 - company_size: "Startup", "Small", "Medium", "Large", "Enterprise" or null (infer if possible)
 - industry: string or null (infer from job context)`;
 

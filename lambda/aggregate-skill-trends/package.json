@@ -1,0 +1,17 @@
+{
+  "name": "aggregate-skill-trends",
+  "version": "1.0.0",
+  "description": "Lambda function to aggregate skill trends from job postings",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "npx tsup src"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.902.0",
+    "@aws-sdk/lib-dynamodb": "^3.902.0"
+  }
+}

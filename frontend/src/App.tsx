@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { JobPostingCard } from './components/JobPostingCard';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent } from './components/ui/card';
 import { Input } from './components/ui/input';
 import { Label } from './components/ui/label';
@@ -12,14 +11,12 @@ import {
   SelectItem,
 } from './components/ui/select';
 import { Spinner } from './components/ui/spinner';
-import { Skeleton } from './components/ui/skeleton';
-import { getJobPostings, getTechnologyCounts, type JobPosting } from './services/api';
+import { getJobPostings, getTechnologyCounts, type ExtendedJobPosting } from './services/api';
 import { Layout } from './components/Layout';
 import './App.css';
 
 function App() {
-  const [jobPostings, setJobPostings] = useState<JobPosting[]>([]);
-  const [filteredPostings, setFilteredPostings] = useState<JobPosting[]>([]);
+  const [jobPostings, setJobPostings] = useState<ExtendedJobPosting[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,8 +27,8 @@ function App() {
     fetchJobPostings();
   }, []);
 
-  // Filter postings when search or tech filter changes
-  useEffect(() => {
+  // Derived filtered postings
+  const filteredPostings = useMemo(() => {
     let filtered = jobPostings;
 
     if (searchTerm) {
@@ -47,7 +44,7 @@ function App() {
       filtered = filtered.filter(posting => posting.technologies.includes(selectedTech));
     }
 
-    setFilteredPostings(filtered);
+    return filtered;
   }, [searchTerm, selectedTech, jobPostings]);
 
   const fetchJobPostings = async () => {
@@ -56,7 +53,6 @@ function App() {
       setError(null);
       const data = await getJobPostings();
       setJobPostings(data);
-      setFilteredPostings(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load job postings');
     } finally {
@@ -77,14 +73,6 @@ function App() {
         <div className="loading">
           <Spinner className="size-8" />
           <p>Loading job postings...</p>
-
-          <div style={{ width: '100%', marginTop: 24 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
-              <Skeleton className="h-56" />
-              <Skeleton className="h-56" />
-              <Skeleton className="h-56" />
-            </div>
-          </div>
         </div>
       </Layout>
     );
@@ -194,20 +182,6 @@ function App() {
       {/* Results */}
       <div className="results-info">Showing {filteredPostings.length} of {jobPostings.length} job postings</div>
 
-      {/* Job Postings Card */}
-      <div className="post-list-card">
-        {filteredPostings.length === 0 ? (
-          <div className="empty-state">
-            <p>No job postings match your filters.</p>
-          </div>
-        ) : (
-          <div className="job-grid">
-            {filteredPostings.map(posting => (
-              <JobPostingCard key={posting.Id} posting={posting} />
-            ))}
-          </div>
-        )}
-      </div>
     </Layout>
   );
 }

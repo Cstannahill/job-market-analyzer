@@ -4,8 +4,8 @@
   "description": "",
   "main": "zip.js",
   "scripts": {
-    "buildall": "cd lambda-functions/get-job-postings && npm install && npm run build && cd ../job-posting-aggregator && npm install && npm run build && cd ../skill-extractor && npm install && npm run build && cd ../skill-extractor-ai && npm install && npm run build && cd ../skill-extractor-algo && npm install && npm run build && cd ../..",
-    "packageall": "node zip.js lambda-functions/get-job-postings && node zip.js lambda-functions/job-posting-aggregator && node zip.js lambda-functions/skill-extractor && node zip.js lambda-functions/skill-extractor-ai && node zip.js lambda-functions/skill-extractor-algo"
+    "buildall": "cd lambda/get-job-postings && npm install && npm run build && cd ../job-posting-aggregator && npm install && npm run build && cd ../skill-extractor && npm install && npm run build && cd ../skill-extractor-ai && npm install && npm run build && cd ../skill-extractor-algo && npm install && npm run build && cd ../aggregate-skill-trends && npm install && npm run build && cd ../get-skill-trends && npm install && npm run build && cd ../..",
+    "packageall": "node zip.js lambda/get-job-postings && node zip.js lambda/job-posting-aggregator && node zip.js lambda/skill-extractor && node zip.js lambda/skill-extractor-ai && node zip.js lambda/skill-extractor-algo && node zip.js lambda/aggregate-skill-trends && node zip.js lambda/get-skill-trends"
   },
   "keywords": [],
   "author": "",

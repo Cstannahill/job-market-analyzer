@@ -13,7 +13,7 @@ const ADZUNA_APP_ID = process.env.ADZUNA_APP_ID || "";
 const ADZUNA_API_KEY = process.env.ADZUNA_API_KEY || "";
 const MUSE_API_KEY = process.env.MUSE_API_KEY || "";
 const S3_BUCKET = process.env.S3_BUCKET || "job-postings-bucket-cstannahill";
-const MAX_JOBS_PER_RUN = 20; // Limit jobs per execution
+const MAX_JOBS_PER_RUN = 100; // Limit jobs per execution
 
 interface MuseJob {
   id: number;
@@ -37,6 +37,33 @@ interface AdzunaJob {
   contents?: string | null;
 }
 
+function isDevRole(name: string): boolean {
+  const devKeywords = [
+    "developer",
+    "engineer",
+    "programmer",
+    "architect",
+    "devops",
+    "sre",
+    "data engineer",
+    "ml engineer",
+    "software",
+    "backend",
+    "frontend",
+    "fullstack",
+    "full stack",
+    "platform engineer",
+    "cloud engineer",
+    "security engineer",
+    "qa engineer",
+    "mobile developer",
+    "web developer",
+    "embedded",
+  ];
+  const titleLower = name.toLowerCase();
+  return devKeywords.some((keyword) => titleLower.includes(keyword));
+}
+
 export const handler = async (): Promise<{
   statusCode: number;
   body: string;
@@ -46,13 +73,22 @@ export const handler = async (): Promise<{
   const results = { muse: 0, adzuna: 0, errors: [] as string[] };
 
   try {
-    const [museRes, adzunaRes] = await Promise.allSettled([
+    const [museRes] = await Promise.allSettled([
       fetchMuseJobs(),
-      fetchAdzunaJobs(),
+      // fetchAdzunaJobs(),
     ]);
 
     if (museRes.status === "fulfilled" && Array.isArray(museRes.value)) {
       for (const job of museRes.value) {
+        const name =
+          job && typeof job.name === "string"
+            ? job.name
+            : String(job?.name ?? "");
+        if (!isDevRole(name)) {
+          // optional: log or count skipped roles
+          console.debug("Skipping non-dev role:", name);
+          continue;
+        }
         try {
           const key = await saveJsonObjectToS3(
             job,
@@ -71,25 +107,25 @@ export const handler = async (): Promise<{
       results.errors.push(`Muse API failed: ${museRes.reason}`);
     }
 
-    if (adzunaRes.status === "fulfilled") {
-      try {
-        const meta = adzunaRes.value as any;
-        if (meta && Array.isArray(meta._rawUploadedKeys))
-          results.adzuna = meta._rawUploadedKeys.length;
-        if (
-          meta &&
-          meta._processingErrors &&
-          Array.isArray(meta._processingErrors)
-        ) {
-          for (const e of meta._processingErrors)
-            results.errors.push(`Adzuna: ${e}`);
-        }
-      } catch (e) {
-        console.error("Error reading Adzuna metadata:", e);
-      }
-    } else if (adzunaRes.status === "rejected") {
-      results.errors.push(`Adzuna API failed: ${adzunaRes.reason}`);
-    }
+    // if (adzunaRes.status === "fulfilled") {
+    //   try {
+    //     const meta = adzunaRes.value as any;
+    //     if (meta && Array.isArray(meta._rawUploadedKeys))
+    //       results.adzuna = meta._rawUploadedKeys.length;
+    //     if (
+    //       meta &&
+    //       meta._processingErrors &&
+    //       Array.isArray(meta._processingErrors)
+    //     ) {
+    //       for (const e of meta._processingErrors)
+    //         results.errors.push(`Adzuna: ${e}`);
+    //     }
+    //   } catch (e) {
+    //     console.error("Error reading Adzuna metadata:", e);
+    //   }
+    // } else if (adzunaRes.status === "rejected") {
+    //   results.errors.push(`Adzuna API failed: ${adzunaRes.reason}`);
+    // }
 
     console.log("Scraper completed:", results);
     return {
@@ -101,39 +137,57 @@ export const handler = async (): Promise<{
     throw error;
   }
 };
+async function fetchMuseJobs() {
+  const BASE_URL = "https://www.themuse.com/api/public/jobs";
+  const RESULTS_PER_PAGE = 20; // Assuming Muse API max is 20
+  const MAX_PAGES = Math.ceil(MAX_JOBS_PER_RUN / RESULTS_PER_PAGE);
+  let allJobs = [];
 
-async function fetchMuseJobs(): Promise<MuseJob[]> {
-  // Preserve the user's modified Muse request URL from the workspace file
-  const url =
-    "https://www.themuse.com/api/public/jobs?category=Software%20Engineer&category=Software%20Engineering&location=Flexible%20%2F%20Remote&location=United%20States&page=1";
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    try {
+      const response = await axios.get(BASE_URL, {
+        params: {
+          api_key: MUSE_API_KEY,
+          category: ["Software Engineer", "Software Engineering"],
+          location: ["Flexible / Remote", "United States"],
+          page: page,
+          page_count: RESULTS_PER_PAGE,
+        },
+      });
 
-  try {
-    const response = await axios.get(url, {
-      params: { api_key: MUSE_API_KEY },
-    });
-    const jobs = response.data.results || [];
-    console.log(`Fetched ${jobs.length} jobs from Muse`);
-    // sanitize HTML from job.contents and set a normalized `content` field
-    const sanitized = (jobs as any[]).slice(0, MAX_JOBS_PER_RUN).map((j) => {
-      const raw = j && (j.contents || j.contents === "") ? j.contents : "";
-      try {
-        const $ = cheerio.load(String(raw));
-        const text = $("body").text().replace(/\s+/g, " ").trim();
-        return { ...j, contents: text };
-      } catch (e) {
-        const text = String(raw)
-          .replace(/<[^>]*>/g, "")
-          .replace(/\s+/g, " ")
-          .trim();
-        return { ...j, contents: text };
+      const jobs = response.data.results || [];
+      console.log(`Fetched ${jobs.length} jobs from Muse (Page ${page})`);
+
+      allJobs.push(...jobs); // Stop if we've hit the overall limit or the API returns fewer results than expected
+
+      if (
+        allJobs.length >= MAX_JOBS_PER_RUN ||
+        jobs.length < RESULTS_PER_PAGE
+      ) {
+        break;
       }
-    });
-
-    return sanitized as MuseJob[];
-  } catch (err) {
-    console.error("Error fetching Muse jobs:", err);
-    return [];
+    } catch (err) {
+      console.error(`Error fetching Muse jobs on page ${page}:`, err);
+      break; // Stop fetching on error
+    }
   }
+  console.log(`Total fetched ${allJobs.length} jobs from Muse`);
+
+  const sanitized = allJobs.slice(0, MAX_JOBS_PER_RUN).map((j) => {
+    const raw = j && (j.contents || j.contents === "") ? j.contents : "";
+    try {
+      const $ = cheerio.load(String(raw));
+      const text = $("body").text().replace(/\s+/g, " ").trim();
+      return { ...j, contents: text };
+    } catch (e) {
+      const text = String(raw)
+        .replace(/<[^>]*>/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+      return { ...j, contents: text };
+    }
+  });
+  return sanitized;
 }
 
 type AdzunaFetchResult = {
