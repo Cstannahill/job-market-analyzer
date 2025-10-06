@@ -144,7 +144,7 @@ function App() {
       )}
 
       {/* Filters */}
-      <div className="filters-section">
+      {/* <div className="filters-section">
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flex: 1 }}>
           <Label htmlFor="search-input" className="label-inline">Search</Label>
           <Input
@@ -180,7 +180,7 @@ function App() {
       </div>
 
       {/* Results */}
-      <div className="results-info">Showing {filteredPostings.length} of {jobPostings.length} job postings</div>
+      {/* <div className="results-info">Showing {filteredPostings.length} of {jobPostings.length} job postings</div> */}
 
     </Layout>
   );

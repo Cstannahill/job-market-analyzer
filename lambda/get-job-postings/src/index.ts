@@ -44,18 +44,38 @@ export const handler = async (
     }
 
     // Get query parameters for pagination (optional)
-    const limit = event.queryStringParameters?.limit
-      ? parseInt(event.queryStringParameters.limit)
-      : 50; // Default to 50 items
+    const limitParam = event.queryStringParameters?.limit;
+    const requestedLimit = limitParam ? parseInt(limitParam) : undefined;
 
-    // Scan DynamoDB table
-    const command = new ScanCommand({
-      TableName: process.env.DYNAMODB_TABLE_NAME || "JobPostings",
-      Limit: limit,
-    });
+    // If a numeric limit is provided, we will respect it. If not provided,
+    // paginate through all Scan pages to return the full result set (careful
+    // with very large tables — consider using a count-only endpoint or
+    // pagination in the client for production).
 
-    const response = await docClient.send(command);
-    const jobPostings = (response.Items || []) as JobPosting[];
+    const TableName = process.env.DYNAMODB_TABLE_NAME || "JobPostings";
+    const jobPostings: JobPosting[] = [];
+    let ExclusiveStartKey: Record<string, unknown> | undefined = undefined;
+
+    do {
+      const cmdInput: any = { TableName };
+      if (typeof requestedLimit === "number") cmdInput.Limit = requestedLimit;
+      if (ExclusiveStartKey) cmdInput.ExclusiveStartKey = ExclusiveStartKey;
+
+      const response = await docClient.send(new ScanCommand(cmdInput));
+      const items = (response.Items || []) as JobPosting[];
+      jobPostings.push(...items);
+
+      ExclusiveStartKey = (response as any).LastEvaluatedKey;
+
+      // If a numeric limit was specified, stop after first page — we've honored Limit
+      // (or when we've accumulated at least that many items)
+      if (
+        typeof requestedLimit === "number" &&
+        jobPostings.length >= requestedLimit
+      ) {
+        break;
+      }
+    } while (ExclusiveStartKey);
 
     // Sort by date (newest first)
     jobPostings.sort((a, b) => {

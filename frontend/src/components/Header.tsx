@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 export const Header: React.FC = () => {
     return (
-        <header className="bg-white shadow-lg mb-3 rounded-lg p-2" role="banner">
+        <header className="bg-white shadow-lg mb-3 rounded-lg w-full p-5" role="banner">
             {/* Skip link for keyboard users */}
             <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:bg-white focus:px-3 focus:py-2 focus:rounded-md focus:shadow-md">Skip to content</a>
 

@@ -15,17 +15,37 @@
 .job-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 12px;
   gap: 12px;
   flex-wrap: wrap;
 }
 
+.job-header-left {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.company-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #eef2ff, #e9d5ff);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #3730a3;
+  font-size: 1rem;
+  flex: 0 0 auto;
+}
+
 .job-title {
   margin: 0;
-  font-size: 1.5rem;
-  color: #1f2937;
-  font-weight: 600;
+  font-size: 1.25rem;
+  color: #0f172a;
+  font-weight: 700;
   line-height: 1.15;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -56,12 +76,12 @@
 .meta-pill {
   display: inline-block;
   margin-right: 8px;
-  padding: 6px 10px;
-  background: #eef2ff;
-  color: #3730a3;
+  padding: 4px 8px;
+  background: #f3f4f6;
+  color: #374151;
   border-radius: 999px;
   font-weight: 600;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
 }
 
 .salary {
@@ -80,29 +100,59 @@
 
 .job-section h4 {
   margin: 0 0 12px 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #374151;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #111827;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .tag-container {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  align-items: center;
+}
+
+/* Requirements: allow wrapping but clamp very long badge text */
+.requirements-container .requirement-badge {
+  max-width: 100%;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.3;
+  position: relative;
+}
+
+.requirements-container .requirement-badge.clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.requirements-container .requirement-badge.clamped::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 40%;
+  height: 1.2em;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0), #ffffff);
+  pointer-events: none;
 }
 
 .tag {
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: transform 0.1s;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: #f8fafc;
+  color: #0f172a;
+  border: 1px solid #eef2f5;
 }
 
 .tag:hover {
-  transform: scale(1.05);
+  transform: translateY(-1px);
 }
 
 .tag-technology {
@@ -122,6 +172,20 @@
   padding: 12px;
   border-radius: 6px;
   border-left: 3px solid #3b82f6;
+}
+
+.company-name {
+  font-size: 0.9rem;
+  color: #374151;
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+.company-name-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
 }
 
 /* Responsive adjustments */

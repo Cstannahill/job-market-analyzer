@@ -11,12 +11,12 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: ["./src/setupTests.ts"],
-    // Only run tests inside our source tree; exclude node_modules and e2e runners
+    // Pick up tests moved to project root /tests plus any legacy src tests
     include: [
-      "src/**/*.test.{js,ts,jsx,tsx,mjs}",
-      "src/**/*.spec.{js,ts,jsx,tsx,mjs}",
+      "tests/**/*.{test,spec}.{js,ts,jsx,tsx,mjs}",
+      "src/**/*.{test,spec}.{js,ts,jsx,tsx,mjs}",
     ],
-    exclude: ["**/node_modules/**", "e2e/**"],
+    exclude: ["**/node_modules/**", "e2e/**", "dist/**"],
     coverage: {
       reporter: ["text", "lcov"],
     },

@@ -19,7 +19,7 @@ export default function SkillCard({ skill, onClick }: Props) {
                         {skill.skill}
                     </h4>
                     <div className="text-xs sm:text-sm text-gray-500 whitespace-normal break-words">
-                        {skill.region || 'global'} · {skill.seniority || 'all'}
+                        <p><span className="text-xs">Region -</span> {skill.region || 'global'} </p> <p><span className="text-xs">Seniority -</span> {skill.seniority || 'all'}</p>
                     </div>
                 </div>
                 <div className="text-right shrink-0">

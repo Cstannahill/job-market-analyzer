@@ -1,6 +1,7 @@
+import React from 'react';
 import { render, screen } from '@testing-library/react';
-import SkillDetailPanel from '../frontend/src/components/trends/SkillDetailPanel';
-import { type SkillTrend } from '../frontend/src/services/trends';
+import SkillDetailPanel from './SkillDetailPanel';
+import { type SkillTrend } from '../../services/trends';
 
 const SAMPLE: SkillTrend = {
     id: 'pk|sk', pk: 'pk', sk: 'sk', skill: 'React', region: 'US', seniority: 'mid', type: 'framework',

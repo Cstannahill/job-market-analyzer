@@ -22,13 +22,19 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
     return (
         <div className="job-card">
             <div className="job-card-header">
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <h3 className="job-title">{posting.title}</h3>
-                    <span className="job-meta-row">
-                        {posting.industry && <span className="meta-pill">{posting.industry}</span>}
-                        {('company_size' in posting) && posting.company_size && <span className="meta-pill">{posting.company_size}</span>}
-                        {('remote_status' in posting) && posting.remote_status && <span className="meta-pill">{posting.remote_status}</span>}
-                    </span>
+                <div className="job-header-left">
+                    <div className="company-badge" aria-hidden>
+                        {posting.company ? posting.company.charAt(0).toUpperCase() : posting.source_file?.charAt(0).toUpperCase()}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <h3 className="job-title">{posting.title}</h3>
+                        <div className="company-name-row">
+                            {posting.company && <span className="company-name">{posting.company}</span>}
+                            {posting.industry && <span className="meta-pill">{posting.industry}</span>}
+                            {('company_size' in posting) && posting.company_size && <span className="meta-pill">{posting.company_size}</span>}
+                            {('remote_status' in posting) && posting.remote_status && <span className="meta-pill">{posting.remote_status}</span>}
+                        </div>
+                    </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                     {('salary_range' in posting) && posting.salary_range ? <div className="salary">{posting.salary_range}</div> : null}
@@ -89,10 +95,21 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
             {('requirements' in posting) && posting.requirements && posting.requirements.length > 0 && (
                 <div className="job-section">
                     <h4>Requirements</h4>
-                    <div className="tag-container">
-                        {posting.requirements!.map((r: string, i: number) => (
-                            <Badge key={i} className="tag tag-req" variant="secondary">{r}</Badge>
-                        ))}
+                    <div className="tag-container requirements-container">
+                        {posting.requirements!.map((r: string, i: number) => {
+                            // heuristic: long requirements get line clamp
+                            const isLong = r.length > 90; // adjust threshold as needed
+                            return (
+                                <Badge
+                                    key={i}
+                                    className={`tag tag-req requirement-badge ${isLong ? 'clamped' : ''}`}
+                                    variant="secondary"
+                                    title={r}
+                                >
+                                    {r}
+                                </Badge>
+                            );
+                        })}
                     </div>
                 </div>
             )}

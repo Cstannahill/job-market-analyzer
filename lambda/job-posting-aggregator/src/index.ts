@@ -137,57 +137,39 @@ export const handler = async (): Promise<{
     throw error;
   }
 };
-async function fetchMuseJobs() {
-  const BASE_URL = "https://www.themuse.com/api/public/jobs";
-  const RESULTS_PER_PAGE = 20; // Assuming Muse API max is 20
-  const MAX_PAGES = Math.ceil(MAX_JOBS_PER_RUN / RESULTS_PER_PAGE);
-  let allJobs = [];
 
-  for (let page = 1; page <= MAX_PAGES; page++) {
-    try {
-      const response = await axios.get(BASE_URL, {
-        params: {
-          api_key: MUSE_API_KEY,
-          category: ["Software Engineer", "Software Engineering"],
-          location: ["Flexible / Remote", "United States"],
-          page: page,
-          page_count: RESULTS_PER_PAGE,
-        },
-      });
+async function fetchMuseJobs(): Promise<MuseJob[]> {
+  // Preserve the user's modified Muse request URL from the workspace file
+  const url =
+    "https://www.themuse.com/api/public/jobs?category=Software%20Engineer&category=Software%20Engineering&location=Flexible%20%2F%20Remote&location=United%20States&page=1";
 
-      const jobs = response.data.results || [];
-      console.log(`Fetched ${jobs.length} jobs from Muse (Page ${page})`);
-
-      allJobs.push(...jobs); // Stop if we've hit the overall limit or the API returns fewer results than expected
-
-      if (
-        allJobs.length >= MAX_JOBS_PER_RUN ||
-        jobs.length < RESULTS_PER_PAGE
-      ) {
-        break;
+  try {
+    const response = await axios.get(url, {
+      params: { api_key: MUSE_API_KEY },
+    });
+    const jobs = response.data.results || [];
+    console.log(`Fetched ${jobs.length} jobs from Muse`);
+    // sanitize HTML from job.contents and set a normalized `content` field
+    const sanitized = (jobs as any[]).slice(0, MAX_JOBS_PER_RUN).map((j) => {
+      const raw = j && (j.contents || j.contents === "") ? j.contents : "";
+      try {
+        const $ = cheerio.load(String(raw));
+        const text = $("body").text().replace(/\s+/g, " ").trim();
+        return { ...j, contents: text };
+      } catch (e) {
+        const text = String(raw)
+          .replace(/<[^>]*>/g, "")
+          .replace(/\s+/g, " ")
+          .trim();
+        return { ...j, contents: text };
       }
-    } catch (err) {
-      console.error(`Error fetching Muse jobs on page ${page}:`, err);
-      break; // Stop fetching on error
-    }
-  }
-  console.log(`Total fetched ${allJobs.length} jobs from Muse`);
+    });
 
-  const sanitized = allJobs.slice(0, MAX_JOBS_PER_RUN).map((j) => {
-    const raw = j && (j.contents || j.contents === "") ? j.contents : "";
-    try {
-      const $ = cheerio.load(String(raw));
-      const text = $("body").text().replace(/\s+/g, " ").trim();
-      return { ...j, contents: text };
-    } catch (e) {
-      const text = String(raw)
-        .replace(/<[^>]*>/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
-      return { ...j, contents: text };
-    }
-  });
-  return sanitized;
+    return sanitized as MuseJob[];
+  } catch (err) {
+    console.error("Error fetching Muse jobs:", err);
+    return [];
+  }
 }
 
 type AdzunaFetchResult = {

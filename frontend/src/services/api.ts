@@ -19,6 +19,7 @@ export interface JobPosting {
 export interface ExtendedJobPosting extends JobPosting {
   benefits?: string[];
   company_size?: string;
+  company?: string;
   industry?: string;
   processed_date?: string;
   remote_status?: string;
@@ -195,6 +196,14 @@ export const getJobPostings = async (): Promise<ExtendedJobPosting[]> => {
       );
       const company_size =
         (r.company_size as string) || (r.companySize as string) || undefined;
+      // Try to extract a company/employer name from common fields
+      const company =
+        (r.company as string) ||
+        (r.company_name as string) ||
+        (r.employer as string) ||
+        (r.employer_name as string) ||
+        (r.companyName as string) ||
+        undefined;
       const industry = (r.industry as string) || undefined;
       const processed_date = (r.processed_date as string) || undefined;
       const remote_status =
@@ -238,6 +247,7 @@ export const getJobPostings = async (): Promise<ExtendedJobPosting[]> => {
       return {
         Id: String(id),
         title: title,
+        company,
         skills,
         technologies,
         raw_text: raw_text,
