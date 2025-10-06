@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import SkillCard from './SkillCard';
-import { SkillTrend } from '../../services/trends';
+import SkillCard from '../frontend/src/components/trends/SkillCard';
+import { SkillTrend } from '../frontend/src/services/trends';
 
 const SAMPLE: SkillTrend = {
     id: 'pk|sk',

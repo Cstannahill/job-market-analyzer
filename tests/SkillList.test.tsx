@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
-import SkillList from './SkillList';
-import { type SkillTrend } from '../../services/trends';
+import SkillList from '../frontend/src/components/trends/SkillList';
+import { type SkillTrend } from '../frontend/src/services/trends';
 
 const S: SkillTrend = {
     id: '1', pk: 'pk', sk: 'sk', skill: 'Node', region: 'US', seniority: 'mid', type: 'runtime',

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizeRow } from "./trends";
+import { normalizeRow } from "../frontend/src/services/trends";
 
 describe("trends.normalizeRow", () => {
   it("parses a spring boot sample", () => {
