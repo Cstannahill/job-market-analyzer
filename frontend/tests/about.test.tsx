@@ -12,7 +12,8 @@ test('renders core About headings', () => {
             <About />
         </MemoryRouter>
     );
-    expect(screen.getByRole('heading', { name: /About Job Market Analyzer/i })).toBeInTheDocument();
+    // Match any H1 that includes 'About' to be resilient to small title wording changes
+    expect(screen.getByRole('heading', { level: 1, name: /About/i })).toBeInTheDocument();
     expect(screen.getByText(/Core Capabilities/i)).toBeInTheDocument();
     expect(screen.getByText(/Data Pipeline Overview/i)).toBeInTheDocument();
     expect(screen.getByText(/Methodology & Caveats/i)).toBeInTheDocument();

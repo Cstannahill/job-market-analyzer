@@ -1,15 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from './components/ui/card';
-import { Input } from './components/ui/input';
-import { Label } from './components/ui/label';
 import { Button } from './components/ui/button';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from './components/ui/select';
 import { Spinner } from './components/ui/spinner';
 import { getJobPostings, getTechnologyCounts, type ExtendedJobPosting } from './services/api';
 import { Layout } from './components/Layout';
@@ -19,8 +10,7 @@ function App() {
   const [jobPostings, setJobPostings] = useState<ExtendedJobPosting[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTech, setSelectedTech] = useState<string>('__all__');
+
 
   // Fetch job postings on mount
   useEffect(() => {
@@ -28,24 +18,7 @@ function App() {
   }, []);
 
   // Derived filtered postings
-  const filteredPostings = useMemo(() => {
-    let filtered = jobPostings;
 
-    if (searchTerm) {
-      const lowerSearch = searchTerm.toLowerCase();
-      filtered = filtered.filter(posting =>
-        posting.title.toLowerCase().includes(lowerSearch) ||
-        posting.skills.some(skill => skill.toLowerCase().includes(lowerSearch)) ||
-        posting.technologies.some(tech => tech.toLowerCase().includes(lowerSearch))
-      );
-    }
-
-    if (selectedTech && selectedTech !== '__all__') {
-      filtered = filtered.filter(posting => posting.technologies.includes(selectedTech));
-    }
-
-    return filtered;
-  }, [searchTerm, selectedTech, jobPostings]);
 
   const fetchJobPostings = async () => {
     try {
