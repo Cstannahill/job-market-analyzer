@@ -255,8 +255,8 @@ ${job.contents}
 Return ONLY valid JSON array with no markdown, explanations, or code blocks.
 
 For each job, extract:
-- technologies: array of specific tech/tools mentioned (lowercase)
-- skills: array of skill requirements (as stated in posting)
+- technologies: array of specific tech/tools mentioned (lowercase, normalized - e.g. "python", "javascript", "aws", "docker")
+- skills: array of skill requirements extracted as SHORT, NORMALIZED terms (e.g. "python" not "5+ years Python experience", "leadership" not "strong leadership abilities")
 - requirements: array of key requirements (education, years of experience, etc.)
 - seniority_level: "Entry", "Mid", "Senior", or "Lead" (infer from context)
 - salary_mentioned: boolean

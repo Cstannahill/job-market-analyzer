@@ -151,7 +151,22 @@ function aggregateSkills(jobs: EnrichedJob[]): Map<string, SkillAggregate> {
 
     // Process each skill
     for (const skill of allSkills) {
-      const normalizedSkill = skill.toLowerCase().trim();
+      let normalizedSkill = skill.toLowerCase().trim();
+      normalizedSkill = normalizedSkill
+        .replace(
+          /^(skill in|knowledge of|experience with|proficiency in)\s+/i,
+          ""
+        )
+        .replace(/\s+(language|framework|library|tool|scripting)$/i, "")
+        .trim();
+      normalizedSkill = normalizedSkill
+        .replace(
+          /^(skill in|knowledge of|experience with|proficiency in)\s+/i,
+          ""
+        )
+        .replace(/\s+(language|framework|library|tool|scripting)$/i, "")
+        .trim();
+      if (normalizedSkill.split(" ").length > 3) continue;
       if (!normalizedSkill) continue;
 
       const key = `${normalizedSkill}::${region}::${seniority}`;

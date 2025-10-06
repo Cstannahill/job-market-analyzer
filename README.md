@@ -113,56 +113,126 @@ I can add a `scripts/pack-all.js` file if you want a cross-platform Node script 
 The diagram below shows the intended production architecture for the _completed_ Job Market Analyzer system (aggregation, resume comparison, scheduled ingestion, and dashboard delivery). This reflects the full design described in `JobMarketAnalyzer.md` and the Phase 1 implementation status noted above.
 
 ```mermaid
+graph TB
+    subgraph "Data Sources"
+        Muse[The Muse API]
+        Adzuna[Adzuna API]
+        User[User Upload]
+    end
+
+    subgraph "Ingestion Layer"
+        Scraper[Job Scraper Lambda<br/>Scheduled: 6h]
+        S3Jobs[S3: Job Postings<br/>JSON Files]
+    end
+
+    subgraph "Processing Layer"
+        RegexExtract[Skill Extractor<br/>Regex-based<br/>Trigger: S3 Upload]
+        LLMEnrich[LLM Enrichment<br/>DeepSeek v3.1<br/>Scheduled: Hourly]
+        Aggregator[Trends Aggregator<br/>Scheduled: Daily]
+    end
+
+    subgraph "Storage Layer"
+        DBJobs[(JobPostings<br/>Basic Data)]
+        DBEnriched[(JobPostingsEnriched<br/>LLM Analysis)]
+        DBTrends[(SkillTrends<br/>Aggregated Metrics)]
+    end
+
+    subgraph "API Layer"
+        API[API Gateway]
+        GetJobs[Get Jobs Lambda]
+        GetTrends[Get Trends Lambda]
+    end
+
+    subgraph "Presentation"
+        Dashboard[React Dashboard<br/>Amplify Hosted]
+    end
+
+    Muse --> Scraper
+    Adzuna --> Scraper
+    Scraper --> S3Jobs
+    S3Jobs --> RegexExtract
+    S3Jobs --> LLMEnrich
+
+    RegexExtract --> DBJobs
+    LLMEnrich --> DBEnriched
+    DBEnriched --> Aggregator
+    Aggregator --> DBTrends
+
+    Dashboard --> API
+    API --> GetJobs
+    API --> GetTrends
+    GetJobs --> DBJobs
+    GetTrends --> DBTrends
+
+    classDef lambdaStyle fill:#fef3c7,stroke:#333,color:#000
+    classDef llmStyle fill:#e0e7ff,stroke:#333,color:#000
+    classDef frontendStyle fill:#9fdfbf,stroke:#333,color:#000
+
+    class Scraper,RegexExtract,Aggregator,GetJobs,GetTrends lambdaStyle
+    class LLMEnrich llmStyle
+    class Dashboard frontendStyle
+```
+
+```mermaid
 flowchart LR
   subgraph Ingest
-    A[S3: postings-bucket / resumes-bucket] -->|ObjectCreated| IngestLambda[Lambda: Ingest & Normalize]
-    Scraper[Scraper (optional)] -->|pushes files| A
+    A[S3: postings-bucket] -->|ObjectCreated| IngestLambda[Lambda: Skill Extractor Regex]
+    Scraper[Scraper Lambda] -->|pushes files| A
   end
 
-  IngestLambda --> Textract[Textract]
-  IngestLambda --> Comprehend[Comprehend]
-  Textract --> Comprehend
-  Comprehend --> DynamoDBJobs[(DynamoDB: JobPostings)]
+  IngestLambda --> DynamoDBJobs[(DynamoDB: JobPostings)]
+
+  subgraph LLM_Enrichment
+    EventBridge1[EventBridge: hourly] -->|triggers| EnrichLambda[Lambda: LLM Enrichment]
+    EnrichLambda -->|reads| A
+    EnrichLambda -->|OpenRouter API| LLM[DeepSeek v3.1]
+    EnrichLambda --> DynamoDBEnriched[(DynamoDB: JobPostingsEnriched)]
+  end
 
   subgraph Aggregation
-    EventBridge -->|cron/nightly| AggregatorLambda[Lambda: Aggregator]
-    AggregatorLambda --> DynamoDBJobs
+    EventBridge2[EventBridge: daily] -->|triggers| AggregatorLambda[Lambda: Trends Aggregator]
+    AggregatorLambda --> DynamoDBEnriched
     AggregatorLambda --> DynamoDBTrends[(DynamoDB: SkillTrends)]
   end
 
   subgraph Comparison
-    UploadResume[User uploads resume -> S3 resumes-bucket] --> ResumeLambda[Lambda: ResumeExtractor]
-    ResumeLambda --> Textract
-    ResumeLambda --> Comprehend
+    UploadResume[User uploads resume] --> ResumeS3[S3: resumes-bucket]
+    ResumeS3 -->|ObjectCreated| ResumeLambda[Lambda: Resume Extractor]
+    ResumeLambda --> Textract[Textract]
     ResumeLambda --> DynamoDBCandidates[(DynamoDB: CandidateProfile)]
-    APICompare[API Gateway -> CompareLambda] --> DynamoDBTrends
-    APICompare --> DynamoDBCandidates
+    APICompare[API: /compare] --> CompareLambda[Lambda: Compare]
+    CompareLambda --> DynamoDBTrends
+    CompareLambda --> DynamoDBCandidates
   end
 
-  subgraph Frontend
-    Frontend[React + CloudFront/Amplify] -->|API calls| API[API Gateway]
-    API -->|queries| ReadLambda[Lambda: Read APIs]
-    ReadLambda --> DynamoDBJobs
-    ReadLambda --> DynamoDBTrends
+  subgraph UI
+    WebApp[React + Amplify] -->|API calls| API[API Gateway]
+    API -->|/job-postings| ReadJobsLambda[Lambda: Get Jobs]
+    API -->|/trends/*| ReadTrendsLambda[Lambda: Get Trends]
+    ReadJobsLambda --> DynamoDBJobs
+    ReadTrendsLambda --> DynamoDBTrends
   end
 
   subgraph Storage
     DynamoDBJobs
+    DynamoDBEnriched
     DynamoDBTrends
     DynamoDBCandidates
   end
 
-  Monitoring[CloudWatch / X-Ray / Alerts]
-  IngestLambda --> Monitoring
-  AggregatorLambda --> Monitoring
-  ResumeLambda --> Monitoring
-  ReadLambda --> Monitoring
+  Monitoring[CloudWatch Logs] -.-> IngestLambda
+  Monitoring -.-> EnrichLambda
+  Monitoring -.-> AggregatorLambda
+  Monitoring -.-> ResumeLambda
+  Monitoring -.-> ReadJobsLambda
+  Monitoring -.-> ReadTrendsLambda
 
   style A fill:#f9f,stroke:#333,stroke-width:1px
-  style Frontend fill:#9fdfbf
+  style UI fill:#9fdfbf
   style Aggregation fill:#fef3c7
   style Comparison fill:#cfe8ff
   style Storage fill:#fff0f6
+  style LLM_Enrichment fill:#e0e7ff
 ```
 
 Notes:

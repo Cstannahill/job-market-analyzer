@@ -66,7 +66,7 @@ export const Nav: React.FC = () => {
     return (
         <nav className="main-nav" aria-label="Main navigation" role="navigation" ref={containerRef}>
             {/* Desktop nav */}
-            <div className="hidden md:flex mx-3">
+            <div className="hidden md:flex mx-3 text-fu">
                 <ul className="flex gap-4 items-center list-none m-0 p-0">
                     {NavLinks.map((l) => (
                         <li key={l.to} className="nav-item">
@@ -77,6 +77,7 @@ export const Nav: React.FC = () => {
                                     'inline-block px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors',
                                     isActive ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100',
                                 ].join(' ')}
+                                style={({ isActive }) => ({ color: isActive ? '#ffffff' : undefined })}
                             >
                                 {l.label}
                             </NavLink>
@@ -122,6 +123,7 @@ export const Nav: React.FC = () => {
                                                 'block px-3 py-2 rounded-md text-base font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors',
                                                 isActive ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100',
                                             ].join(' ')}
+                                            style={({ isActive }) => ({ color: isActive ? '#ffffff' : undefined })}
                                         >
                                             {l.label}
                                         </NavLink>
