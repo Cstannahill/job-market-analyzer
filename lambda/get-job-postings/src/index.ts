@@ -45,37 +45,43 @@ export const handler = async (
 
     // Get query parameters for pagination (optional)
     const limitParam = event.queryStringParameters?.limit;
-    const requestedLimit = limitParam ? parseInt(limitParam) : undefined;
+    const requestedLimit = limitParam ? parseInt(limitParam, 10) : undefined;
+    const lastKeyParam = event.queryStringParameters?.lastKey;
 
-    // If a numeric limit is provided, we will respect it. If not provided,
-    // paginate through all Scan pages to return the full result set (careful
-    // with very large tables — consider using a count-only endpoint or
-    // pagination in the client for production).
-
-    const TableName = process.env.DYNAMODB_TABLE_NAME || "JobPostings";
-    const jobPostings: JobPosting[] = [];
+    // lastKey is expected to be a base64-encoded JSON string of the LastEvaluatedKey
     let ExclusiveStartKey: Record<string, unknown> | undefined = undefined;
-
-    do {
-      const cmdInput: any = { TableName };
-      if (typeof requestedLimit === "number") cmdInput.Limit = requestedLimit;
-      if (ExclusiveStartKey) cmdInput.ExclusiveStartKey = ExclusiveStartKey;
-
-      const response = await docClient.send(new ScanCommand(cmdInput));
-      const items = (response.Items || []) as JobPosting[];
-      jobPostings.push(...items);
-
-      ExclusiveStartKey = (response as any).LastEvaluatedKey;
-
-      // If a numeric limit was specified, stop after first page — we've honored Limit
-      // (or when we've accumulated at least that many items)
-      if (
-        typeof requestedLimit === "number" &&
-        jobPostings.length >= requestedLimit
-      ) {
-        break;
+    if (lastKeyParam) {
+      try {
+        const decoded = Buffer.from(lastKeyParam, "base64").toString("utf8");
+        ExclusiveStartKey = JSON.parse(decoded) as Record<string, unknown>;
+      } catch (err) {
+        console.warn("Invalid lastKey param, ignoring:", lastKeyParam);
       }
-    } while (ExclusiveStartKey);
+    }
+    const TableName = process.env.DYNAMODB_TABLE_NAME || "JobPostings";
+    // If pagination params are provided (limit or lastKey), return a single page
+    // Otherwise, fall back to scanning the entire table (previous behavior).
+    const jobPostings: JobPosting[] = [];
+    let response: any = null;
+
+    const cmdInput: any = { TableName };
+    if (typeof requestedLimit === "number") cmdInput.Limit = requestedLimit;
+    if (ExclusiveStartKey) cmdInput.ExclusiveStartKey = ExclusiveStartKey;
+
+    response = await docClient.send(new ScanCommand(cmdInput));
+    const items = (response.Items || []) as JobPosting[];
+    jobPostings.push(...items);
+
+    const rawLastKey = (response as any).LastEvaluatedKey;
+    let encodedLastKey: string | undefined = undefined;
+    if (rawLastKey) {
+      try {
+        const json = JSON.stringify(rawLastKey);
+        encodedLastKey = Buffer.from(json, "utf8").toString("base64");
+      } catch (err) {
+        console.warn("Failed to encode LastEvaluatedKey", err);
+      }
+    }
 
     // Sort by date (newest first)
     jobPostings.sort((a, b) => {
@@ -84,6 +90,37 @@ export const handler = async (
 
     console.log(`Successfully retrieved ${jobPostings.length} job postings`);
 
+    // If no pagination params were provided, and requestedLimit is undefined
+    // keep legacy behavior and scan the entire table (careful on large tables).
+    if (typeof requestedLimit !== "number" && !lastKeyParam) {
+      // continue scanning to collect all pages
+      let ExclusiveStart = (response as any).LastEvaluatedKey;
+      while (ExclusiveStart) {
+        const next = await docClient.send(
+          new ScanCommand({ TableName, ExclusiveStartKey: ExclusiveStart })
+        );
+        const nextItems = (next.Items || []) as JobPosting[];
+        jobPostings.push(...nextItems);
+        ExclusiveStart = (next as any).LastEvaluatedKey;
+      }
+
+      // Sort by date (newest first)
+      jobPostings.sort((a, b) => {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      });
+
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          count: jobPostings.length,
+          data: jobPostings,
+        }),
+      };
+    }
+
+    // Paginated response: return page + lastKey token (if any)
     return {
       statusCode: 200,
       headers,
@@ -91,6 +128,7 @@ export const handler = async (
         success: true,
         count: jobPostings.length,
         data: jobPostings,
+        lastKey: encodedLastKey ?? null,
       }),
     };
   } catch (error) {

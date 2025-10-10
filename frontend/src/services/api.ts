@@ -281,6 +281,206 @@ export const getJobPostings = async (): Promise<ExtendedJobPosting[]> => {
 };
 
 /**
+ * Fetch a single page of job postings from the API using server-side pagination.
+ * Returns items, count, and a lastKey token (base64) to fetch the next page.
+ */
+export const getJobPostingsPage = async (opts?: {
+  limit?: number;
+  lastKey?: string | null;
+}): Promise<{
+  items: ExtendedJobPosting[];
+  count: number;
+  lastKey?: string | null;
+}> => {
+  const params: Record<string, string> = {};
+  if (opts?.limit) params.limit = String(opts.limit);
+  if (opts?.lastKey) params.lastKey = opts.lastKey;
+
+  const q = new URLSearchParams(params).toString();
+  const url = `${API_URL}/job-postings${q ? `?${q}` : ""}`;
+  const response = await axios.get(url);
+  let payload = response.data;
+
+  if (typeof payload === "object" && payload !== null) {
+    const proxy = payload as Record<string, unknown>;
+    if ("statusCode" in proxy && typeof proxy.body === "string") {
+      try {
+        payload = JSON.parse(proxy.body as string);
+      } catch (e) {
+        // ignore parse errors and use raw body
+        console.warn("Failed to parse proxy body as JSON", e);
+      }
+    }
+  }
+
+  const p = (payload as Record<string, unknown>) || {};
+  const itemsRaw = Array.isArray(p.data)
+    ? p.data
+    : Array.isArray(p.items)
+    ? p.items
+    : [];
+
+  const items: ExtendedJobPosting[] = (itemsRaw as unknown[]).map((r) => {
+    const row = r as Record<string, unknown>;
+    return {
+      Id: String(row["Id"] ?? row["id"] ?? row["jobId"] ?? ""),
+      title: String(row["title"] ?? row["job_title"] ?? ""),
+      skills: Array.isArray(row["skills"]) ? (row["skills"] as string[]) : [],
+      technologies: Array.isArray(row["technologies"])
+        ? (row["technologies"] as string[])
+        : [],
+      raw_text: String(row["raw_text"] ?? row["description"] ?? ""),
+      date: String(row["date"] ?? row["processed_date"] ?? ""),
+      source_file: String(row["source_file"] ?? row["source"] ?? ""),
+      company: String(row["company_name"] ?? "Unknown"),
+      location: String(row["location"] ?? "Unknown"),
+      industry: String(row["industry"] ?? "Unknown"),
+      seniority_level: String(row["seniority_level"] ?? "Unknown"),
+    } as ExtendedJobPosting;
+  });
+
+  const lastKey = (p.lastKey as string) ?? null;
+  const count = typeof p.count === "number" ? p.count : items.length;
+  return { items, count, lastKey };
+};
+
+/**
+ * Fetch aggregated job postings stats (counts) from the API
+ */
+export const getJobPostingsStats = async (): Promise<{
+  totalPostings: number;
+  totalTechnologies: number;
+  totalSkills: number;
+  technologyCounts: Record<string, number>;
+  skillCounts?: Record<string, number>;
+  items?: ExtendedJobPosting[];
+}> => {
+  try {
+    const response = await axios.get(`${API_URL}/job-stats`);
+
+    let payload = response.data;
+
+    // Unwrap Lambda proxy responses (statusCode/body)
+    if (typeof payload === "object" && payload !== null) {
+      const proxy = payload as Record<string, unknown>;
+      if ("statusCode" in proxy && typeof proxy.body === "string") {
+        try {
+          payload = JSON.parse(proxy.body as string);
+        } catch {
+          // fall through
+        }
+      }
+    }
+
+    // Some lambdas return { success: true, data: "<json string>" }
+    if (
+      payload &&
+      typeof payload === "object" &&
+      typeof (payload as Record<string, unknown>).data === "string"
+    ) {
+      try {
+        payload = JSON.parse(
+          (payload as Record<string, unknown>).data as string
+        );
+      } catch {
+        // leave as-is if not parseable
+      }
+    }
+
+    const p = (payload as Record<string, unknown>) || {};
+
+    const extractNumber = (k1: string, k2?: string, fallback = 0): number => {
+      const v1 = p[k1];
+      const v2 = k2 ? p[k2] : undefined;
+      if (typeof v1 === "number") return v1;
+      if (typeof v2 === "number") return v2;
+      if (typeof v1 === "string") return Number(v1) || fallback;
+      if (typeof v2 === "string") return Number(v2) || fallback;
+      return fallback;
+    };
+
+    const technologyCountsRaw =
+      (p["technologyCounts"] as Record<string, number> | undefined) ||
+      (p["technology_counts"] as Record<string, number> | undefined) ||
+      (p["technologies"] as Record<string, number> | undefined) ||
+      {};
+
+    const technologyCounts: Record<string, number> = {};
+    // coerce values to numbers
+    Object.entries(technologyCountsRaw || {}).forEach(([k, v]) => {
+      technologyCounts[k] = typeof v === "number" ? v : Number(v) || 0;
+    });
+
+    const totalPostings = extractNumber("totalPostings", "total_postings", 0);
+    const totalTechnologies = extractNumber(
+      "totalTechnologies",
+      "total_technologies",
+      Object.keys(technologyCounts).length
+    );
+    const totalSkills = extractNumber("totalSkills", "total_skills", 0);
+
+    const skillCountsRaw =
+      (p["skillCounts"] as Record<string, number> | undefined) ||
+      (p["skill_counts"] as Record<string, number> | undefined) ||
+      undefined;
+    const skillCounts = skillCountsRaw
+      ? Object.fromEntries(
+          Object.entries(skillCountsRaw).map(([k, v]) => [
+            k,
+            typeof v === "number" ? v : Number(v) || 0,
+          ])
+        )
+      : undefined;
+
+    const pData = p["data"];
+    const rawItems = Array.isArray(p["items"])
+      ? (p["items"] as unknown[])
+      : pData &&
+        typeof pData === "object" &&
+        Array.isArray((pData as Record<string, unknown>).items)
+      ? ((pData as Record<string, unknown>).items as unknown[])
+      : undefined;
+
+    // Narrow rawItems to ExtendedJobPosting[] if possible
+    let items: ExtendedJobPosting[] | undefined = undefined;
+    if (rawItems && Array.isArray(rawItems)) {
+      items = rawItems
+        .filter((it) => it && typeof it === "object")
+        .map((it) => {
+          const r = it as Record<string, unknown>;
+          return {
+            Id: String(r["Id"] ?? r["id"] ?? r["jobId"] ?? ""),
+            title: String(r["title"] ?? r["job_title"] ?? ""),
+            skills: Array.isArray(r["skills"]) ? (r["skills"] as string[]) : [],
+            technologies: Array.isArray(r["technologies"])
+              ? (r["technologies"] as string[])
+              : [],
+            raw_text: String(r["raw_text"] ?? r["description"] ?? ""),
+            date: String(r["date"] ?? r["processed_date"] ?? ""),
+            source_file: String(r["source_file"] ?? r["source"] ?? ""),
+          } as ExtendedJobPosting;
+        });
+      if (items.length === 0) items = undefined;
+    }
+
+    return {
+      totalPostings,
+      totalTechnologies,
+      totalSkills,
+      technologyCounts,
+      skillCounts,
+      items,
+    };
+  } catch (error) {
+    console.error("Failed to fetch job postings stats:", error);
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Failed to fetch stats");
+    }
+    throw error;
+  }
+};
+
+/**
  * Get unique technologies across all job postings
  */
 export const getUniqueTechnologies = (jobPostings: JobPosting[]): string[] => {

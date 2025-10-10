@@ -2,7 +2,7 @@
   "name": "job-posting-aggregator",
   "version": "1.0.0",
   "description": "Lambda function to aggregate job postings in S3 bucket from various sources (APIs)",
-  "main": "dist/index.js",
+  "main": "index.js",
   "scripts": {
     "build": "npx tsup src"
   },

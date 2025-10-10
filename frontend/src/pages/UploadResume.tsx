@@ -1,5 +1,5 @@
 import React from 'react'
-import ResumeUploader from '../components/ResumeUploader'
+// import ResumeUploader from '../components/ResumeUploader'
 
 const UploadResume: React.FC = () => {
     return (
@@ -10,7 +10,7 @@ const UploadResume: React.FC = () => {
                 trends. Files are uploaded directly to S3 via Amplify Storage.
             </p>
 
-            <ResumeUploader />
+            {/* <ResumeUploader /> */}
         </main>
     )
 }

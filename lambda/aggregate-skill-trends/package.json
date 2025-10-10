@@ -2,7 +2,7 @@
   "name": "aggregate-skill-trends",
   "version": "1.0.0",
   "description": "Lambda function to aggregate skill trends from job postings",
-  "main": "dist/index.js",
+  "main": "index.js",
   "scripts": {
     "build": "npx tsup src"
   },

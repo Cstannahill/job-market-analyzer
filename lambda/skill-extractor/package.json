@@ -2,7 +2,7 @@
   "name": "skill-extractor",
   "version": "1.0.0",
   "description": "Lambda function to extract skills from job postings",
-  "main": "dist/index.js",
+  "main": "index.js",
   "scripts": {
     "build": "npx tsup src",
     "package": "npm run build && node ../../zip.js .",

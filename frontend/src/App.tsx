@@ -1,42 +1,33 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from './components/ui/card';
 import { Button } from './components/ui/button';
 import { Spinner } from './components/ui/spinner';
-import { getJobPostings, getTechnologyCounts, type ExtendedJobPosting } from './services/api';
+import { getJobPostingsStats } from './services/api';
 import { Layout } from './components/Layout';
 import './App.css';
 
 function App() {
-  const [jobPostings, setJobPostings] = useState<ExtendedJobPosting[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Fetch stats using React Query - this will be shared across all components
+  const {
+    data: stats,
+    isLoading: loading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ['job-postings-stats'],
+    queryFn: () => getJobPostingsStats(),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes
+    retry: 1,
+  });
 
+  const totalPostings = stats?.totalPostings || 0;
+  const totalTechnologies = stats?.totalTechnologies || 0;
+  const totalSkills = stats?.totalSkills || 0;
+  const technologyCounts = stats?.technologyCounts || {};
 
-  // Fetch job postings on mount
-  useEffect(() => {
-    fetchJobPostings();
-  }, []);
-
-  // Derived filtered postings
-
-
-  const fetchJobPostings = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await getJobPostings();
-      setJobPostings(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load job postings');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // filter logic is handled inline in useEffect
-
-  const techCounts = getTechnologyCounts(jobPostings);
-  const topTechnologies = Object.entries(techCounts)
+  const topTechnologies = Object.entries(technologyCounts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10);
 
@@ -51,13 +42,13 @@ function App() {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <Layout>
         <div className="error">
           <h2>Error Loading Data</h2>
-          <p>{error}</p>
-          <Button onClick={fetchJobPostings} variant="default">
+          <p>{error instanceof Error ? error.message : 'Failed to fetch stats'}</p>
+          <Button onClick={() => refetch()} variant="default">
             Retry
           </Button>
         </div>
@@ -71,21 +62,21 @@ function App() {
       <div className="stats-section">
         <Card className="stat-card">
           <CardContent>
-            <div className="stat-value">{jobPostings.length}</div>
+            <div className="stat-value">{totalPostings}</div>
             <div className="stat-label">Total Postings</div>
           </CardContent>
         </Card>
 
         <Card className="stat-card">
           <CardContent>
-            <div className="stat-value">{Object.keys(techCounts).length}</div>
+            <div className="stat-value">{totalTechnologies}</div>
             <div className="stat-label">Technologies</div>
           </CardContent>
         </Card>
 
         <Card className="stat-card">
           <CardContent>
-            <div className="stat-value">{jobPostings.reduce((sum, p) => sum + p.skills.length, 0)}</div>
+            <div className="stat-value">{totalSkills}</div>
             <div className="stat-label">Skills Extracted</div>
           </CardContent>
         </Card>
@@ -115,46 +106,6 @@ function App() {
           </div>
         </div>
       )}
-
-      {/* Filters */}
-      {/* <div className="filters-section">
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flex: 1 }}>
-          <Label htmlFor="search-input" className="label-inline">Search</Label>
-          <Input
-            id="search-input"
-            placeholder="Search by title, skill, or technology..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-        </div>
-
-        <Select value={selectedTech} onValueChange={(v) => setSelectedTech(v)}>
-          <SelectTrigger className="tech-filter">
-            <SelectValue placeholder="All Technologies" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__all__">All Technologies</SelectItem>
-            {Object.keys(techCounts)
-              .sort()
-              .map(tech => (
-                <SelectItem key={tech} value={tech}>
-                  {tech} ({techCounts[tech]})
-                </SelectItem>
-              ))}
-          </SelectContent>
-        </Select>
-
-        {(searchTerm || (selectedTech && selectedTech !== '__all__')) && (
-          <Button variant="outline" className="text-white" onClick={() => { setSearchTerm(''); setSelectedTech('__all__'); }}>
-            Clear Filters
-          </Button>
-        )}
-      </div>
-
-      {/* Results */}
-      {/* <div className="results-info">Showing {filteredPostings.length} of {jobPostings.length} job postings</div> */}
-
     </Layout>
   );
 }

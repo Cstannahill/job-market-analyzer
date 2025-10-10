@@ -9,11 +9,10 @@ import cheerio from "cheerio";
 const s3Client = new S3Client({});
 
 // Environment variables
-const ADZUNA_APP_ID = process.env.ADZUNA_APP_ID || "";
-const ADZUNA_API_KEY = process.env.ADZUNA_API_KEY || "";
 const MUSE_API_KEY = process.env.MUSE_API_KEY || "";
 const S3_BUCKET = process.env.S3_BUCKET || "job-postings-bucket-cstannahill";
-const MAX_JOBS_PER_RUN = 100; // Limit jobs per execution
+const MAX_PAGES_PER_RUN = 500; // Maximum pages to fetch per Lambda execution
+const DELAY_BETWEEN_REQUESTS = 100; // ms delay between API calls to be respectful
 
 interface MuseJob {
   id: number;
@@ -25,16 +24,14 @@ interface MuseJob {
   categories: Array<{ name: string }>;
 }
 
-interface AdzunaJob {
-  id: string;
-  title: string;
-  description: string;
-  created: string;
-  redirect_url?: string;
-  location?: { display_name?: string };
-  category?: { label?: string };
-  company?: { display_name?: string };
-  contents?: string | null;
+interface MuseApiResponse {
+  page: number;
+  page_count: number;
+  items_per_page: number;
+  took: number;
+  timed_out: boolean;
+  total: number;
+  results: MuseJob[];
 }
 
 function isDevRole(name: string): boolean {
@@ -68,64 +65,45 @@ export const handler = async (): Promise<{
   statusCode: number;
   body: string;
 }> => {
-  console.log("Starting job scraper (JSON-only)...");
+  console.log("Starting paginated job scraper...");
 
-  const results = { muse: 0, adzuna: 0, errors: [] as string[] };
+  const results = {
+    muse: 0,
+    pagesProcessed: 0,
+    totalPages: 0,
+    skippedNonDev: 0,
+    errors: [] as string[],
+  };
 
   try {
-    const [museRes] = await Promise.allSettled([
-      fetchMuseJobs(),
-      // fetchAdzunaJobs(),
-    ]);
+    const allJobs = await fetchAllMuseJobs(results);
 
-    if (museRes.status === "fulfilled" && Array.isArray(museRes.value)) {
-      for (const job of museRes.value) {
-        const name =
-          job && typeof job.name === "string"
-            ? job.name
-            : String(job?.name ?? "");
-        if (!isDevRole(name)) {
-          // optional: log or count skipped roles
-          console.debug("Skipping non-dev role:", name);
-          continue;
-        }
-        try {
-          const key = await saveJsonObjectToS3(
-            job,
-            "muse",
-            String((job as any).id || Date.now())
-          );
-          if (key) results.muse++;
-        } catch (err) {
-          console.error("Error saving Muse JSON:", err);
-          results.errors.push(
-            `Muse: ${err instanceof Error ? err.message : String(err)}`
-          );
-        }
+    for (const job of allJobs) {
+      const name =
+        job && typeof job.name === "string"
+          ? job.name
+          : String(job?.name ?? "");
+
+      if (!isDevRole(name)) {
+        console.debug("Skipping non-dev role:", name);
+        results.skippedNonDev++;
+        continue;
       }
-    } else if (museRes.status === "rejected") {
-      results.errors.push(`Muse API failed: ${museRes.reason}`);
-    }
 
-    // if (adzunaRes.status === "fulfilled") {
-    //   try {
-    //     const meta = adzunaRes.value as any;
-    //     if (meta && Array.isArray(meta._rawUploadedKeys))
-    //       results.adzuna = meta._rawUploadedKeys.length;
-    //     if (
-    //       meta &&
-    //       meta._processingErrors &&
-    //       Array.isArray(meta._processingErrors)
-    //     ) {
-    //       for (const e of meta._processingErrors)
-    //         results.errors.push(`Adzuna: ${e}`);
-    //     }
-    //   } catch (e) {
-    //     console.error("Error reading Adzuna metadata:", e);
-    //   }
-    // } else if (adzunaRes.status === "rejected") {
-    //   results.errors.push(`Adzuna API failed: ${adzunaRes.reason}`);
-    // }
+      try {
+        const key = await saveJsonObjectToS3(
+          job,
+          "muse",
+          String(job.id || Date.now())
+        );
+        if (key) results.muse++;
+      } catch (err) {
+        console.error("Error saving Muse JSON:", err);
+        results.errors.push(
+          `Muse: ${err instanceof Error ? err.message : String(err)}`
+        );
+      }
+    }
 
     console.log("Scraper completed:", results);
     return {
@@ -138,233 +116,114 @@ export const handler = async (): Promise<{
   }
 };
 
-async function fetchMuseJobs(): Promise<MuseJob[]> {
-  // Preserve the user's modified Muse request URL from the workspace file
-  const url =
-    "https://www.themuse.com/api/public/jobs?category=Software%20Engineer&category=Software%20Engineering&location=Flexible%20%2F%20Remote&location=United%20States&page=1";
+async function fetchAllMuseJobs(results: any): Promise<MuseJob[]> {
+  const baseUrl =
+    "https://www.themuse.com/api/public/jobs?category=Data%20and%20Analytics&category=Data%20Science&category=Design%20and%20UX&category=Software%20Engineer&category=Software%20Engineering&page=0";
+  const params = {};
+  const allJobs: MuseJob[] = [];
+  let currentPage = 0;
+  let totalPages = 0;
 
   try {
-    const response = await axios.get(url, {
-      params: { api_key: MUSE_API_KEY },
-    });
-    const jobs = response.data.results || [];
-    console.log(`Fetched ${jobs.length} jobs from Muse`);
-    // sanitize HTML from job.contents and set a normalized `content` field
-    const sanitized = (jobs as any[]).slice(0, MAX_JOBS_PER_RUN).map((j) => {
-      const raw = j && (j.contents || j.contents === "") ? j.contents : "";
-      try {
-        const $ = cheerio.load(String(raw));
-        const text = $("body").text().replace(/\s+/g, " ").trim();
-        return { ...j, contents: text };
-      } catch (e) {
-        const text = String(raw)
-          .replace(/<[^>]*>/g, "")
-          .replace(/\s+/g, " ")
-          .trim();
-        return { ...j, contents: text };
-      }
-    });
+    // Fetch first page to get metadata
+    console.log("Fetching page 0 to determine total pages...");
+    const firstResponse = await fetchMusePage(baseUrl, 0, params);
 
-    return sanitized as MuseJob[];
+    totalPages = firstResponse.page_count;
+    results.totalPages = totalPages;
+
+    console.log(`Total pages available: ${totalPages}`);
+    console.log(`Total jobs available: ${firstResponse.total}`);
+    console.log(`Will fetch up to ${MAX_PAGES_PER_RUN} pages`);
+
+    // Process first page
+    const sanitizedFirstPage = sanitizeJobs(firstResponse.results);
+    allJobs.push(...sanitizedFirstPage);
+    results.pagesProcessed = 1;
+
+    // Calculate how many more pages to fetch
+    const pagesToFetch = Math.min(totalPages - 1, MAX_PAGES_PER_RUN - 1);
+
+    // Fetch remaining pages
+    for (let page = 1; page <= pagesToFetch; page++) {
+      try {
+        console.log(`Fetching page ${page} of ${totalPages}...`);
+
+        // Add delay to be respectful to the API
+        if (DELAY_BETWEEN_REQUESTS > 0) {
+          await new Promise((resolve) =>
+            setTimeout(resolve, DELAY_BETWEEN_REQUESTS)
+          );
+        }
+
+        const response = await fetchMusePage(baseUrl, page, params);
+        const sanitizedJobs = sanitizeJobs(response.results);
+        allJobs.push(...sanitizedJobs);
+        results.pagesProcessed++;
+
+        console.log(`Page ${page} fetched: ${sanitizedJobs.length} jobs`);
+      } catch (err) {
+        const errorMsg = `Error fetching page ${page}: ${
+          err instanceof Error ? err.message : String(err)
+        }`;
+        console.error(errorMsg);
+        results.errors.push(errorMsg);
+        // Continue with other pages even if one fails
+      }
+    }
+
+    console.log(
+      `Total jobs fetched across ${results.pagesProcessed} pages: ${allJobs.length}`
+    );
+    return allJobs;
   } catch (err) {
-    console.error("Error fetching Muse jobs:", err);
-    return [];
+    console.error("Error in fetchAllMuseJobs:", err);
+    results.errors.push(
+      `Muse pagination failed: ${
+        err instanceof Error ? err.message : String(err)
+      }`
+    );
+    return allJobs; // Return whatever we managed to fetch
   }
 }
 
-type AdzunaFetchResult = {
-  jobs: AdzunaJob[];
-  _rawUploadedKeys: string[];
-  _redirectUrls: string[];
-  _processingErrors: string[];
-};
-
-async function fetchAdzunaJobs(): Promise<AdzunaFetchResult> {
-  if (!ADZUNA_APP_ID || !ADZUNA_API_KEY) {
-    console.warn("Adzuna credentials not configured, skipping");
-    return {
-      jobs: [],
-      _rawUploadedKeys: [],
-      _redirectUrls: [],
-      _processingErrors: [],
-    };
-  }
-
+async function fetchMusePage(
+  baseUrl: string,
+  page: number,
+  params?: any
+): Promise<MuseApiResponse> {
   try {
-    const response = await axios.get(
-      `https://api.adzuna.com/v1/api/jobs/us/search/1`,
-      {
-        params: {
-          app_id: ADZUNA_APP_ID,
-          app_key: ADZUNA_API_KEY,
-          results_per_page: MAX_JOBS_PER_RUN,
-          what: "software engineer developer",
-        },
-        timeout: 10000,
-      }
-    );
+    const response = await axios.get(baseUrl, {
+      params: {
+        ...params,
+        page,
+        api_key: MUSE_API_KEY,
+      },
+      timeout: 15000,
+    });
 
-    const jobs: AdzunaJob[] = response.data.results || [];
-    console.log(`Fetched ${jobs.length} jobs from Adzuna`);
-
-    const redirectUrls = jobs
-      .map((j: any) => j.redirect_url)
-      .filter((u: any) => typeof u === "string") as string[];
-    try {
-      console.log("Adzuna redirect URLs:", JSON.stringify(redirectUrls));
-    } catch (e) {
-      console.error("Error stringifying redirect URLs", e);
-    }
-
-    const errors: string[] = [];
-
-    const fetchPageHtml = async (url: string): Promise<string> => {
-      const headers = {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        Accept:
-          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9",
-        Referer: "https://www.adzuna.com/",
-        Connection: "keep-alive",
-      };
-
-      const maxAttempts = 3;
-      const baseDelay = 500;
-      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        try {
-          const resp = await axios.get(url, {
-            headers,
-            timeout: 15000,
-            responseType: "text",
-          });
-          return resp.data;
-        } catch (err) {
-          const status = (err as any)?.response?.status;
-          const respBody = (err as any)?.response?.data;
-          console.warn(
-            `fetchPageHtml attempt ${attempt} failed for ${url}: status=${status} msg=${
-              (err as any)?.message
-            }`
-          );
-          if (status === 403 && typeof respBody === "string")
-            console.warn(
-              `403 body snippet for ${url}:\n${respBody.slice(0, 2000)}`
-            );
-          if (attempt === maxAttempts) throw err;
-          const wait = baseDelay * attempt + Math.floor(Math.random() * 300);
-          await new Promise((r) => setTimeout(r, wait));
-        }
-      }
-      throw new Error("unreachable");
-    };
-
-    const extractAdpBodyText = (html: string): string | null => {
-      try {
-        const $ = cheerio.load(html);
-        const sel1 = $("section.adp-body").first();
-        if (sel1 && sel1.length) {
-          const t = sel1.text().trim().replace(/\s+/g, " ");
-          if (t) return t;
-        }
-
-        // clearancejobs specific selector fallback (preserve from earlier work)
-        const selClearance = $(
-          "#app > div > div.job-view > div.job-view__body > div.job-view__body-left > div > div:nth-child(1) > div.job-description > div.job-description-text"
-        ).first();
-        if (selClearance && selClearance.length) {
-          const t = selClearance.text().trim().replace(/\s+/g, " ");
-          if (t) return t;
-        }
-
-        const fallbackSelectors = [
-          "div.job-description-text",
-          "div.job-description",
-          "div.description",
-          "article",
-          "#job-description",
-          "div.job-body",
-          "div.description-content",
-        ];
-        for (const s of fallbackSelectors) {
-          const el = $(s).first();
-          if (el && el.length) {
-            const t = el.text().trim().replace(/\s+/g, " ");
-            if (t) return t;
-          }
-        }
-
-        let bestText = "";
-        $("div").each((i, el) => {
-          const txt = $(el).text().trim().replace(/\s+/g, " ");
-          if (txt.length > bestText.length && txt.length > 200) bestText = txt;
-        });
-        if (bestText) return bestText;
-        return null;
-      } catch (e) {
-        console.error("Cheerio parse error:", e);
-        return null;
-      }
-    };
-
-    for (const url of redirectUrls) {
-      try {
-        const html = await fetchPageHtml(url);
-        const bodyText = extractAdpBodyText(html);
-        if (!bodyText) {
-          const msg = `Missing <section class="adp-body"> on ${url}`;
-          console.error(msg);
-          errors.push(msg);
-          continue;
-        }
-        const jobObj =
-          (jobs as any).find((x: any) => x.redirect_url === url) || null;
-        if (jobObj) (jobObj as any).contents = bodyText;
-        else {
-          (jobs as any)._orphanExtracts = (jobs as any)._orphanExtracts || [];
-          (jobs as any)._orphanExtracts.push({ url, contents: bodyText });
-        }
-      } catch (err) {
-        const msg = `Error processing ${url}: ${
-          err instanceof Error ? err.message : String(err)
-        }`;
-        console.error(msg);
-        errors.push(msg);
-      }
-    }
-
-    const savedKeys: string[] = [];
-    for (const j of jobs) {
-      try {
-        const id =
-          (j as any).id || (j as any).job_id || (j as any).uuid || Date.now();
-        const key = await saveJsonObjectToS3(j, "adzuna", String(id));
-        if (key) savedKeys.push(key);
-      } catch (err) {
-        const msg = `Save JSON failed for ${
-          (j && ((j as any).id || (j as any).job_id || (j as any).uuid)) ||
-          "unknown"
-        }: ${err instanceof Error ? err.message : String(err)}`;
-        console.error(msg);
-        errors.push(msg);
-      }
-    }
-
-    return {
-      jobs,
-      _rawUploadedKeys: savedKeys,
-      _redirectUrls: redirectUrls,
-      _processingErrors: errors,
-    };
+    return response.data;
   } catch (err) {
-    console.error("Adzuna fetch failed:", err);
-    return {
-      jobs: [],
-      _rawUploadedKeys: [],
-      _redirectUrls: [],
-      _processingErrors: [String(err)],
-    };
+    console.error(`Error fetching Muse page ${page}:`, err);
+    throw err;
   }
+}
+
+function sanitizeJobs(jobs: any[]): MuseJob[] {
+  return jobs.map((j) => {
+    const raw = j && (j.contents || j.contents === "") ? j.contents : "";
+    try {
+      const $ = cheerio.load(String(raw));
+      const text = $("body").text().replace(/\s+/g, " ").trim();
+      return { ...j, contents: text };
+    } catch (e) {
+      const text = String(raw)
+        .replace(/<[^>]*>/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+      return { ...j, contents: text };
+    }
+  });
 }
 
 async function saveJsonObjectToS3(
