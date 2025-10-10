@@ -3,37 +3,36 @@ import { ThemeContext } from '@/contexts/ThemeContext';
 
 type Theme = 'light' | 'dark';
 
-type ThemeProviderProps = {
-    children: React.ReactNode;
-};
-
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-    // Check localStorage and system preference
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [theme, setTheme] = useState<Theme>(() => {
-        const stored = localStorage.getItem('theme') as Theme | null;
-        if (stored) return stored;
-
-        return window.matchMedia('(prefers-color-scheme: dark)').matches
-            ? 'dark'
-            : 'light';
+        try {
+            const stored = localStorage.getItem('theme') as Theme | null;
+            if (stored) return stored;
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        } catch {
+            return 'light';
+        }
     });
 
     useEffect(() => {
         const root = document.documentElement;
+        const body = document.body;
 
-        // Remove both classes first
-        root.classList.remove('light', 'dark');
+        // Explicitly toggle only the 'dark' class (Tailwind only needs 'dark').
+        root.classList.toggle('dark', theme === 'dark');
+        body.classList.toggle('dark', theme === 'dark');
 
-        // Add the current theme class
-        root.classList.add(theme);
+        // Optional: set a data attribute for alternative styling or third-party libs
+        root.setAttribute('data-theme', theme);
 
-        // Persist to localStorage
-        localStorage.setItem('theme', theme);
+        try {
+            localStorage.setItem('theme', theme);
+        } catch {
+            /* ignore */
+        }
     }, [theme]);
 
-    const toggleTheme = () => {
-        setTheme(prev => prev === 'light' ? 'dark' : 'light');
-    };
+    const toggleTheme = () => setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
 
     return (
         <ThemeContext.Provider value={{ theme, toggleTheme }}>

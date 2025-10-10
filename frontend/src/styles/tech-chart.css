@@ -1,0 +1,53 @@
+/* Top Technologies Section */
+.top-tech-section {
+  background: var(--bg-card);
+  padding: 24px;
+  border-radius: 1rem 1rem 12px 12px;
+  box-shadow: 0 4px 18px rgba(54, 61, 79, 0.06);
+  margin-bottom: 32px;
+  border: 1px solid #e5e7eb;
+}
+/* Top Technologies Section */
+.top-tech-section {
+  padding: var(--space-3xl) var(--space-lg);
+  background: var(--bg-base);
+}
+
+.top-tech-section h2 {
+  margin: 0 0 20px 0;
+  font-size: 1.5rem;
+  color: #1f2937;
+}
+
+.tech-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.305);
+}
+
+.tech-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.tech-count {
+  color: #6b7280;
+}
+
+.tech-chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  max-width: 900px;
+  margin: 0.5rem auto;
+}
+.tech-chart-card {
+  padding: var(--space-xl);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
+}

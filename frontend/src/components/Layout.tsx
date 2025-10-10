@@ -10,8 +10,9 @@ export const Layout: React.FC<Props> = ({ children }) => {
     return (
         <div className="app min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200">
             <div className="page">
-                <Header />
+
                 <main id="main-content" className="container mx-auto px-4 py-6">
+                    <Header />
                     {children}
                 </main>
                 <Footer />

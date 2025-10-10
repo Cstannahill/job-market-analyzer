@@ -10,6 +10,7 @@ const Postings = lazy(() => import('./pages/Postings'));
 import Trends from './pages/Trends'
 import About from './pages/About'
 import { ThemeProvider } from '@/components/ThemeProvider';
+import TopTech from '@/pages/TopTech';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,6 +31,7 @@ createRoot(document.getElementById('root')!).render(
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/top-tech" element={<TopTech />} />
             <Route
               path="/postings"
               element={

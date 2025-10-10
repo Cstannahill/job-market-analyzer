@@ -1,0 +1,96 @@
+.tech-bar-container {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tech-bar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+}
+
+.tech-name {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  text-transform: capitalize;
+}
+
+.tech-count {
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-primary-light);
+}
+
+.tech-bar-wrapper {
+  position: relative;
+  height: 20px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.tech-bar {
+  position: relative;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--color-primary),
+    var(--color-secondary)
+  );
+  border-radius: var(--radius-lg);
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideIn 1s ease-out;
+}
+.tech-bar {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+@keyframes slideIn {
+  from {
+    width: 0 !important;
+  }
+}
+
+.tech-bar-glow {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3));
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0%,
+  100% {
+    transform: translateX(-100px);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.tech-bar-wrapper:hover .tech-bar {
+  filter: brightness(1.1);
+  box-shadow: 0 0 20px rgba(79, 70, 229, 0.4);
+}

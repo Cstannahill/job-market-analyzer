@@ -1,0 +1,114 @@
+/* -- Scoped color variables (adjust to taste) -- */
+.app-header {
+  --accent-1: #b7a3cc;
+  --accent-2: #8f61ba;
+  --accent-3: #7c3aed; /* stronger purple for glows */
+  --nav-text: rgba(255, 255, 255, 0.95);
+  --muted-border: rgba(255, 255, 255, 0.06);
+}
+
+/* Container tweaks: align nav nicely with header content */
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 6px; /* reduced vertical offset */
+  padding: 0.4rem 0.75rem; /* breathing room */
+  /* optional subtle backdrop for depth (works on dark backgrounds) */
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.01),
+    rgba(0, 0, 0, 0)
+  );
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
+}
+
+/* The list remains a horizontal flex row */
+.nav-list {
+  list-style: none;
+  display: flex;
+  gap: 12px;
+  padding: 0;
+  margin: 0;
+  align-items: center;
+}
+
+/* Individual link styling: pill-like, subtle border, crisp spacing */
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 8px 14px; /* comfortable hit target */
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  color: var(--nav-text);
+  text-decoration: none;
+  border-radius: 999px; /* pill */
+  border: 1px solid var(--muted-border);
+  background: transparent;
+  transition: transform 0.16s ease, box-shadow 0.18s ease, background 0.12s ease,
+    color 0.12s ease;
+  will-change: transform, box-shadow;
+  cursor: pointer;
+}
+
+/* Hover: subtle lift + faint background */
+.nav-link:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.45); /* soft ambient shadow */
+}
+
+/* Focus (accessibility): visible ring */
+.nav-link:focus-visible {
+  outline: none;
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.45),
+    0 0 0 6px rgba(124, 58, 237, 0.12);
+  border-color: rgba(147, 51, 234, 0.35);
+}
+
+/* Active / current page: lively gradient with glow */
+.nav-link.active,
+.main-nav a[aria-current="page"],
+.main-nav a[aria-current="page"]:hover {
+  color: #ce13df !important; /* keep it readable on dark header */
+  background-image: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+  background-size: 200% 100%;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(16, 10, 41, 0.55),
+    /* depth */ 0 0 18px rgba(124, 58, 237, 0.22),
+    /* purple soft halo */ 0 0 36px rgba(143, 97, 186, 0.12); /* extended glow */
+}
+
+/* Optional: add a thin, tasteful outline glow using pseudo-element */
+.nav-link.active::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 999px;
+  pointer-events: none;
+  /* faint outer halo */
+  box-shadow: 0 0 28px rgba(124, 58, 237, 0.1);
+  opacity: 1;
+}
+
+/* small screens: keep spacing reasonable */
+@media (max-width: 640px) {
+  .main-nav {
+    padding: 0.25rem 0.5rem;
+    margin-top: 4px;
+  }
+  .nav-list {
+    gap: 8px;
+  }
+  .nav-link {
+    padding: 7px 10px;
+    font-size: 0.9rem;
+  }
+}

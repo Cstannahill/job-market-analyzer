@@ -1,13 +1,25 @@
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent } from './components/ui/card';
-import { Button } from './components/ui/button';
-import { Spinner } from './components/ui/spinner';
+
 import { getJobPostingsStats } from './services/api';
-import { Layout } from './components/Layout';
+import { AnimatedCounter } from './components/AnimatedCounter';
+import { ParticleBackground } from './components/ParticleBackground';
+
 import './App.css';
+import { useQuery } from '@tanstack/react-query';
+import { Layout } from '@/components/Layout';
+import { Spinner } from '@/components/ui/spinner';
+import { Button } from '@/components/ui/button';
+
+// Icons - you can replace with lucide-react icons
+const StatsIcon = ({ type }: { type: 'postings' | 'technologies' | 'skills' }) => {
+  const icons = {
+    postings: '📊',
+    technologies: '⚡',
+    skills: '🎯'
+  };
+  return <span className="stat-icon">{icons[type]}</span>;
+};
 
 function App() {
-  // Fetch stats using React Query - this will be shared across all components
   const {
     data: stats,
     isLoading: loading,
@@ -23,13 +35,12 @@ function App() {
   });
 
   const totalPostings = stats?.totalPostings || 0;
-  const totalTechnologies = stats?.totalTechnologies || 0;
+  // const totalTechnologies = stats?.totalTechnologies || 0;
   const totalSkills = stats?.totalSkills || 0;
   const technologyCounts = stats?.technologyCounts || {};
 
-  const topTechnologies = Object.entries(technologyCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10);
+
+
 
   if (loading) {
     return (
@@ -57,56 +68,79 @@ function App() {
   }
 
   return (
-    <Layout>
-      {/* Stats Section */}
-      <div className="stats-section">
-        <Card className="stat-card">
-          <CardContent>
-            <div className="stat-value">{totalPostings}</div>
-            <div className="stat-label">Total Postings</div>
-          </CardContent>
-        </Card>
+    <div className="app">
+      {/* Hero Section with Animated Background */}
+      <section className="hero-section">
+        <ParticleBackground />
 
-        <Card className="stat-card">
-          <CardContent>
-            <div className="stat-value">{totalTechnologies}</div>
-            <div className="stat-label">Technologies</div>
-          </CardContent>
-        </Card>
+        <div className="hero-content container">
+          <div className="hero-text fade-in">
+            <h1 className="hero-title">
+              Navigate Your Tech Career with <span className="gradient-text">Real Data</span>
+            </h1>
+            <p className="hero-subtitle">
+              Discover trending skills, salary insights, and market demand across {totalPostings.toLocaleString()} job postings
+            </p>
+          </div>
 
-        <Card className="stat-card">
-          <CardContent>
-            <div className="stat-value">{totalSkills}</div>
-            <div className="stat-label">Skills Extracted</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Top Technologies */}
-      {topTechnologies.length > 0 && (
-        <div className="top-tech-section">
-          <h2>Top Technologies</h2>
-          <div className="tech-chart">
-            {topTechnologies.map(([tech, count]) => (
-              <div key={tech} className="tech-bar-container">
-                <div className="tech-label">
-                  <span>{tech}</span>
-                  <span className="tech-count">{count}</span>
-                </div>
-                <div className="tech-bar-wrapper">
-                  <div
-                    className="tech-bar"
-                    style={{
-                      width: `${(count / topTechnologies[0][1]) * 100}%`,
-                    }}
-                  ></div>
-                </div>
+          {/* Animated Stats Cards */}
+          <div className="stats-grid fade-in">
+            <div className="stat-card glass card-hover">
+              <div className="stat-card-header">
+                <StatsIcon type="postings" />
+                <span className="stat-label">Total Postings</span>
               </div>
-            ))}
+              <div className="stat-value">
+                <AnimatedCounter end={totalPostings} duration={2000} />
+              </div>
+              <div className="stat-change positive">↑ Updated daily</div>
+            </div>
+
+            <div className="stat-card glass card-hover">
+              <div className="stat-card-header">
+                <StatsIcon type="technologies" />
+                <span className="stat-label">Technologies</span>
+              </div>
+              <div className="stat-value">
+                <AnimatedCounter end={Object.keys(technologyCounts).length} duration={2000} />
+              </div>
+              <div className="stat-change positive">↑ Tracked live</div>
+            </div>
+
+            <div className="stat-card glass card-hover">
+              <div className="stat-card-header">
+                <StatsIcon type="skills" />
+                <span className="stat-label">Skills Extracted</span>
+              </div>
+              <div className="stat-value">
+                <AnimatedCounter end={totalSkills} duration={2000} />
+              </div>
+              <div className="stat-change positive">↑ AI-powered</div>
+            </div>
           </div>
         </div>
-      )}
-    </Layout>
+
+      </section>
+      {/* Call to Action Section */}
+      <div className="hero-cta flex justify-center">
+        <div className="cta-card glass text-center p-8 rounded-2xl shadow-lg">
+          <h3>Ready to explore the market?</h3>
+          <p>Dive deeper into job postings and skill trends</p>
+          <div className="cta-buttons flex flex-wrap justify-center gap-4 mt-4">
+            <a href="/top-tech" className="btn btn-primary">Explore Top Tech</a>
+            <a href="/postings" className="btn btn-primary">Browse Jobs</a>
+            <a href="/trends" className="btn btn-secondary">View Trends</a>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="app-footer">
+        <div className="container">
+          <p>TrendDev • Powered by AWS • Data updated hourly</p>
+        </div>
+      </footer>
+    </div>
   );
 }
 
