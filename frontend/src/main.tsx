@@ -1,4 +1,4 @@
-import { StrictMode, Suspense, lazy } from 'react'
+import { StrictMode, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
@@ -35,9 +35,9 @@ createRoot(document.getElementById('root')!).render(
             <Route
               path="/postings"
               element={
-                <Suspense fallback={<div>Loading postings...</div>}>
-                  <Postings />
-                </Suspense>
+
+                <Postings />
+
               }
             />
             <Route path="/trends" element={<Trends />} />

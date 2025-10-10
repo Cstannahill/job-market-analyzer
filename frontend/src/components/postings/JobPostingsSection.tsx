@@ -262,45 +262,60 @@ export const JobPostingsSection: React.FC = () => {
     }
 
     const PaginationControls = (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 8, marginBottom: 8 }}>
-            <div style={{ flex: 1 }} />
+        <div className="flex items-center py-3 pagination-container">
+            {/* left spacer */}
+            <div className="flex-1" />
 
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'center' }}>
+            {/* center controls */}
+            <div className="flex items-center gap-3">
                 <Button
                     onClick={() => fetchPage(Math.max(1, pageIndex - 1))}
                     disabled={pageIndex === 1 || rqIsLoading || isFetchingNextPage}
-                    className="text-white"
+                    aria-label="Previous page"
+                    className="pagination-button px-3 py-1 rounded-lg text-sm font-semibold transition-transform transform hover:-translate-y-0.5 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400/30 disabled:opacity-50 disabled:translate-y-0"
                 >
                     Prev
                 </Button>
-                <div>
-                    Page {pageIndex}
-                    {totalPages ? ` of ~${totalPages}` : ''}
+
+                <div
+                    className="relative px-4 py-1 rounded-lg text-sm font-semibold text-white bg-white/5 ring-1 ring-white/6
+                   shadow-sm flex items-center justify-center min-w-[120px]"
+                    aria-live="polite"
+                >
+                    <span className="sr-only">Current page:</span>
+                    {`Page ${pageIndex} `}
+                    {totalPages ? <span className="text-xs text-white/70 ml-2">{` of ${totalPages}`}</span> : null}
                 </div>
+
                 <Button
                     onClick={() => fetchPage(pageIndex + 1)}
                     disabled={!currentPage?.lastKey || isFetchingNextPage || rqIsLoading}
-                    className="text-white"
+                    aria-label="Next page"
+                    className="pagination-button px-3 py-1 rounded-lg text-sm font-semibold transition-transform transform hover:-translate-y-0.5 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400/30 disabled:opacity-50"
                 >
                     {isFetchingNextPage ? 'Loading...' : 'Next'}
                 </Button>
             </div>
 
-            <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-                <div style={{ fontSize: 13, color: '#666', marginRight: 8 }}>Results per page</div>
+            {/* right controls: results per page */}
+            <div className="flex-1 flex items-center justify-end gap-3">
+                <div className="text-sm text-white/60">Results per page</div>
+
                 <Select
                     value={String(pageSize)}
                     onValueChange={(v) => {
                         setPageIndex(1);
                         setPageSize(Number(v));
-                        // clear cached pages for this key so react-query refetches with new pageSize
                         queryClient.removeQueries({ queryKey });
                     }}
                 >
-                    <SelectTrigger className="tech-filter text-white" style={{ width: 80 }}>
+                    <SelectTrigger
+                        className="w-20 rounded-md text-sm font-medium bg-transparent border border-white/10 px-3 py-1 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400/20"
+                    >
                         <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+
+                    <SelectContent className="bg-slate-800 text-white rounded-md shadow-lg">
                         <SelectItem value="10">10</SelectItem>
                         <SelectItem value="20">20</SelectItem>
                         <SelectItem value="50">50</SelectItem>

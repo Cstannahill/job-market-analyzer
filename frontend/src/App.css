@@ -555,6 +555,37 @@ body {
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
+/* small accessible ring with brand color */
+
+button:focus-visible,
+[role="button"]:focus-visible,
+.select-trigger:focus-visible {
+  outline: none;
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.45),
+    0 0 0 6px rgba(var(--brand), 0.12);
+}
+
+/* gentle elevated shadow used for page pill */
+.page-pill {
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.45);
+}
+
+/* make disabled clear and consistent */
+button[disabled],
+[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none !important;
+}
+
+/* responsive tweaks */
+@media (max-width: 640px) {
+  .page-pill {
+    min-width: 90px;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
 
 @layer base {
   * {
