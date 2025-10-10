@@ -278,7 +278,6 @@ body {
   border-radius: 8px;
   font-size: 1rem;
   transition: border-color 0.2s;
-  background: white;
   height: 36px; /* match shadcn input/button heights */
   display: inline-flex;
   align-items: center;
@@ -307,7 +306,7 @@ body {
 }
 
 .tech-filter {
-  min-width: 140px;
+  min-width: 80px;
 }
 
 /* ensure shadcn button inside filters lines up */

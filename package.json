@@ -4,6 +4,7 @@
   "description": "",
   "main": "zip.js",
   "scripts": {
+    "build": "(cd frontend && npm install && npm run build)",
     "buildall": "cd lambda/get-job-postings && npm install && npm run build && cd ../job-posting-aggregator && npm install && npm run build && cd ../skill-extractor && npm install && npm run build && cd ../skill-extractor-ai && npm install && npm run build && cd ../skill-extractor-algo && npm install && npm run build && cd ../aggregate-skill-trends && npm install && npm run build && cd ../get-skill-trends && npm install && npm run build && cd ../calculate-job-stats && npm install && npm run build && cd ../get-job-postings-stats && npm install && npm run build && cd ../get-job-postings-paginated && npm install && npm run build && cd ../..",
     "packageall": "node zip.js lambda/get-job-postings && node zip.js lambda/job-posting-aggregator && node zip.js lambda/skill-extractor && node zip.js lambda/skill-extractor-ai && node zip.js lambda/skill-extractor-algo && node zip.js lambda/aggregate-skill-trends && node zip.js lambda/get-skill-trends && node zip.js lambda/calculate-job-stats && node zip.js lambda/get-job-postings-stats && node zip.js lambda/get-job-postings-paginated"
   },

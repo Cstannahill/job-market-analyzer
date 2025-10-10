@@ -9,6 +9,7 @@ import Home from './pages/Home'
 const Postings = lazy(() => import('./pages/Postings'));
 import Trends from './pages/Trends'
 import About from './pages/About'
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,21 +26,23 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route
-            path="/postings"
-            element={
-              <Suspense fallback={<div>Loading postings...</div>}>
-                <Postings />
-              </Suspense>
-            }
-          />
-          <Route path="/trends" element={<Trends />} />
-          <Route path="/about" element={<About />} />
-        </Routes>
-      </BrowserRouter>
+      <ThemeProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route
+              path="/postings"
+              element={
+                <Suspense fallback={<div>Loading postings...</div>}>
+                  <Postings />
+                </Suspense>
+              }
+            />
+            <Route path="/trends" element={<Trends />} />
+            <Route path="/about" element={<About />} />
+          </Routes>
+        </BrowserRouter>
+      </ThemeProvider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   </StrictMode>

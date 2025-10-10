@@ -269,6 +269,7 @@ export const JobPostingsSection: React.FC = () => {
                 <Button
                     onClick={() => fetchPage(Math.max(1, pageIndex - 1))}
                     disabled={pageIndex === 1 || rqIsLoading || isFetchingNextPage}
+                    className="text-white"
                 >
                     Prev
                 </Button>
@@ -279,6 +280,7 @@ export const JobPostingsSection: React.FC = () => {
                 <Button
                     onClick={() => fetchPage(pageIndex + 1)}
                     disabled={!currentPage?.lastKey || isFetchingNextPage || rqIsLoading}
+                    className="text-white"
                 >
                     {isFetchingNextPage ? 'Loading...' : 'Next'}
                 </Button>
@@ -295,7 +297,7 @@ export const JobPostingsSection: React.FC = () => {
                         queryClient.removeQueries({ queryKey });
                     }}
                 >
-                    <SelectTrigger className="tech-filter" style={{ width: 120 }}>
+                    <SelectTrigger className="tech-filter text-white" style={{ width: 80 }}>
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
