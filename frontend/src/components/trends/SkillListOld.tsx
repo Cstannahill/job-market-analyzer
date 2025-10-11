@@ -1,5 +1,5 @@
 import { type SkillTrend } from '../../services/trends';
-import SkillCard from './SkillCardOld';
+import SkillCard from './SkillCard';
 
 type Props = {
     skills: SkillTrend[];

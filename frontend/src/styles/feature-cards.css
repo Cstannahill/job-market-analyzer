@@ -1,0 +1,19 @@
+.feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+.feature-card-header {
+  font-family: var(--font-mono);
+}
+
+.feature-card-description {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  margin-top: var(--space-sm);
+}

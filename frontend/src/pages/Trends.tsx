@@ -2,10 +2,11 @@
 import { useEffect, useState, useRef } from 'react';
 import { Layout } from '../components/Layout';
 import { Spinner } from '../components/ui/spinner';
-import { Card, CardContent } from '../components/ui/card';
+import { Card, CardContent, CardHeader } from '../components/ui/card';
 import { fetchTop, fetchSkill, type SkillTrend } from '../services/trends';
 import SkillList from '../components/trends/SkillList';
 import SkillDetailPanel from '../components/trends/SkillDetailPanel';
+import SectionCard from '@/components/about/SectionCard';
 
 export default function Trends() {
     const [loading, setLoading] = useState(true);
@@ -67,20 +68,19 @@ export default function Trends() {
 
     return (
         <Layout>
-            <div className="max-w-7xl mx-auto px-6 lg:px-8">
-                <div className="page-header py-8">
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-white/95">Trends</h1>
-                    <p className="mt-2 text-lg text-slate-400">Market demand, top skills and quick insights.</p>
-                </div>
+            <SectionCard title="Trends">
+
 
                 {/* Grid: left = compact list (col-span-1), right = wide details (col-span-3) */}
                 <div className="trends-grid md:grid md:grid-cols-4 gap-6 items-start">
                     {/* LEFT: single-column list/navigation */}
                     <div className="trends-main md:col-span-1">
                         <div className="sticky top-20">
-                            <Card className="rounded-xl overflow-hidden bg-gradient-to-b from-slate-900/60 to-slate-900/50 border border-white/6">
+                            <Card className="rounded-xl overflow-hidden bg-gradient-to-b from-slate-900/70 to-slate-900/50 border border-white/6 shadow-2xl">
                                 <CardContent className="p-3">  {/* reduced padding */}
-                                    <h2 className="text-lg text-center font-bold text-white mb-2">Top Skills</h2>
+                                    <CardHeader className="px-0 pt-1 pb-2 text-lg text-center nf-mono border-b-1">
+                                        Top Skills
+                                    </CardHeader>
 
                                     {loading && (
                                         <div className="center-block py-6 flex flex-col items-center gap-3">
@@ -90,8 +90,8 @@ export default function Trends() {
                                     )}
 
                                     {!loading && !error && (
-                                        <div className="mt-1">
-                                            <SkillList skills={skills} onSelect={handleSelect} />
+                                        <div className="mt-1 max-h-[60vh] overflow-y-auto">
+                                            <SkillList skills={skills} onSelect={handleSelect} isSelected={selected} />
                                         </div>
                                     )}
                                 </CardContent>
@@ -104,7 +104,9 @@ export default function Trends() {
                         <div className="sticky top-20">
                             <Card className="h-full rounded-xl overflow-hidden border border-white/6 bg-gradient-to-br from-slate-900/60 to-slate-900/40 shadow-2xl">
                                 <CardContent className="h-full flex flex-col p-5">
-                                    <h3 className="text-2xl text-center my-2 font-semibold text-white">Insight Panel</h3>
+                                    <CardHeader className="px-0 pt-1 pb-1 text-lg text-center nf-mono border-b-1">
+                                        Insights Panel
+                                    </CardHeader>
 
                                     {detailLoading ? (
                                         <div className="center-block flex-1 flex flex-col items-center justify-center">
@@ -159,7 +161,8 @@ export default function Trends() {
                         )}
                     </div>
                 </div>
-            </div>
+
+            </SectionCard>
         </Layout>
     );
 }

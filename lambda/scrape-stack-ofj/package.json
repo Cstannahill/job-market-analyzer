@@ -1,0 +1,19 @@
+{
+  "name": "scrape-gls-dr",
+  "version": "1.0.0",
+  "description": "Lambda function to retrieve information from glasdoor",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx tsup src"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.908.0",
+    "@aws-sdk/lib-dynamodb": "^3.908.0",
+    "axios": "^1.12.2",
+    "cheerio": "^1.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.2",
+    "typescript": "^5.9.3"
+  }
+}

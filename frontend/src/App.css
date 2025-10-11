@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -49,6 +50,9 @@
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-xl);
+}
+.nf-mono {
+  font-family: "Fira Code", monospace;
 }
 
 .btn-secondary {
@@ -315,7 +319,9 @@ body {
 .tech-filter {
   min-width: 80px;
 }
-
+.nf-mono {
+  font-family: var(--font-mono);
+}
 /* ensure shadcn button inside filters lines up */
 .filters-section [data-slot="button"] {
   height: 36px;

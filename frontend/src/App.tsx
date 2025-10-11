@@ -85,7 +85,7 @@ function App() {
 
           {/* Animated Stats Cards */}
           <div className="stats-grid fade-in">
-            <div className="stat-card glass card-hover">
+            <div className="stat-card glass card-hover card-stylish">
               <div className="stat-card-header">
                 <StatsIcon type="postings" />
                 <span className="stat-label">Total Postings</span>
@@ -96,7 +96,7 @@ function App() {
               <div className="stat-change positive">↑ Updated daily</div>
             </div>
 
-            <div className="stat-card glass card-hover">
+            <div className="stat-card glass card-hover card-stylish">
               <div className="stat-card-header">
                 <StatsIcon type="technologies" />
                 <span className="stat-label">Technologies</span>
@@ -107,7 +107,7 @@ function App() {
               <div className="stat-change positive">↑ Tracked live</div>
             </div>
 
-            <div className="stat-card glass card-hover">
+            <div className="stat-card glass card-hover card-stylish">
               <div className="stat-card-header">
                 <StatsIcon type="skills" />
                 <span className="stat-label">Skills Extracted</span>
@@ -123,7 +123,7 @@ function App() {
       </section>
       {/* Call to Action Section */}
       <div className="hero-cta flex justify-center">
-        <div className="cta-card glass text-center p-8 rounded-2xl shadow-lg">
+        <div className="cta-card glass text-center p-8 rounded-2xl shadow-lg card-stylish">
           <h3>Ready to explore the market?</h3>
           <p>Dive deeper into job postings and skill trends</p>
           <div className="cta-buttons flex flex-wrap justify-center gap-4 mt-4">
