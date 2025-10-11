@@ -1,4 +1,3 @@
-import React from 'react';
 import type { SkillTrend } from '../../services/trends';
 
 type Props = {
