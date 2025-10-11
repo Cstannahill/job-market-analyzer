@@ -91,64 +91,138 @@ function normalizeRemotePercentage(val: unknown): number {
   if (n > 0 && n <= 1) return Math.round(n * 100);
   return Math.round(n);
 }
+function parseKeyPairs(key?: string) {
+  if (!key) return {};
+  const parts = String(key)
+    .split("#")
+    .map((p) => p.trim())
+    .filter(Boolean);
+  const out: Record<string, string> = {};
+  for (let i = 0; i < parts.length; i += 2) {
+    const k = parts[i]?.toLowerCase();
+    const v = parts[i + 1];
+    if (k && v) out[k] = v;
+  }
+  return out;
+}
+
+/** Clean and normalize messy token strings into tokens */
+function cleanTokenString(input?: unknown): string[] {
+  if (input == null) return [];
+  // If it's already an array, flatten + normalize items
+  if (Array.isArray(input)) {
+    return Array.from(
+      new Set(
+        input
+          .map(String)
+          .flatMap((s) => cleanTokenString(s))
+          .map((s) => s.trim())
+          .filter(Boolean)
+      )
+    ).slice(0, 10);
+  }
+
+  let s = String(input);
+
+  // Common patterns: '#skill|#python|region#other' or 'skill#python' or 'python,java'
+  // Replace separators with comma
+  s = s.replace(/[|/;]+/g, ",");
+  // Remove stray '#' and common key words
+  s = s.replace(/#/g, ",");
+  // Remove 'skill'/'region'/'seniority' tokens that occur alone
+  s = s.replace(/\b(skill|region|seniority|type|pk|sk)\b/gi, "");
+  // Split on commas and whitespace
+  const tokens = s
+    .split(",")
+    .map((t) => t.trim())
+    .filter((t) => t.length > 0 && t.toLowerCase() !== "null");
+
+  // dedupe, keep first N tokens
+  return Array.from(new Set(tokens)).slice(0, 10);
+}
+
+/** Clean a possible dynamo map of counts (cooccurringSkills) */
 
 export function normalizeRow(row: Record<string, unknown>): SkillTrend {
   const pk = String((row.PK || row.pk) ?? "");
   const sk = String((row.SK || row.sk) ?? "");
-  const skill = String(row.skill ?? "");
-  const region = String(row.region ?? "");
-  const seniority = String(row.seniority_level ?? row.seniority ?? "");
 
-  const associatedRolesCandidate =
-    row.associatedRoles ?? row.associated_roles ?? "[]";
-  const associatedRoles = Array.isArray(associatedRolesCandidate)
-    ? (associatedRolesCandidate as string[])
-    : safeJsonParse<string[]>(String(associatedRolesCandidate), []);
+  // Prefer explicit fields, fallback to parsed PK/SK pairs
+  const pkPairs = parseKeyPairs(pk);
+  const skPairs = parseKeyPairs(sk);
 
+  // skill name: prefer explicit field, else extract from parsed pairs (skill key)
+  let rawSkill = String(
+    row.skill ?? row.Skill ?? pkPairs.skill ?? skPairs.skill ?? ""
+  );
+  if (!rawSkill && (pkPairs.skill || skPairs.skill)) {
+    rawSkill = pkPairs.skill || skPairs.skill || rawSkill;
+  }
+
+  // Remove stray prefixes like "skill#" in skill
+  // If skill looks like "skill#python" => extract last segment
+  if (rawSkill.includes("#")) {
+    const parts = rawSkill
+      .split("#")
+      .map((p) => p.trim())
+      .filter(Boolean);
+    rawSkill = parts.length ? parts[parts.length - 1] : rawSkill;
+  }
+
+  // Region / seniority — explicit preferred, then parsed pairs
+  let region =
+    String(
+      row.region ?? row.Region ?? skPairs.region ?? pkPairs.region ?? ""
+    ) || "";
+  let seniority =
+    String(
+      row.seniority ??
+        row.seniority_level ??
+        row.Seniority ??
+        skPairs.seniority ??
+        pkPairs.seniority ??
+        ""
+    ) || "";
+
+  /// Clean token lists for industries, tags etc.
+  // Use the original helpers (pre-existing in the file) so they're not unused.
+  const topIndustries = parseTopIndustries(
+    row.topIndustries ?? row.top_industries ?? row.industries ?? []
+  );
+
+  // prefer the Dynamo map parser already defined earlier
   const cooccurringSkills = parseDynamoMapCounts(
     row.cooccurringSkills ?? row.cooccurring_skills ?? {}
   );
-  const topIndustries = parseTopIndustries(
-    row.topIndustries ?? row.top_industries ?? []
-  );
 
-  const count = Number((row.count ?? 0) as unknown as number) || 0;
-  const relativeDemand =
-    Number(
-      (row.relativeDemand ?? row.relative_demand ?? 0) as unknown as number
-    ) || 0;
+  const count = Number(row.count ?? row.Count ?? 0) || 0;
+
+  // use the normalize helper you already defined
   const remotePercentage = normalizeRemotePercentage(
     row.remotePercentage ?? row.remote_percentage ?? 0
   );
-
-  const avgSalaryRaw = row.avgSalary ?? row.avg_salary;
-  const avgSalary =
-    avgSalaryRaw === null ||
-    avgSalaryRaw === undefined ||
-    String(avgSalaryRaw) === "null"
-      ? null
-      : Number(avgSalaryRaw as unknown as number);
+  const avgSalaryRaw = row.avgSalary ?? row.avg_salary ?? null;
+  const avgSalary = avgSalaryRaw == null ? null : Number(avgSalaryRaw) || null;
 
   const id = `${pk}|${sk}`;
+
+  // Final small cleanups for region and seniority tokens
+  region = cleanTokenString(region)[0] ?? region ?? "global";
+  seniority = cleanTokenString(seniority)[0] ?? seniority ?? "all";
 
   return {
     id,
     pk,
     sk,
-    skill,
+    skill: rawSkill,
     region,
     seniority,
-    type: String(row.skill_type ?? row.type ?? undefined) || undefined,
     count,
-    relativeDemand,
     remotePercentage,
-    avgSalary: Number.isNaN(avgSalary as number)
-      ? null
-      : (avgSalary as number | null),
-    lastUpdated: (row.lastUpdated ?? row.last_updated) as string | undefined,
-    associatedRoles: Array.isArray(associatedRoles) ? associatedRoles : [],
+    avgSalary,
     cooccurringSkills,
     topIndustries,
+    // copy any other fields your SkillTrend expects, using cleaned values
   } as SkillTrend;
 }
 
