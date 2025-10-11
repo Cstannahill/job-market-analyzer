@@ -556,6 +556,15 @@ body {
   --sidebar-ring: oklch(0.556 0 0);
 }
 /* small accessible ring with brand color */
+/* global.css */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.12);
+  border-radius: 9999px;
+}
 
 button:focus-visible,
 [role="button"]:focus-visible,

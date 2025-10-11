@@ -1,4 +1,3 @@
-// SkillList.tsx
 import { type SkillTrend } from '../../services/trends';
 import SkillCard from './SkillCardOld';
 
@@ -12,13 +11,10 @@ export default function SkillList({ skills, onSelect }: Props) {
         return <div className="text-sm text-slate-400">No skills found.</div>;
     }
 
-    // single-column vertical list — scroll handled by parent card
     return (
-        <div className="flex flex-col divide-y divide-slate-800">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {skills.map((s) => (
-                <div key={s.id} className="py-3">
-                    <SkillCard skill={s} onClick={() => onSelect && onSelect(s)} />
-                </div>
+                <SkillCard key={s.id} skill={s} onClick={() => onSelect && onSelect(s)} />
             ))}
         </div>
     );

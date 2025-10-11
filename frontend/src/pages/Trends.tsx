@@ -1,3 +1,4 @@
+// Trends.tsx
 import { useEffect, useState, useRef } from 'react';
 import { Layout } from '../components/Layout';
 import { Spinner } from '../components/ui/spinner';
@@ -72,52 +73,56 @@ export default function Trends() {
                     <p className="mt-2 text-lg text-slate-400">Market demand, top skills and quick insights.</p>
                 </div>
 
-                <div className="trends-grid md:grid md:grid-cols-7 gap-6 items-start">
-                    <div className="trends-main md:col-span-5">
-                        <Card className="rounded-xl overflow-hidden bg-gradient-to-b from-slate-900/60 to-slate-900/50 border border-white/6">
-                            <CardContent>
-                                <h2 className="text-2xl font-bold text-white mb-4">Top Skills</h2>
+                {/* Grid: left = compact list (col-span-1), right = wide details (col-span-3) */}
+                <div className="trends-grid md:grid md:grid-cols-4 gap-6 items-start">
+                    {/* LEFT: single-column list/navigation */}
+                    <div className="trends-main md:col-span-1">
+                        <div className="sticky top-20">
+                            <Card className="rounded-xl overflow-hidden bg-gradient-to-b from-slate-900/60 to-slate-900/50 border border-white/6">
+                                <CardContent className="p-3">  {/* reduced padding */}
+                                    <h2 className="text-lg text-center font-bold text-white mb-2">Top Skills</h2>
 
-                                {loading && (
-                                    <div className="center-block py-12 flex flex-col items-center gap-3">
-                                        <Spinner />
-                                        <div className="text-sm text-slate-400">Loading trends...</div>
-                                    </div>
-                                )}
+                                    {loading && (
+                                        <div className="center-block py-6 flex flex-col items-center gap-3">
+                                            <Spinner />
+                                            <div className="text-sm text-slate-400">Loading trends...</div>
+                                        </div>
+                                    )}
 
-                                {error && (
-                                    <div className="error text-red-500 py-4">
-                                        <h3 className="font-semibold">Error</h3>
-                                        <p>{error}</p>
-                                    </div>
-                                )}
-
-                                {!loading && !error && (
-                                    <SkillList skills={skills} onSelect={handleSelect} />
-                                )}
-                            </CardContent>
-                        </Card>
+                                    {!loading && !error && (
+                                        <div className="mt-1">
+                                            <SkillList skills={skills} onSelect={handleSelect} />
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </div>
                     </div>
 
-                    <aside className="trends-side md:col-span-2">
-                        <Card className="h-full rounded-xl overflow-hidden border border-white/6 bg-slate-900/50">
-                            <CardContent className="h-full flex flex-col">
-                                <h3 className="mb-2 text-xl font-semibold text-white">Insight Panel</h3>
-                                {detailLoading ? (
-                                    <div className="center-block flex-1">
-                                        <Spinner />
-                                        <div className="text-sm text-slate-400">Loading details...</div>
-                                    </div>
-                                ) : detailError ? (
-                                    <div className="text-sm text-red-500">{detailError}</div>
-                                ) : (
-                                    <SkillDetailPanel skill={detail ?? selected} history={detailHistory} />
-                                )}
-                            </CardContent>
-                        </Card>
+                    {/* RIGHT: Insight panel takes 3/4 of width */}
+                    <aside className="trends-side md:col-span-3">
+                        <div className="sticky top-20">
+                            <Card className="h-full rounded-xl overflow-hidden border border-white/6 bg-gradient-to-br from-slate-900/60 to-slate-900/40 shadow-2xl">
+                                <CardContent className="h-full flex flex-col p-5">
+                                    <h3 className="text-2xl text-center my-2 font-semibold text-white">Insight Panel</h3>
+
+                                    {detailLoading ? (
+                                        <div className="center-block flex-1 flex flex-col items-center justify-center">
+                                            <Spinner />
+                                            <div className="text-sm text-slate-400 mt-3">Loading details...</div>
+                                        </div>
+                                    ) : detailError ? (
+                                        <div className="text-sm text-red-500">{detailError}</div>
+                                    ) : (
+                                        <SkillDetailPanel skill={detail ?? selected} history={detailHistory} />
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </div>
                     </aside>
 
-                    {/* Mobile drawer (unchanged behavior: improved classes) */}
+
+                    {/* Mobile drawer (unchanged) */}
                     <div className="md:hidden">
                         <button
                             className="mobile-insight-btn fixed bottom-6 right-6 bg-purple-600 text-white px-4 py-2 rounded-full shadow-lg"
@@ -138,7 +143,7 @@ export default function Trends() {
                                         mobileCloseTimeoutRef.current = window.setTimeout(() => setMobileVisible(false), 300);
                                     }}
                                 />
-                                <div className={`mobile-insight-drawer ${mobileOpen ? 'open' : ''} fixed bottom-0 left-0 right-0 bg-slate-900/90 p-4 rounded-t-xl shadow-xl`}>
+                                <div className={`mobile-insight-drawer ${mobileOpen ? 'open' : ''} fixed bottom-0 left-0 right-0 bg-slate-900/95 p-4 rounded-t-xl shadow-xl`}>
                                     <div className="mobile-insight-header flex justify-between items-center mb-3">
                                         <div className="text-lg font-semibold text-white">Insights</div>
                                         <button className="close-btn text-slate-300" onClick={() => {

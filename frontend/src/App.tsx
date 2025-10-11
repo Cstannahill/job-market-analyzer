@@ -29,8 +29,8 @@ function App() {
   } = useQuery({
     queryKey: ['job-postings-stats'],
     queryFn: () => getJobPostingsStats(),
-    staleTime: 1000 * 60 * 1, // 1 minutes
-    gcTime: 1000 * 60 * 2, // 2 minutes
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 60, // 1 hour
     retry: 1,
   });
 

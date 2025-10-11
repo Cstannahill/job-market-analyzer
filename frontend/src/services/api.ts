@@ -356,9 +356,12 @@ export const getJobPostingsStats = async (): Promise<{
   items?: ExtendedJobPosting[];
 }> => {
   try {
+    console.log();
     const response = await axios.get(`${API_URL}/job-stats`);
+    console.log(response.data);
 
     let payload = response.data;
+    console.log("Raw payload:", payload);
 
     // Unwrap Lambda proxy responses (statusCode/body)
     if (typeof payload === "object" && payload !== null) {
