@@ -10,6 +10,8 @@
 @import "./styles/general.css";
 @import "./styles/feature-cards.css";
 @import "./styles/section-card.css";
+@import "./styles/remote-pill.css";
+@import "./styles/JobPostingCard.css";
 
 * {
   box-sizing: border-box;

@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { Card, CardDescription } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
 import { getJobPostingsStats } from '@/services/api';
 import { useQuery } from '@tanstack/react-query';
@@ -55,13 +56,10 @@ const TopTechChart: React.FC = () => {
     }
     return (
 
-        <section className="top-tech-section container tech-chart-card">
-            <div className="section-header">
-                <h2>Top Technologies</h2>
-                <p className="section-subtitle">Most in-demand skills across all job postings</p>
-            </div>
+        <Card className="bg-card/90 my-3 about-section-card backdrop-blur-sm border border-chart-4 shadow-sm hover:shadow-md transition">
+            <CardDescription className="section-subtitle text-center text-white/25 nf-mono">Most in-demand skills across all job postings</CardDescription>
 
-            <div className="tech-chart tech-chart-card">
+            <Card className="bg-card/90 my-3 about-section-card backdrop-blur-sm border border-chart-4 shadow-sm hover:shadow-md transition">
                 {topTechnologies.map(([tech, count], index) => {
                     const maxCount = topTechnologies[0][1];
                     const percentage = (count / maxCount) * 100;
@@ -86,8 +84,8 @@ const TopTechChart: React.FC = () => {
                         </div>
                     );
                 })}
-            </div>
-        </section >
+            </Card>
+        </Card>
 
 
     );

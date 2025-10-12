@@ -1,0 +1,19 @@
+{
+  "name": "bedrock-ai-extractor",
+  "version": "1.0.0",
+  "description": "Lambda function to extract job postings in S3 bucket using Bedrock AI",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx tsup src"
+  },
+  "devDependencies": {
+    "@types/node": "^24.7.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.908.0",
+    "@aws-sdk/client-dynamodb": "^3.908.0",
+    "@aws-sdk/client-s3": "^3.908.0",
+    "@aws-sdk/lib-dynamodb": "^3.908.0"
+  }
+}

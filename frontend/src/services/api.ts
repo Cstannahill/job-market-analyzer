@@ -17,6 +17,9 @@ export interface JobPosting {
 
 // Extended model for new table fields
 export interface ExtendedJobPosting extends JobPosting {
+  job_title?: string;
+  job_description?: string;
+  location?: string;
   benefits?: string[];
   company_size?: string;
   company?: string;
@@ -243,11 +246,12 @@ export const getJobPostings = async (): Promise<ExtendedJobPosting[]> => {
           r.technologies_raw ??
           r.technologies_normalized
       );
-
       return {
         Id: String(id),
-        title: title,
-        company,
+        title: String(title),
+        location: String(location),
+        job_description: r.job_description ? String(r.job_description) : "",
+        company: String(company),
         skills,
         technologies,
         raw_text: raw_text,
@@ -324,7 +328,11 @@ export const getJobPostingsPage = async (opts?: {
     const row = r as Record<string, unknown>;
     return {
       Id: String(row["Id"] ?? row["id"] ?? row["jobId"] ?? ""),
-      title: String(row["title"] ?? row["job_title"] ?? ""),
+      job_title: String(row["title"] ?? row["job_title"] ?? ""),
+      job_description: String(
+        row["job_description"] ?? row["description"] ?? ""
+      ),
+      location: String(row["location"] ?? row["job_location"] ?? ""),
       skills: Array.isArray(row["skills"]) ? (row["skills"] as string[]) : [],
       technologies: Array.isArray(row["technologies"])
         ? (row["technologies"] as string[])
@@ -333,7 +341,6 @@ export const getJobPostingsPage = async (opts?: {
       date: String(row["date"] ?? row["processed_date"] ?? ""),
       source_file: String(row["source_file"] ?? row["source"] ?? ""),
       company: String(row["company_name"] ?? "Unknown"),
-      location: String(row["location"] ?? "Unknown"),
       industry: String(row["industry"] ?? "Unknown"),
       seniority_level: String(row["seniority_level"] ?? "Unknown"),
     } as ExtendedJobPosting;

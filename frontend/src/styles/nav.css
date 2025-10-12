@@ -49,6 +49,7 @@
   color: var(--nav-text);
   text-decoration: none;
   border-radius: 999px; /* pill */
+  color: white;
   border: 1px solid var(--muted-border);
   background: transparent;
   transition: transform 0.16s ease, box-shadow 0.18s ease, background 0.12s ease,

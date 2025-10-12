@@ -127,15 +127,15 @@ export const JobPostingsSection: React.FC = () => {
         setFilteredPostings(filtered);
     }, [pageItems, searchTerm, selectedTech]);
 
-    // const techCounts = useMemo(() => {
-    //     if (stats?.technologyCounts && Object.keys(stats.technologyCounts).length > 0) {
-    //         return stats.technologyCounts;
-    //     }
-    //     return jobPostings.reduce<Record<string, number>>((acc, p) => {
-    //         p.technologies.forEach((t) => (acc[t] = (acc[t] || 0) + 1));
-    //         return acc;
-    //     }, {});
-    // }, [stats, jobPostings]);
+    const techCounts = useMemo(() => {
+        if (stats?.technologyCounts && Object.keys(stats.technologyCounts).length > 0) {
+            return stats.technologyCounts;
+        }
+        return jobPostings.reduce<Record<string, number>>((acc, p) => {
+            p.technologies.forEach((t) => (acc[t] = (acc[t] || 0) + 1));
+            return acc;
+        }, {});
+    }, [stats, jobPostings]);
     // Calculate total pages if needed (stats.totalPostings / pageSize)
     const totalPages = stats?.totalPostings
         ? Math.ceil(stats.totalPostings / pageSize)
@@ -344,7 +344,7 @@ export const JobPostingsSection: React.FC = () => {
                     />
                 </div>
 
-                {/* <Select value={selectedTech} onValueChange={(v) => setSelectedTech(v)}>
+                <Select value={selectedTech} onValueChange={(v) => setSelectedTech(v)}>
                     <SelectTrigger className="tech-filter">
                         <SelectValue placeholder="All Technologies" />
                     </SelectTrigger>
@@ -358,7 +358,7 @@ export const JobPostingsSection: React.FC = () => {
                                 </SelectItem>
                             ))}
                     </SelectContent>
-                </Select> */}
+                </Select>
 
                 {(searchTerm || (selectedTech && selectedTech !== '__all__')) && (
                     <Button

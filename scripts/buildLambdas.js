@@ -4,6 +4,7 @@ const { execSync } = require("child_process");
 
 const lambdaDirectories = [
   "aggregate-skill-trends",
+  "bedrock-ai-extractor",
   "calculate-job-stats",
   "clean-jobs-bucket",
   "get-job-postings",

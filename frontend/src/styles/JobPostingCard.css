@@ -1,0 +1,556 @@
+/* Modern Job Card Redesign */
+
+.job-card {
+  border-radius: 16px;
+  padding: 0;
+  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  overflow: hidden;
+  position: relative;
+}
+
+.job-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.job-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07),
+    0 20px 40px rgba(59, 130, 246, 0.15);
+}
+
+.job-card:hover::before {
+  opacity: 1;
+}
+
+/* Card Header Section */
+.job-card-header {
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 0 2rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  background: linear-gradient(
+    180deg,
+    rgba(249, 250, 251, 0.5) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+.job-header-left {
+  display: flex;
+  flex-direction: row;
+  align-items: center; /* vertically center all children */
+  gap: 0.5rem; /* space between items */
+  flex-wrap: wrap; /* wrap nicely on small screens */
+  width: 100%;
+  min-width: 0;
+}
+
+.job-header-left,
+.company-name-row {
+  min-width: 0;
+}
+
+/* Company Badge - Enhanced */
+.company-badge {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3b82f6, #1e40af);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: #ffffff;
+  font-size: 1.25rem;
+  flex: 0 0 auto;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  letter-spacing: 0.5px;
+}
+
+/* Job Title - Enhanced */
+.job-title {
+  margin: 0;
+  font-size: 1.375rem;
+  color: #0f172a;
+  font-weight: 800;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  letter-spacing: -0.3px;
+}
+
+.job-date {
+  font-size: 0.8rem;
+  color: #4b5767;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 0;
+  padding: 0;
+}
+
+/* Meta Pills Container */
+.job-meta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+  width: 100%;
+}
+
+/* Enhanced Meta Pills */
+.meta-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.03);
+  color: #334155;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.meta-pill:hover {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+/* Colored meta pills */
+.meta-pill[style*="background-color"] {
+  border: none;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.meta-pill[style*="background-color"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Remote WiFi Icon */
+.remote-icon {
+  margin-right: 4px;
+}
+
+.meta-pill-remote {
+  background-color: #d1fae5 !important;
+  color: #059669 !important;
+  border: 1px solid #a7f3d0 !important;
+  animation: remote-glow 2s ease-in-out infinite;
+}
+
+@keyframes remote-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 8px 2px rgba(16, 185, 129, 0.2);
+  }
+}
+
+.meta-pill-remote .remote-icon {
+  animation: wifi-pulse 2s ease-in-out infinite;
+}
+
+@keyframes wifi-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 2px rgba(16, 185, 129, 0.6));
+  }
+  50% {
+    opacity: 0.8;
+    filter: drop-shadow(0 0 4px rgba(16, 185, 129, 1));
+  }
+}
+
+/* Card Content */
+.job-section {
+  margin-top: 0;
+  padding: 16px 24px;
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.job-section:first-of-type {
+  padding-top: 20px;
+}
+
+.job-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+/* Salary and Date Row */
+.job-card-header .flex {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0px;
+  margin-bottom: 0;
+  gap: 2px;
+}
+
+.salary {
+  font-weight: 800;
+  color: #059669;
+  font-size: 1.125rem;
+  letter-spacing: -0.3px;
+}
+
+/* Company Name */
+.company-name {
+  font-size: 0.9125rem;
+  font-weight: 700;
+  color: #475569;
+  margin-right: 0;
+}
+
+.company-name-row {
+  gap: 10px;
+  align-items: center;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.company-name-row .meta-pill {
+  max-width: 180px;
+}
+
+.job-card-description {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #334155;
+  height: auto;
+  margin: 0 1rem;
+  overflow: hidden;
+  font-family: monospace;
+  position: relative;
+  margin-top: 12px;
+}
+
+/* Tags Container - Enhanced */
+.tag-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.tag {
+  padding: 7px 12px;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.tag:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+  border-color: #94a3b8;
+}
+
+.tag-technology {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  color: #0c4a6e;
+  border-color: #7dd3fc;
+  padding: 0.15rem;
+}
+
+.tag-technology:hover {
+  background: linear-gradient(135deg, #bfdbfe, #93c5fd);
+  border-color: #0284c7;
+}
+
+.tag-skill {
+  background: linear-gradient(135deg, #fce7f3, #fbcfe8);
+  color: #831843;
+  border-color: #f472b6;
+  padding: 0.15rem;
+  font-size: x-small;
+}
+
+.tag-skill:hover {
+  background: linear-gradient(135deg, #fbcfe8, #f8b4d8);
+  border-color: #ec4899;
+}
+
+.tag-benefit {
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  color: #166534;
+  border-color: #86efac;
+}
+
+.tag-benefit:hover {
+  background: linear-gradient(135deg, #bbf7d0, #86efac);
+  border-color: #22c55e;
+}
+
+.tag-req {
+  background: linear-gradient(135deg, #f3e8ff, #e9d5ff);
+  color: #581c87;
+  border-color: #d8b4fe;
+}
+
+.tag-req:hover {
+  background: linear-gradient(135deg, #e9d5ff, #d8b4fe);
+  border-color: #a855f7;
+}
+
+/* Requirements Container */
+.requirements-container .requirement-badge {
+  max-width: 100%;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.4;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.requirements-container .requirement-badge.clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.requirements-container .requirement-badge.clamped::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 40%;
+  height: 1.4em;
+  background: linear-gradient(to right, rgba(243, 232, 255, 0), #f3e8ff);
+  pointer-events: none;
+}
+
+/* Job Preview */
+.job-preview {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: #334155;
+  background: linear-gradient(135deg, #f0f9ff, #f0fdf4);
+  padding: 14px 16px;
+  border-radius: 10px;
+  border-left: 4px solid #3b82f6;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .job-card {
+    border-radius: 12px;
+  }
+
+  .job-card-header {
+    padding: 18px;
+  }
+
+  .job-header-left {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .job-title {
+    font-size: 1rem;
+  }
+
+  .company-badge {
+    width: 48px;
+    height: 48px;
+    font-size: 1rem;
+  }
+
+  .tag {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+
+  .meta-pill {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+
+  .job-section {
+    padding: 14px 18px;
+  }
+
+  .job-preview {
+    padding: 12px 14px;
+    font-size: 0.8125rem;
+    max-height: 6.5rem;
+    overflow: hidden;
+  }
+
+  .salary {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .job-card {
+    border-radius: 10px;
+  }
+
+  .job-card-header {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .job-title {
+    font-size: 1.125rem;
+  }
+
+  .company-badge {
+    width: 44px;
+    height: 44px;
+    font-size: 0.95rem;
+  }
+
+  .job-header-left {
+    gap: 10px;
+  }
+
+  .tag-container {
+    gap: 8px;
+  }
+
+  .tag {
+    padding: 5px 9px;
+    font-size: 0.7125rem;
+  }
+
+  .meta-pill {
+    padding: 4px 8px;
+    font-size: 0.7rem;
+  }
+
+  .job-section {
+    padding: 12px 16px;
+  }
+
+  .job-section h4 {
+    font-size: 0.75rem;
+    margin-bottom: 10px;
+  }
+
+  .job-preview {
+    padding: 10px 12px;
+    font-size: 0.78rem;
+    max-height: 5.5rem;
+  }
+
+  .tag-container {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+
+  .tag {
+    flex: 0 0 auto;
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .salary {
+    font-size: 0.95rem;
+  }
+
+  .job-date {
+    font-size: 0.75rem;
+  }
+
+  .company-name {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .job-card {
+    border-radius: 8px;
+  }
+
+  .job-card-header {
+    padding: 14px;
+  }
+
+  .job-title {
+    font-size: 1rem;
+  }
+
+  .company-badge {
+    width: 40px;
+    height: 40px;
+    font-size: 0.9rem;
+  }
+
+  .job-meta {
+    gap: 6px;
+  }
+
+  .meta-pill {
+    padding: 4px 7px;
+    font-size: 0.65rem;
+  }
+
+  .tag {
+    padding: 4px 7px;
+    font-size: 0.65rem;
+  }
+
+  .salary {
+    font-size: 0.875rem;
+  }
+
+  .job-section {
+    padding: 10px 14px;
+  }
+
+  .job-preview {
+    padding: 8px 10px;
+    font-size: 0.75rem;
+    max-height: 4.5rem;
+  }
+}

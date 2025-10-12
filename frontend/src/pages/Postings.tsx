@@ -1,12 +1,14 @@
 import React from 'react';
 import { Layout } from '../components/Layout';
-import JobPostingsSection from '@/components/postings/JobPostingsSection';
+import JobPostingsSection from '@/components/postings/UpdatedJobsPostings';
+import SectionCard from '@/components/about/SectionCard';
 
 const Postings: React.FC = () => {
     return (
         <Layout>
-            <h2>All Job Postings</h2>
-            <JobPostingsSection />
+            <SectionCard title="Job Postings">
+                <JobPostingsSection />
+            </SectionCard>
         </Layout>
     );
 };

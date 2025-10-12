@@ -1,6 +1,7 @@
 .tech-bar-container {
   opacity: 0;
   animation: fadeInUp 0.6s ease-out forwards;
+  width: 100%;
 }
 
 @keyframes fadeInUp {

@@ -9,168 +9,53 @@ import {
   PutCommand,
   GetCommand,
 } from "@aws-sdk/lib-dynamodb";
-import axios from "axios";
+import {
+  BedrockRuntimeClient,
+  InvokeModelCommand,
+} from "@aws-sdk/client-bedrock-runtime";
 
 const s3Client = new S3Client({});
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
+const bedrockClient = new BedrockRuntimeClient({ region: "us-east-1" }); // Set your region
 
 // Environment variables
 const S3_BUCKET = process.env.S3_BUCKET || "job-postings-bucket-cstannahill";
 const ENRICHMENT_TABLE =
   process.env.ENRICHMENT_TABLE || "job-postings-enhanced";
-const OPENROUTER_KEYS = [
-  process.env.OPENROUTER_KEY_1,
-  process.env.OPENROUTER_KEY_2,
-  process.env.OPENROUTER_KEY_3,
-  process.env.OPENROUTER_KEY_4,
-  process.env.OPENROUTER_KEY_5,
-].filter(Boolean) as string[];
-const MODEL = process.env.OPENROUTER_MODEL || "qwen/qwen3-coder:free";
-const BATCH_SIZE = 5;
-const MAX_FILES_PER_RUN = 50; // Stay within daily limit
 
-// place at top-level (module scope)
-const keyCooldowns: Record<string, number> = {}; // key -> timestamp (ms) when usable again
-let currentKeyIndex = 0;
+// Model configuration - Choose one based on your needs
+const MODEL_CONFIG = {
+  // RECOMMENDED: Best balance of quality and cost
+  pro: {
+    modelId: "amazon.nova-pro-v1:0",
+    maxTokens: 4096,
+    batchSize: 3, // Smaller batches for better quality
+  },
+  // HIGHEST QUALITY: Use for best results
+  premier: {
+    modelId: "amazon.nova-premier-v1:0",
+    maxTokens: 4096,
+    batchSize: 2, // Smaller batches due to complexity
+  },
+  // MOST EFFICIENT: Use for cost savings
+  micro: {
+    modelId: "amazon.nova-micro-v1:0",
+    maxTokens: 4096,
+    batchSize: 5,
+  },
+  // ALTERNATIVE: Llama 3.3 70B (good quality, open source)
+  llama: {
+    modelId: "meta.llama3-3-70b-instruct-v1:0",
+    maxTokens: 4096,
+    batchSize: 3,
+  },
+};
 
-function nowMs() {
-  return Date.now();
-}
-
-async function sleep(ms: number) {
-  return new Promise((res) => setTimeout(res, ms));
-}
-
-// Async key getter that skips keys on cooldown and waits if needed
-async function getNextApiKeyAsync(): Promise<string> {
-  if (OPENROUTER_KEYS.length === 0) {
-    throw new Error("No OpenRouter API keys configured");
-  }
-
-  const start = nowMs();
-  // try each key once
-  for (let i = 0; i < OPENROUTER_KEYS.length; i++) {
-    const idx = (currentKeyIndex + i) % OPENROUTER_KEYS.length;
-    const key = OPENROUTER_KEYS[idx];
-    const cooldownUntil = keyCooldowns[key] || 0;
-    if (cooldownUntil <= nowMs()) {
-      // advance pointer so next call starts after this one
-      currentKeyIndex = (idx + 1) % OPENROUTER_KEYS.length;
-      return key;
-    }
-  }
-
-  // if we reach here, all keys are on cooldown: wait until earliest available
-  const earliest = Math.min(
-    ...OPENROUTER_KEYS.map((k) => keyCooldowns[k] || start)
-  );
-  const waitMs = Math.max(0, earliest - nowMs()) + 50; // small buffer
-  console.log(`All API keys on cooldown. Waiting ${waitMs}ms until retry...`);
-  await sleep(waitMs);
-  return getNextApiKeyAsync();
-}
-
-// Generic request caller with retries, backoff, and key cooldown handling
-async function callOpenRouterWithRetries(payload: any, maxAttempts = 5) {
-  let attempt = 0;
-  let lastErr: any = null;
-
-  while (attempt < maxAttempts) {
-    attempt++;
-    const apiKey = await getNextApiKeyAsync();
-
-    try {
-      const response = await axios.post(
-        "https://openrouter.ai/api/v1/chat/completions",
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-          timeout: 90000,
-        }
-      );
-
-      // success
-      return response;
-    } catch (err: any) {
-      lastErr = err;
-      const status = err?.response?.status;
-      const headers = err?.response?.headers || {};
-      const body = err?.response?.data;
-
-      console.warn(
-        `OpenRouter attempt ${attempt} failed (status=${status}). Headers:`,
-        headers
-      );
-
-      // If 429 -> honor Retry-After header and mark that key on cooldown
-      if (status === 429) {
-        // parse Retry-After
-        let retryAfterSec = 0;
-        const ra = headers["retry-after"] || headers["Retry-After"];
-        if (ra) {
-          const raNum = Number(ra);
-          if (!Number.isNaN(raNum)) {
-            retryAfterSec = raNum;
-          } else {
-            // could be HTTP-date; try Date parse
-            const date = Date.parse(ra);
-            if (!Number.isNaN(date)) {
-              retryAfterSec = Math.ceil((date - nowMs()) / 1000);
-            }
-          }
-        }
-
-        const cooldownMs = Math.max(
-          (retryAfterSec || 1) * 1000,
-          1000 * Math.pow(2, attempt)
-        );
-
-        // put current key on cooldown
-        keyCooldowns[apiKey] = nowMs() + cooldownMs;
-        console.warn(
-          `Received 429. Putting key on cooldown for ${cooldownMs}ms (retry-after:${retryAfterSec}s).`
-        );
-
-        // jittered backoff before trying next key (small)
-        const jitter = Math.floor(Math.random() * 300) + 100;
-        await sleep(Math.min(cooldownMs, 1000) + jitter);
-
-        // continue to next attempt (uses getNextApiKeyAsync which skips cooldown keys)
-        continue;
-      }
-
-      // If 401/403 -> likely bad key or blocked; do not retry many times on same key
-      if (status === 401 || status === 403) {
-        console.error("Auth/Permission error from API:", body || err.message);
-        // mark key as unusable for longer
-        keyCooldowns[apiKey] = nowMs() + 60 * 60 * 1000; // 1 hour
-        // continue with next key
-        continue;
-      }
-
-      // For 5xx server errors, retry with exponential backoff
-      if (status >= 500 || !status) {
-        const backoffMs =
-          Math.pow(2, attempt) * 500 + Math.floor(Math.random() * 300);
-        console.warn(
-          `Server error or network error. Backing off ${backoffMs}ms before retry.`
-        );
-        await sleep(backoffMs);
-        continue;
-      }
-
-      // other statuses -> break and bubble up
-      throw err;
-    }
-  }
-
-  // exhausted attempts
-  throw lastErr;
-}
+// Select your model here
+const SELECTED_MODEL = MODEL_CONFIG.pro; // Change to .premier, .micro, or .llama
+const BATCH_SIZE = SELECTED_MODEL.batchSize;
+const MAX_FILES_PER_RUN = 50;
 
 interface JobFile {
   fileName: string;
@@ -178,7 +63,7 @@ interface JobFile {
 }
 
 interface EnrichedJobData {
-  jobId: string; // filename without extension: "muse-18392636"
+  jobId: string;
   job_title: string;
   job_description: string;
   technologies: string[];
@@ -199,15 +84,11 @@ interface EnrichedJobData {
 /**
  * Lambda handler - runs on schedule (EventBridge)
  */
-
 export const handler = async () => {
-  console.log("Starting LLM enrichment process...");
-  /**
-   * Rotate through API keys
-   */
+  console.log("Starting Bedrock LLM enrichment process...");
+  console.log(`Using model: ${SELECTED_MODEL.modelId}`);
 
   try {
-    // Get list of unprocessed JSON files from S3
     const unprocessedFiles = await getUnprocessedFiles();
 
     if (unprocessedFiles.length === 0) {
@@ -219,11 +100,7 @@ export const handler = async () => {
     }
 
     console.log(`Found ${unprocessedFiles.length} unprocessed files`);
-
-    // Limit to MAX_FILES_PER_RUN to avoid hitting daily limits
     const filesToProcess = unprocessedFiles.slice(0, MAX_FILES_PER_RUN);
-
-    // Process in batches
     const results = await processBatches(filesToProcess);
 
     console.log("Enrichment completed:", results);
@@ -231,10 +108,11 @@ export const handler = async () => {
     return {
       statusCode: 200,
       body: JSON.stringify({
-        message: "LLM enrichment completed",
+        message: "Bedrock LLM enrichment completed",
         processed: results.success,
         failed: results.failed,
         skipped: unprocessedFiles.length - filesToProcess.length,
+        model: SELECTED_MODEL.modelId,
       }),
     };
   } catch (error) {
@@ -263,10 +141,7 @@ async function getUnprocessedFiles(): Promise<string[]> {
         const key = object.Key;
         if (!key || !key.endsWith(".json")) continue;
 
-        // Extract jobId from filename (remove .json extension)
         const jobId = key.replace(".json", "");
-
-        // Check if already processed
         const isProcessed = await isJobProcessed(jobId);
         if (!isProcessed) {
           unprocessed.push(key);
@@ -299,7 +174,7 @@ async function isJobProcessed(jobId: string): Promise<boolean> {
 }
 
 /**
- * Process files in batches of BATCH_SIZE
+ * Process files in batches
  */
 async function processBatches(
   fileKeys: string[]
@@ -311,13 +186,9 @@ async function processBatches(
     const batch = fileKeys.slice(i, i + BATCH_SIZE);
 
     try {
-      // Fetch file contents for batch
       const jobFiles = await fetchJobFiles(batch);
+      const enrichedData = await enrichWithBedrock(jobFiles);
 
-      // Call LLM with batch
-      const enrichedData = await enrichWithLLM(jobFiles);
-
-      // Save results to DynamoDB
       for (const data of enrichedData) {
         try {
           await saveEnrichedData(data);
@@ -328,8 +199,8 @@ async function processBatches(
         }
       }
 
-      // Add delay to respect rate limits (20 req/min = 3 seconds between requests)
-      await delay(3000);
+      // Small delay between batches
+      await delay(1000);
     } catch (error) {
       console.error(`Batch processing failed:`, error);
       failed += batch.length;
@@ -381,7 +252,7 @@ async function streamToString(stream: any): Promise<string> {
 }
 
 /**
- * Build enhanced user prompt
+ * Build user prompt for job analysis
  */
 function buildUserPrompt(jobFiles: JobFile[]): string {
   const jobsSection = jobFiles
@@ -422,81 +293,11 @@ Return a JSON array with ${jobFiles.length} objects in the same order, following
 }
 
 /**
- * Validate and normalize enriched data
+ * Enrich job postings with Bedrock LLM
  */
-function validateEnrichedData(data: any, jobId: string): EnrichedJobData {
-  // Ensure all required fields exist
-  const validated: EnrichedJobData = {
-    jobId: data.jobId || jobId,
-    job_title:
-      typeof data.job_title === "string" ? data.job_title.trim() : undefined,
-    job_description:
-      typeof data.job_description === "string"
-        ? data.job_description.trim()
-        : undefined,
-    technologies: Array.isArray(data.technologies)
-      ? data.technologies.filter((t: any) => typeof t === "string" && t.trim())
-      : [],
-    skills: Array.isArray(data.skills)
-      ? data.skills.filter((s: any) => typeof s === "string" && s.trim())
-      : [],
-    requirements: Array.isArray(data.requirements)
-      ? data.requirements.filter((r: any) => typeof r === "string" && r.trim())
-      : [],
-    seniority_level: ["Entry", "Mid", "Senior", "Lead", "Executive"].includes(
-      data.seniority_level
-    )
-      ? data.seniority_level
-      : "Mid",
-    location:
-      typeof data.location === "string" ? data.location.trim() : undefined,
-    company_name:
-      typeof data.company_name === "string"
-        ? data.company_name.trim()
-        : undefined,
-    salary_mentioned: Boolean(data.salary_mentioned),
-    salary_range:
-      typeof data.salary_range === "string"
-        ? data.salary_range.trim()
-        : undefined,
-    remote_status: ["Remote", "Hybrid", "On-site", "Not specified"].includes(
-      data.remote_status
-    )
-      ? data.remote_status
-      : "Not specified",
-    benefits: Array.isArray(data.benefits)
-      ? data.benefits.filter((b: any) => typeof b === "string" && b.trim())
-      : [],
-    company_size: [
-      "Startup",
-      "Small",
-      "Medium",
-      "Large",
-      "Enterprise",
-    ].includes(data.company_size)
-      ? data.company_size
-      : undefined,
-    industry:
-      typeof data.industry === "string" ? data.industry.trim() : undefined,
-    processed_date: new Date().toISOString(),
-  };
-
-  // Deduplicate arrays
-  validated.technologies = [...new Set(validated.technologies)];
-  validated.skills = [...new Set(validated.skills)];
-  validated.requirements = [...new Set(validated.requirements)];
-  validated.benefits = [...new Set(validated.benefits)];
-
-  return validated;
-}
-
-/**
- * Enrich job postings with LLM analysis
- */
-async function enrichWithLLM(jobFiles: JobFile[]): Promise<EnrichedJobData[]> {
-  const apiKey = await getNextApiKeyAsync();
-
-  // Enhanced system prompt with clearer instructions
+async function enrichWithBedrock(
+  jobFiles: JobFile[]
+): Promise<EnrichedJobData[]> {
   const systemPrompt = `You are a job posting analyzer that extracts structured data from job descriptions.
 
 CRITICAL: Return ONLY a valid JSON array. No markdown code blocks, no explanations, no preamble.
@@ -565,9 +366,11 @@ EXTRACTION RULES:
     - Single broad category: "technology", "healthcare", "finance", "education", etc.
     - Use lowercase
     - If unclear or multiple: null
+
 12. JOB_TITLE and JOB_DESCRIPTION:
-    - JOB_TITLE: Extract the exact job title as stated in the posting this will be found in the name property.
+    - JOB_TITLE: Extract the exact job title as stated in the posting - this will be found in the name property.
     - JOB_DESCRIPTION: Provide a concise summary (1-2 sentences) capturing the essence of the job role and responsibilities.
+
 
 VALIDATION RULES:
 - All array fields must be arrays (even if empty: [])
@@ -583,25 +386,51 @@ Return a JSON array with one object per job, maintaining the same order as input
   const userPrompt = buildUserPrompt(jobFiles);
 
   try {
-    const payload = {
-      model: MODEL,
+    // Prepare the request body based on model type
+    const requestBody = {
       messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
+        {
+          role: "user",
+          content: [
+            {
+              text: `${systemPrompt}\n\n${userPrompt}`,
+            },
+          ],
+        },
       ],
-      temperature: 0.0,
-      top_p: 0.95,
-      max_tokens: 2000,
+      inferenceConfig: {
+        maxTokens: SELECTED_MODEL.maxTokens,
+        temperature: 0.1,
+        topP: 0.95,
+      },
     };
 
-    let response = await callOpenRouterWithRetries(payload, 5);
+    const command = new InvokeModelCommand({
+      modelId: SELECTED_MODEL.modelId,
+      contentType: "application/json",
+      accept: "application/json",
+      body: JSON.stringify(requestBody),
+    });
 
-    // then proceed with the same parsing logic:
-    const content = response.data.choices[0]?.message?.content;
+    console.log(`Invoking Bedrock model: ${SELECTED_MODEL.modelId}`);
+    const response = await bedrockClient.send(command);
+
+    // Parse the response
+    const responseBody = JSON.parse(new TextDecoder().decode(response.body));
+
+    // Extract content based on response structure
+    const content =
+      responseBody.output?.message?.content?.[0]?.text ||
+      responseBody.content?.[0]?.text;
 
     if (!content) {
-      throw new Error("No content in LLM response");
+      throw new Error("No content in Bedrock response");
     }
+
+    console.log(
+      "Raw Bedrock response (first 200 chars):",
+      content.substring(0, 200)
+    );
 
     // Clean response
     const cleanedContent = content
@@ -613,7 +442,7 @@ Return a JSON array with one object per job, maintaining the same order as input
 
     // Validate it's an array
     if (!Array.isArray(parsedData)) {
-      throw new Error("LLM response is not an array");
+      throw new Error("Bedrock response is not an array");
     }
 
     // Validate and normalize each entry
@@ -621,18 +450,82 @@ Return a JSON array with one object per job, maintaining the same order as input
       validateEnrichedData(data, jobFiles[idx].fileName)
     );
   } catch (error) {
-    console.error("LLM API error:", error);
+    console.error("Bedrock API error:", error);
 
-    // If parsing failed, log the raw response for debugging
-    if (error instanceof SyntaxError && axios.isAxiosError(error)) {
-      console.error(
-        "Failed to parse LLM response. Raw content:",
-        error.response?.data?.choices?.[0]?.message?.content
-      );
+    if (error instanceof SyntaxError) {
+      console.error("Failed to parse Bedrock response");
     }
 
     throw error;
   }
+}
+
+/**
+ * Validate and normalize enriched data
+ */
+function validateEnrichedData(data: any, jobId: string): EnrichedJobData {
+  const validated: EnrichedJobData = {
+    jobId: data.jobId || jobId,
+    job_title:
+      typeof data.job_title === "string" ? data.job_title.trim() : undefined,
+    job_description:
+      typeof data.job_description === "string"
+        ? data.job_description.trim()
+        : undefined,
+    technologies: Array.isArray(data.technologies)
+      ? data.technologies.filter((t: any) => typeof t === "string" && t.trim())
+      : [],
+    skills: Array.isArray(data.skills)
+      ? data.skills.filter((s: any) => typeof s === "string" && s.trim())
+      : [],
+    requirements: Array.isArray(data.requirements)
+      ? data.requirements.filter((r: any) => typeof r === "string" && r.trim())
+      : [],
+    seniority_level: ["Entry", "Mid", "Senior", "Lead", "Executive"].includes(
+      data.seniority_level
+    )
+      ? data.seniority_level
+      : "Mid",
+    location:
+      typeof data.location === "string" ? data.location.trim() : undefined,
+    company_name:
+      typeof data.company_name === "string"
+        ? data.company_name.trim()
+        : undefined,
+    salary_mentioned: Boolean(data.salary_mentioned),
+    salary_range:
+      typeof data.salary_range === "string"
+        ? data.salary_range.trim()
+        : undefined,
+    remote_status: ["Remote", "Hybrid", "On-site", "Not specified"].includes(
+      data.remote_status
+    )
+      ? data.remote_status
+      : "Not specified",
+    benefits: Array.isArray(data.benefits)
+      ? data.benefits.filter((b: any) => typeof b === "string" && b.trim())
+      : [],
+    company_size: [
+      "Startup",
+      "Small",
+      "Medium",
+      "Large",
+      "Enterprise",
+    ].includes(data.company_size)
+      ? data.company_size
+      : undefined,
+    industry:
+      typeof data.industry === "string" ? data.industry.trim() : undefined,
+    processed_date: new Date().toISOString(),
+  };
+
+  // Deduplicate arrays
+  validated.technologies = [...new Set(validated.technologies)];
+  validated.skills = [...new Set(validated.skills)];
+  validated.requirements = [...new Set(validated.requirements)];
+  validated.benefits = [...new Set(validated.benefits)];
+
+  return validated;
 }
 
 /**
