@@ -6,6 +6,9 @@ import {
   ScanCommand,
 } from "@aws-sdk/lib-dynamodb";
 
+const SKILLS_TABLE = "job-postings-skills";
+const TECHNOLOGIES_TABLE = "job-postings-technologies";
+
 // Initialize DynamoDB client
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);

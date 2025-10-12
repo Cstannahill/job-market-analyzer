@@ -425,53 +425,101 @@ def migrate_postings():
         print("\nWriting normalized postings...")
         with normalized_table.batch_writer(overwrite_by_pkeys=["Id"]) as batch:
             normalized_count = 0
-            for posting in items_to_normalize:
-                # Skip if already normalized
-                # if posting.get("normalized") == True:
-                #     continue
 
+            def first_present(posting: dict, *keys, default=None):
+                """Return first posting[key] that exists and is not None; otherwise default."""
+                for k in keys:
+                    if k in posting and posting[k] is not None:
+                        return posting[k]
+                return default
+
+            for posting in items_to_normalize:
                 # Ensure Id field exists (copy from jobId if needed)
                 if "Id" not in posting and "jobId" in posting:
                     posting["Id"] = posting["jobId"]
-                if "comany_name" not in posting:
-                    posting["company_name"] = "Unknown"
-                if "remote_status" not in posting:
-                    posting["remote_status"] = "Unknown"
-                if "location" not in posting:
-                    posting["location"] = "Unknown"
-                if "company_size" not in posting:
-                    posting["company_size"] = "Unknown"
-                if "salary_mentioned" not in posting:
-                    posting["salary_mentioned"] = False
-                if "salary_range" not in posting:
-                    posting["salary_range"] = "Unknown"
-                if "seniority_level" not in posting:
-                    posting["seniority_level"] = "Unknown"
+
+                # Defensive defaults for expected shape
+                posting.setdefault("company_size", "Unknown")
+                posting.setdefault("salary_mentioned", False)
+                posting.setdefault("salary_range", "Unknown")
+                posting.setdefault("seniority_level", "Unknown")
+
+                # derive a parsed processed_date if present (keeps your existing logic)
                 proc_dt = _parse_processed_date(posting.get("processed_date"))
                 if "status" not in posting and proc_dt:
                     if datetime.now(timezone.utc) - proc_dt <= timedelta(days=30):
                         posting["status"] = "Active"
-                # Mark as normalized
+
+                # Resolve common job title / description field name variants
+                job_title = first_present(
+                    posting,
+                    "job_title",
+                    "title",
+                    "jobTitle",
+                    "position",
+                    default="Unknown Title",
+                )
+                job_description = first_present(
+                    posting,
+                    "job_description",
+                    "description",
+                    "jobDescription",
+                    "details",
+                    default="",
+                )
+
+                # Other common field fallbacks
+                company_name = first_present(
+                    posting, "company_name", "company", "employer", default=None
+                )
+                location = first_present(
+                    posting, "location", "job_location", default=None
+                )
+                remote_status = first_present(
+                    posting, "remote_status", "remote", default=None
+                )
+
+                # Build the normalized item with safe accessors
                 NormalizedItem = {
-                    "Id": posting["Id"],
-                    "job_title": posting.get("job_title", "Unknown"),
-                    "job_description": posting.get("job_description", ""),
+                    "Id": posting.get("Id"),
+                    "job_title": job_title,
+                    "job_description": job_description,
                     "normalized": True,
-                    "normalized_at": str(
-                        __import__("datetime").datetime.now().isoformat()
-                    ),
-                    "processed_date": posting["processed_date"],
-                    "company_name": posting["company_name"],
-                    "company_size": posting["company_size"],
-                    "location": posting["location"],
-                    "remote_status": posting["remote_status"],
-                    "salary_mentioned": posting["salary_mentioned"],
-                    "salary_range": posting["salary_range"],
-                    "seniority_level": posting["seniority_level"],
-                    "status": posting["status"],
+                    "normalized_at": __import__("datetime").datetime.now().isoformat(),
+                    "processed_date": posting.get("processed_date"),
+                    "company_name": company_name,
+                    "company_size": posting.get("company_size", "Unknown"),
+                    "location": location,
+                    "remote_status": remote_status,
+                    "salary_mentioned": posting.get("salary_mentioned", False),
+                    "salary_range": posting.get("salary_range", "Unknown"),
+                    "seniority_level": posting.get("seniority_level", "Unknown"),
+                    "status": posting.get("status", None),
                 }
-                batch.put_item(Item=NormalizedItem)
-                normalized_count += 1
+
+                # Optional: include normalized lists if present (techs/skills/benefits/etc.)
+                for field in (
+                    "technologies",
+                    "skills",
+                    "benefits",
+                    "requirements",
+                    "industry",
+                ):
+                    if field in posting:
+                        NormalizedItem[field] = posting[field]
+
+                try:
+                    batch.put_item(Item=NormalizedItem)
+                    normalized_count += 1
+                except Exception as e:
+                    print(
+                        f"✗ Failed to write normalized posting (Id={posting.get('Id')}): {e}"
+                    )
+                    snippet_keys = ["Id", "job_title", "title", "jobId", "company_name"]
+                    snippet = {k: posting.get(k) for k in snippet_keys if k in posting}
+                    print(f"  Posting snippet: {snippet}")
+                    continue
+
         print(f"✓ Wrote {normalized_count} normalized postings")
 
         print("\n" + "=" * 60)

@@ -80,8 +80,10 @@
 
 /* Job Title - Enhanced */
 .job-title {
-  margin: 0;
-  font-size: 1.375rem;
+  gap: 1rem;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  font-size: 1.15rem;
   color: #0f172a;
   font-weight: 800;
   line-height: 1.2;
@@ -90,6 +92,7 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-wrap: normal;
   word-break: break-word;
   letter-spacing: -0.3px;
 }
@@ -232,7 +235,6 @@
   font-size: 0.9125rem;
   font-weight: 700;
   color: #475569;
-  margin-right: 0;
 }
 
 .company-name-row {
@@ -240,6 +242,8 @@
   align-items: center;
   margin-top: 8px;
   flex-wrap: wrap;
+  display: flex;
+  flex-direction: column;
 }
 
 .company-name-row .meta-pill {
@@ -262,13 +266,11 @@
 .tag-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 0.35rem;
   align-items: center;
 }
 
 .tag {
-  padding: 7px 12px;
-  border-radius: 10px;
   font-size: 0.8125rem;
   font-weight: 600;
   background: linear-gradient(135deg, #f8fafc, #e2e8f0);
@@ -290,6 +292,8 @@
   background: linear-gradient(135deg, #dbeafe, #bfdbfe);
   color: #0c4a6e;
   border-color: #7dd3fc;
+  font-size: x-small;
+  font-family: monospace;
   padding: 0.15rem;
 }
 
@@ -303,6 +307,7 @@
   color: #831843;
   border-color: #f472b6;
   padding: 0.15rem;
+  font-family: monospace;
   font-size: x-small;
 }
 

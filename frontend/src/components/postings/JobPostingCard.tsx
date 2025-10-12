@@ -4,10 +4,11 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { toProperCase } from '@/lib/stringHelpers';
 import { MetaPillContainer } from '@/components/postings/MetaPillContainer';
-
+import TechBadgeSvgr from '@/components/postings/TechBadgeSvgr';
 interface JobPostingCardProps {
     posting: ExtendedJobPosting;
 }
+
 
 export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
     const formatDate = (dateString: string) => {
@@ -23,20 +24,18 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
     return (
         <Card className="job-card">
             <MetaPillContainer posting={posting} date={formatDate(posting.date)} />
-            <CardHeader className="job-card-header justify-items-center ">
-                <div className="job-header-left ">
-                    <Badge className="company-badge" aria-hidden>
+            <CardHeader className="job-card-header">
+                <div className="flex flex-row justify-around">
+                    <Badge className="company-badge col-6" aria-hidden>
                         {posting.company ? posting.company.charAt(0).toUpperCase() : posting.source_file?.charAt(0).toUpperCase()}
                     </Badge>
-                    <div className="company-name-row">
-                        {posting.company && <span className="company-name ">{posting.company}</span>}</div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <p className="job-title">{posting.job_title}</p>
+                    </div>
+                </div>
 
 
-                    {/* <span className="job-date">{posting && posting.date ? formatDate(posting.date) : null}</span> */}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <p className="job-title">{posting.job_title}</p>
-                </div>
+
 
 
                 <div className="flex w-full justify-between">
@@ -51,16 +50,15 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
             <CardContent >
                 <div className="job-section">
                     {posting.technologies.length > 0 && (
-                        <div className="">
+                        <>
                             <h4>Technologies and Skills</h4>
                             <div className="tag-container">
                                 {posting.technologies.slice(0, 5).map((tech, index) => (
-                                    <Badge key={index} className="tag tag-technology">
-                                        {toProperCase(tech)}
-                                    </Badge>
+                                    <TechBadgeSvgr key={index} name={tech} size={24} />
+
                                 ))}
                             </div>
-                        </div>
+                        </>
                     )}
                 </div>
 
@@ -113,6 +111,6 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
                     </div>
                 )}
             </CardContent>
-        </Card>
+        </Card >
     );
 };

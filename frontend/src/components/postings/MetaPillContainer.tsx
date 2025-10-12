@@ -11,7 +11,7 @@ type MetaPillContainerProps = {
 
 export function MetaPillContainer({ posting, date }: MetaPillContainerProps) {
     return (
-        <div className="meta-pill justify-center gap-6">
+        <div className="meta-pill justify-around ">
             <div className='company-name'>
                 {posting.company}
             </div>
