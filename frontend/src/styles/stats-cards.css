@@ -38,6 +38,7 @@
 .stat-card-header {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-sm);
   margin-bottom: var(--space-md);
   text-align: center;

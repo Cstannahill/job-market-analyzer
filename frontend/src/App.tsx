@@ -8,17 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Layout } from '@/components/Layout';
 import { Spinner } from '@/components/ui/spinner';
 import { Button } from '@/components/ui/button';
-import { SquareKanban } from 'lucide-react';
-
-// Icons - you can replace with lucide-react icons
-const StatsIcon = ({ type }: { type: 'postings' | 'technologies' | 'skills' }) => {
-  const icons = {
-    postings: <SquareKanban />,
-    technologies: '⚡',
-    skills: '🎯'
-  };
-  return <span className="stat-icon">{icons[type]}</span>;
-};
+import { Brain, Briefcase, Code2 } from 'lucide-react';
 
 function App() {
   const {
@@ -89,7 +79,7 @@ function App() {
             <div className="stat-card glass card-hover card-stylish">
               <div className="stat-card-header ">
                 {/* <StatsIcon type="postings" /> */}
-                <SquareKanban className="text-zinc-800 h-8 w-7 " />
+                <Briefcase className="text-zinc-800 h-8 w-8" />
                 <span className="stat-label text-center">Total Postings</span>
               </div>
               <div className="stat-value">
@@ -100,6 +90,7 @@ function App() {
 
             <div className="stat-card glass card-hover card-stylish">
               <div className="stat-card-header">
+                <Code2 className="text-zinc-800 h-8 w-8" />
                 {/* <StatsIcon type="technologies" /> */}
 
                 <span className="stat-label">Technologies</span>
@@ -112,10 +103,11 @@ function App() {
 
             <div className="stat-card glass card-hover card-stylish">
               <div className="stat-card-header">
-                <StatsIcon type="skills" />
+                <Brain className="text-zinc-800 h-8 w-8" />
+                {/* <StatsIcon type="skills" /> */}
                 <span className="stat-label">Skills Extracted</span>
               </div>
-              <div className="stat-value">
+              <div className="stat-value nf-mono">
                 <AnimatedCounter end={totalSkills} duration={2000} />
               </div>
               <div className="stat-change positive">↑ AI-powered</div>
@@ -137,12 +129,6 @@ function App() {
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="app-footer">
-        <div className="container">
-          <p>TrendDev • Powered by AWS • Data updated hourly</p>
-        </div>
-      </footer>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react'
+import { type UploadStatus, type CompareResult, uploadResume } from '@/services/resumeService'
 
-type UploadStatus = 'idle' | 'uploading' | 'processing' | 'complete' | 'failed'
 
 const ACCEPTED_TYPES = [
     'application/pdf',
@@ -14,11 +14,7 @@ function formatBytes(n: number) {
     return (n / (1024 * 1024)).toFixed(2) + ' MB'
 }
 
-type CompareResult = {
-    status: 'processing' | 'complete' | 'failed'
-    analysis?: Record<string, unknown>
-    error?: string
-}
+
 
 const ResumeUploader: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -28,7 +24,11 @@ const ResumeUploader: React.FC = () => {
     const [result, setResult] = useState<CompareResult | null>(null)
     const [error, setError] = useState<string | null>(null)
 
-    const API_BASE = process.env.REACT_APP_API_URL || 'https://your-api-endpoint.com'
+    const API_BASE = 'https://xee5kjisf5.execute-api.us-east-1.amazonaws.com/prod'
+    console.log(API_BASE)
+
+    const API_KEY = 'WWKCpCzlkn5N3JCce4HXp5HYtUt7mPOk1HU6aP1t'
+    console.log(API_KEY)
     console.log(progress)
     const validate = (f: File) => {
         if (f.size > MAX_BYTES) return 'File is too large (max 10 MB)'
@@ -65,82 +65,6 @@ const ResumeUploader: React.FC = () => {
         const f = e.target.files?.[0] ?? null
         handleFile(f)
     }
-
-    const upload = async () => {
-        if (!file) return
-        setStatus('uploading')
-        setError(null)
-
-        try {
-            // Step 1: Get presigned URL from Lambda
-            const presignedRes = await fetch(`${API_BASE}/presigned-url`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    filename: file.name,
-                    contentType: file.type,
-                }),
-            })
-
-            if (!presignedRes.ok) {
-                throw new Error('Failed to get presigned URL')
-            }
-
-            const { url, key } = await presignedRes.json()
-
-            // Step 2: Upload directly to S3
-            const uploadRes = await fetch(url, {
-                method: 'PUT',
-                headers: { 'Content-Type': file.type },
-                body: file,
-            })
-
-            if (!uploadRes.ok) {
-                throw new Error('Upload to S3 failed')
-            }
-
-            console.log('File uploaded to S3:', key)
-            setStatus('processing')
-
-            // Step 3: Poll Lambda for processing
-            const poll = async () => {
-                try {
-                    const id = encodeURIComponent(key)
-                    const response = await fetch(`${API_BASE}/compare/${id}`)
-
-                    if (response.ok) {
-                        const json = (await response.json()) as CompareResult
-
-                        if (json.status === 'complete') {
-                            setResult(json)
-                            setStatus('complete')
-                            setProgress(100)
-                            return
-                        }
-
-                        if (json.status === 'failed') {
-                            setStatus('failed')
-                            setError(json.error || 'Processing failed')
-                            return
-                        }
-                    }
-
-                    setTimeout(poll, 2000)
-                } catch (err) {
-                    console.error('Poll error:', err)
-                    setTimeout(poll, 2000)
-                }
-            }
-
-            setTimeout(poll, 1500)
-        } catch (err) {
-            const error = err instanceof Error ? err : new Error(String(err))
-            console.error('Upload error:', error)
-            setError(error.message || 'Upload failed')
-            setStatus('failed')
-        }
-    }
-
     return (
         <section aria-live="polite">
             <div
@@ -207,12 +131,18 @@ const ResumeUploader: React.FC = () => {
 
                                 <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                                     <button
-                                        onClick={upload}
-                                        disabled={
-                                            status === 'uploading' ||
-                                            status === 'processing' ||
-                                            !file
+                                        onClick={() =>
+                                            file &&
+                                            uploadResume({
+                                                file,
+                                                setStatus,
+                                                setProgress,
+                                                setError,
+                                                setResult,
+                                                // optional: apiBase: 'https://...', apiKey: '...' if you need to override
+                                            })
                                         }
+                                        disabled={status === 'uploading' || status === 'processing' || !file}
                                     >
                                         Upload
                                     </button>

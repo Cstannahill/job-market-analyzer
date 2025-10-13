@@ -51,9 +51,9 @@
   transform: translateY(-2px);
   box-shadow: var(--shadow-xl);
 }
-.nf-mono {
-  font-family: "Fira Code", monospace;
-}
+/* .nf-mono {
+  font-family: "Nerdfont", monospace;
+} */
 
 .btn-secondary {
   background: var(--bg-elevated);
