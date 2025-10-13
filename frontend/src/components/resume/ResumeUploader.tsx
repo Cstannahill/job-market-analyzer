@@ -23,12 +23,6 @@ const ResumeUploader: React.FC = () => {
     const [progress, setProgress] = useState<number>(0)
     const [result, setResult] = useState<CompareResult | null>(null)
     const [error, setError] = useState<string | null>(null)
-
-    const API_BASE = 'https://xee5kjisf5.execute-api.us-east-1.amazonaws.com/prod'
-    console.log(API_BASE)
-
-    const API_KEY = 'WWKCpCzlkn5N3JCce4HXp5HYtUt7mPOk1HU6aP1t'
-    console.log(API_KEY)
     console.log(progress)
     const validate = (f: File) => {
         if (f.size > MAX_BYTES) return 'File is too large (max 10 MB)'
