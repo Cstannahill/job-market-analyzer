@@ -9,7 +9,7 @@ import type {
   BaseJobListing,
   TechnologyStatItem,
   SkillStatItem,
-} from "@job-analyzer/shared-types";
+} from "@/shared-types";
 
 // Extended model for new table fields
 

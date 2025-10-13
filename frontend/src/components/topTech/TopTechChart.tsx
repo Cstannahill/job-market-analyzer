@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardDescription } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
 import { getJobPostingsStats } from '@/services/api';
-import type { TechnologyStatItem } from '@job-analyzer/shared-types';
+import type { TechnologyStatItem } from '@/shared-types';
 import { useQuery } from '@tanstack/react-query';
 import React from 'react';
 

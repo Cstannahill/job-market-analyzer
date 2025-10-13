@@ -1,5 +1,5 @@
 import React from 'react';
-import type { BaseJobListing } from '@job-analyzer/shared-types';
+import type { BaseJobListing } from '@/shared-types';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { toProperCase } from '@/lib/stringHelpers';

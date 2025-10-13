@@ -7,7 +7,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@job-analyzer/shared-types": "file:../../packages/shared-types",
+    "@/shared-types": "file:../../packages/shared-types",
     "@aws-sdk/client-dynamodb": "^3.902.0",
     "@aws-sdk/lib-dynamodb": "^3.902.0"
   },

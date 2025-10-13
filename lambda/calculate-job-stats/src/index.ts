@@ -3,7 +3,7 @@ import type {
   JobStats,
   TechnologyStatItem,
   SkillStatItem,
-} from "@job-analyzer/shared-types";
+} from "@/shared-types";
 import {
   DynamoDBDocumentClient,
   ScanCommand,
