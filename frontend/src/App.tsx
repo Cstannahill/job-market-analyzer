@@ -8,11 +8,12 @@ import { useQuery } from '@tanstack/react-query';
 import { Layout } from '@/components/Layout';
 import { Spinner } from '@/components/ui/spinner';
 import { Button } from '@/components/ui/button';
+import { SquareKanban } from 'lucide-react';
 
 // Icons - you can replace with lucide-react icons
 const StatsIcon = ({ type }: { type: 'postings' | 'technologies' | 'skills' }) => {
   const icons = {
-    postings: '📊',
+    postings: <SquareKanban />,
     technologies: '⚡',
     skills: '🎯'
   };
@@ -37,7 +38,7 @@ function App() {
   const totalPostings = stats?.totalPostings || 0;
   // const totalTechnologies = stats?.totalTechnologies || 0;
   const totalSkills = stats?.totalSkills || 0;
-  const technologyCounts = stats?.technologyCounts || {};
+  const technologyCounts = stats?.technologies || {};
 
 
 
@@ -86,9 +87,10 @@ function App() {
           {/* Animated Stats Cards */}
           <div className="stats-grid fade-in">
             <div className="stat-card glass card-hover card-stylish">
-              <div className="stat-card-header">
-                <StatsIcon type="postings" />
-                <span className="stat-label">Total Postings</span>
+              <div className="stat-card-header ">
+                {/* <StatsIcon type="postings" /> */}
+                <SquareKanban className="text-zinc-800 h-8 w-7 " />
+                <span className="stat-label text-center">Total Postings</span>
               </div>
               <div className="stat-value">
                 <AnimatedCounter end={totalPostings} duration={2000} />
@@ -98,7 +100,8 @@ function App() {
 
             <div className="stat-card glass card-hover card-stylish">
               <div className="stat-card-header">
-                <StatsIcon type="technologies" />
+                {/* <StatsIcon type="technologies" /> */}
+
                 <span className="stat-label">Technologies</span>
               </div>
               <div className="stat-value">

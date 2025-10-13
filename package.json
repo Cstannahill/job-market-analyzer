@@ -10,12 +10,15 @@
     "packageall": "node scripts/packageLambdas.js"
   },
   "keywords": [],
+  "workspaces": [
+    "frontend",
+    "packages/*"
+  ],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "devDependencies": {
     "@types/node": "^24.7.1",
-    "archiver": "^7.0.1",
-    "typescript": "^5.9.3"
+    "archiver": "^7.0.1"
   }
 }

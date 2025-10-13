@@ -1,33 +1,31 @@
 
 import { Wifi } from 'lucide-react';
 import { getCompanySizeBadgeColor, getIndustryBadgeColor } from '@/lib/postingsBadgeHelpers';
-import type { ExtendedJobPosting } from '@/services/api';
+import type { BaseJobListing } from '@job-analyzer/shared-types';
 import { toProperCase } from '@/lib/stringHelpers';
 
 type MetaPillContainerProps = {
-    posting: ExtendedJobPosting;
+    posting: BaseJobListing;
     date?: string;
 };
 
 export function MetaPillContainer({ posting, date }: MetaPillContainerProps) {
+    const industry = posting?.industry && typeof posting.industry === 'string' ? posting.industry : Array.isArray(posting.industry) && posting.industry.length > 0 && typeof posting.industry[0] === 'string' ? posting.industry[0] : "Unknown";
     return (
         <div className="meta-pill justify-around ">
             <div className='company-name'>
-                {posting.company}
+                {posting.company_name && posting.company_name.toProperCase()}
             </div>
-
-            {posting.industry && (
-                <span
-                    className="meta-pill"
-                    style={{
-                        backgroundColor: getIndustryBadgeColor(posting.industry),
-                        color: '#FFFFFF',
-                    }}
-                >
-                    {toProperCase(posting.industry)}
-                </span>
-
-            )}<span className="job-date">{date}</span>
+            <span
+                className="meta-pill"
+                style={{
+                    backgroundColor: getIndustryBadgeColor(industry),
+                    color: '#FFFFFF',
+                }}
+            >
+                {toProperCase(industry)}
+            </span>
+            <span className="job-date">{date}</span>
 
 
 
@@ -44,10 +42,10 @@ export function MetaPillContainer({ posting, date }: MetaPillContainerProps) {
             )}
 
             {posting.remote_status && (
-                <span className="meta-pill meta-pill-remote">
+                <div className="inline-flex">
                     <Wifi size={14} className="remote-icon" />
-                    Remote
-                </span>
+                </div>
+
             )}
         </div>
     );

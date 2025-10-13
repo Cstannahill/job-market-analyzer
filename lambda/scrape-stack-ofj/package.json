@@ -1,5 +1,5 @@
 {
-  "name": "scrape-gls-dr",
+  "name": "scrape-stack-ofj",
   "version": "1.0.0",
   "description": "Lambda function to retrieve information from glasdoor",
   "main": "index.js",

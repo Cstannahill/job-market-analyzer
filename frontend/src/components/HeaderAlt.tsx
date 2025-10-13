@@ -3,6 +3,7 @@ import Nav from './Nav';
 import { Link } from 'react-router-dom';
 import { useTheme } from '@/hooks/useTheme';
 import { Moon, Sun } from 'lucide-react';
+import trendDevLogo from '@/assets/trenddev.png';
 
 export const Header: React.FC = () => {
     const { theme, toggleTheme } = useTheme();
@@ -20,22 +21,17 @@ export const Header: React.FC = () => {
             <div className="absolute rounded-lg  border-1 border-white/5 inset-0 bg-gradient-to-r from-slate-900/98 via-slate-900/95 to-slate-900/98 dark:from-slate-900/98 dark:via-slate-900/95 dark:to-slate-900/98 backdrop-blur-xl" />
 
             <div className="relative rounded-lg container mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-16 lg:h-18">
-                    {/* Logo Section */}
-                    <Link
-                        to="/"
-                        className="flex items-center gap-3 group transition-transform duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900 rounded-lg px-2 py-1"
-                    >
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 rounded-xl blur-sm opacity-75 group-hover:opacity-100 transition-opacity" />
-                            <div className="relative h-10 w-10 lg:h-11 lg:w-11 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 flex items-center justify-center shadow-lg">
-                                <span className="text-white dark:text-white font-bold text-lg lg:text-xl">TD</span>
-                            </div>
-                        </div>
-                        <span className="hidden sm:block text-xl lg:text-2xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent group-hover:from-indigo-300 group-hover:via-purple-300 group-hover:to-pink-300 transition-all duration-300">
+                <div className="flex items-center gap-4">
+                    <img src={trendDevLogo} className="h-10 w-10 m-0 rounded-md shadow-md shadow-violet-600" alt="TrendDev Logo" />
+                    <Link to="/" className="inline-flex items-center gap-3 no-underline focus:outline-none">
+
+
+
+                        <span className="hidden sm:inline-block text-xl font-semibold text-indigo-700 dark:text-indigo-300">
                             TrendDev
                         </span>
                     </Link>
+
 
                     {/* Desktop Navigation - Centered */}
                     <div className="hidden lg:flex flex-1 justify-center px-8">

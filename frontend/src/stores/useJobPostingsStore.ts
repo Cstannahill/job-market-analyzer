@@ -1,13 +1,13 @@
-import type { ExtendedJobPosting } from "@/services/api";
+import type { BaseJobListing } from "@job-analyzer/shared-types";
 import { create } from "zustand";
 
 type State = {
-  jobPostings: ExtendedJobPosting[];
+  jobPostings: BaseJobListing[];
   totalCount?: number;
 };
 
 type Action = {
-  setJobPostings: (jobPostings: ExtendedJobPosting[]) => void;
+  setJobPostings: (jobPostings: BaseJobListing[]) => void;
 };
 
 export const useJobPostingsStore = create<State & Action>((set) => ({

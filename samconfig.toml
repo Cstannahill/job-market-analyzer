@@ -1,0 +1,11 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "job-market-trenddev-analyzer"
+resolve_s3 = true
+s3_prefix = "job-market-analyzer"
+region = "us-east-1"
+confirm_changeset = false
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "S3BucketName=\"job-market-analyzer-bucket\""
+image_repositories = []

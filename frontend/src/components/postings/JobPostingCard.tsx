@@ -1,12 +1,12 @@
 import React from 'react';
-import { type ExtendedJobPosting } from '@/services/api';
+import type { BaseJobListing } from '@job-analyzer/shared-types';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { toProperCase } from '@/lib/stringHelpers';
 import { MetaPillContainer } from '@/components/postings/MetaPillContainer';
 import TechBadgeSvgr from '@/components/postings/TechBadgeSvgr';
 interface JobPostingCardProps {
-    posting: ExtendedJobPosting;
+    posting: BaseJobListing;
 }
 
 
@@ -23,11 +23,11 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
 
     return (
         <Card className="job-card">
-            <MetaPillContainer posting={posting} date={formatDate(posting.date)} />
+            <MetaPillContainer posting={posting} date={formatDate(posting.processed_date)} />
             <CardHeader className="job-card-header">
                 <div className="flex flex-row justify-around">
                     <Badge className="company-badge col-6" aria-hidden>
-                        {posting.company ? posting.company.charAt(0).toUpperCase() : posting.source_file?.charAt(0).toUpperCase()}
+                        {posting.company_name && posting.company_name.toProperCase()}
                     </Badge>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <p className="job-title">{posting.job_title}</p>
@@ -54,7 +54,7 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
                             <h4>Technologies and Skills</h4>
                             <div className="tag-container">
                                 {posting.technologies.slice(0, 5).map((tech, index) => (
-                                    <TechBadgeSvgr key={index} name={tech} size={24} />
+                                    <TechBadgeSvgr key={index} name={tech} size={9} roundStyle='full' />
 
                                 ))}
                             </div>

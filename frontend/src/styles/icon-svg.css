@@ -1,0 +1,8 @@
+.tech-icon-svg-label {
+  margin-top: 0.125rem; /* 4px */
+  font-size: 0.65rem; /* 12px */
+  line-height: 0.5rem; /* 8px */
+  text-align: center;
+  font-family: monospace;
+  font-weight: 700;
+}

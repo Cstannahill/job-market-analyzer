@@ -4,13 +4,13 @@ import './index.css'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-
-import Home from './pages/Home'
-const Postings = lazy(() => import('./pages/Postings'));
 import Trends from './pages/Trends'
 import About from './pages/About'
 import { ThemeProvider } from '@/components/ThemeProvider';
 import TopTech from '@/pages/TopTech';
+import UploadResume from '@/pages/UploadResume';
+import Home from './pages/Home'
+const Postings = lazy(() => import('./pages/Postings'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -42,6 +42,7 @@ createRoot(document.getElementById('root')!).render(
             />
             <Route path="/trends" element={<Trends />} />
             <Route path="/about" element={<About />} />
+            <Route path="/resume" element={<UploadResume />} />
           </Routes>
         </BrowserRouter>
       </ThemeProvider>

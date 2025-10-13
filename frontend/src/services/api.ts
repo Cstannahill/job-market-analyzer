@@ -4,41 +4,19 @@ import axios from "axios";
 const API_URL =
   import.meta.env.VITE_API_URL ||
   "https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/prod";
-
-export interface JobPosting {
-  Id: string;
-  title: string;
-  skills: string[];
-  technologies: string[];
-  raw_text: string;
-  date: string;
-  source_file: string;
-}
+import type {
+  JobStats,
+  BaseJobListing,
+  TechnologyStatItem,
+  SkillStatItem,
+} from "@job-analyzer/shared-types";
 
 // Extended model for new table fields
-export interface ExtendedJobPosting extends JobPosting {
-  job_title?: string;
-  job_description?: string;
-  location?: string;
-  benefits?: string[];
-  company_size?: string;
-  company?: string;
-  industry?: string;
-  processed_date?: string;
-  remote_status?: string;
-  requirements?: string[];
-  salary_mentioned?: boolean;
-  salary_range?: string;
-  salary_min?: number | null;
-  salary_max?: number | null;
-  salary_currency?: string | null;
-  seniority_level?: string;
-}
 
 export interface ApiResponse {
   success: boolean;
   count: number;
-  data: JobPosting[];
+  data: BaseJobListing[];
 }
 
 /**
@@ -54,7 +32,7 @@ const parseSalaryRange = (s: string | undefined | null) => {
 
   // Find numbers with optional commas and decimals
   const nums = Array.from(
-    trimmed.matchAll(/([0-9]{1,3}(?:[,\d]*)(?:\.\d+)?)/g)
+    trimmed.matchAll(/([0-9]{1,3}(?:[,\d]*)(?:\.\d)?)/g)
   ).map((m) => m[0].replace(/,/g, ""));
   const parsed = nums.map((n) => Number(n)).filter((n) => !isNaN(n));
   if (parsed.length === 0) return { min: null, max: null, currency };
@@ -67,7 +45,7 @@ const parseSalaryRange = (s: string | undefined | null) => {
   };
 };
 
-export const getJobPostings = async (): Promise<ExtendedJobPosting[]> => {
+export const getJobPostings = async (): Promise<BaseJobListing[]> => {
   try {
     const response = await axios.get(`${API_URL}/job-postings`);
 
@@ -159,7 +137,7 @@ export const getJobPostings = async (): Promise<ExtendedJobPosting[]> => {
       return [String(v)];
     };
 
-    const mapped: ExtendedJobPosting[] = rows.map((row: unknown) => {
+    const mapped: BaseJobListing[] = rows.map((row: unknown) => {
       const r = row as Record<string, unknown>;
       // Support a few common field names from the new table
       const id =
@@ -175,23 +153,18 @@ export const getJobPostings = async (): Promise<ExtendedJobPosting[]> => {
         (r.job_title as string) ||
         (r.jobTitle as string) ||
         "";
-      const raw_text =
-        (r.raw_text as string) ||
-        (r.description as string) ||
-        (r.job_description as string) ||
-        (r.body as string) ||
+      const location =
+        (r.location as string) ||
+        (r.job_location as string) ||
+        (r.location_raw as string) ||
         "";
+
       const date =
         (r.posted_date as string) ||
         (r.postedAt as string) ||
         (r.date as string) ||
         (r.processed_date as string) ||
         (r.created_at as string) ||
-        "";
-      const source_file =
-        (r.source as string) ||
-        (r.source_file as string) ||
-        (r.filename as string) ||
         "";
 
       const benefits = normalizeArray(
@@ -200,7 +173,7 @@ export const getJobPostings = async (): Promise<ExtendedJobPosting[]> => {
       const company_size =
         (r.company_size as string) || (r.companySize as string) || undefined;
       // Try to extract a company/employer name from common fields
-      const company =
+      const company_name =
         (r.company as string) ||
         (r.company_name as string) ||
         (r.employer as string) ||
@@ -247,16 +220,14 @@ export const getJobPostings = async (): Promise<ExtendedJobPosting[]> => {
           r.technologies_normalized
       );
       return {
-        Id: String(id),
-        title: String(title),
+        jobId: String(id),
+        job_title: String(title),
         location: String(location),
         job_description: r.job_description ? String(r.job_description) : "",
-        company: String(company),
+        company_name: String(company_name),
         skills,
         technologies,
-        raw_text: raw_text,
         date: String(date),
-        source_file: source_file,
         benefits,
         company_size,
         industry,
@@ -269,7 +240,7 @@ export const getJobPostings = async (): Promise<ExtendedJobPosting[]> => {
         salary_max,
         salary_currency,
         seniority_level,
-      } as ExtendedJobPosting;
+      } as unknown as BaseJobListing;
     });
 
     return mapped;
@@ -292,7 +263,7 @@ export const getJobPostingsPage = async (opts?: {
   limit?: number;
   lastKey?: string | null;
 }): Promise<{
-  items: ExtendedJobPosting[];
+  items: BaseJobListing[];
   count: number;
   lastKey?: string | null;
 }> => {
@@ -324,10 +295,10 @@ export const getJobPostingsPage = async (opts?: {
     ? p.items
     : [];
 
-  const items: ExtendedJobPosting[] = (itemsRaw as unknown[]).map((r) => {
+  const items: BaseJobListing[] = (itemsRaw as unknown[]).map((r) => {
     const row = r as Record<string, unknown>;
     return {
-      Id: String(row["Id"] ?? row["id"] ?? row["jobId"] ?? ""),
+      jobId: String(row["Id"] ?? row["id"] ?? row["jobId"] ?? ""),
       job_title: String(row["title"] ?? row["job_title"] ?? ""),
       job_description: String(
         row["job_description"] ?? row["description"] ?? ""
@@ -337,13 +308,12 @@ export const getJobPostingsPage = async (opts?: {
       technologies: Array.isArray(row["technologies"])
         ? (row["technologies"] as string[])
         : [],
-      raw_text: String(row["raw_text"] ?? row["description"] ?? ""),
-      date: String(row["date"] ?? row["processed_date"] ?? ""),
-      source_file: String(row["source_file"] ?? row["source"] ?? ""),
-      company: String(row["company_name"] ?? "Unknown"),
+      processed_date: String(row["date"] ?? row["processed_date"] ?? ""),
+      company_name: String(row["company_name"] ?? "Unknown"),
       industry: String(row["industry"] ?? "Unknown"),
+      remote_status: String(row["remote_status"] ?? "Unknown"),
       seniority_level: String(row["seniority_level"] ?? "Unknown"),
-    } as ExtendedJobPosting;
+    } as unknown as BaseJobListing;
   });
 
   const lastKey = (p.lastKey as string) ?? null;
@@ -354,14 +324,7 @@ export const getJobPostingsPage = async (opts?: {
 /**
  * Fetch aggregated job postings stats (counts) from the API
  */
-export const getJobPostingsStats = async (): Promise<{
-  totalPostings: number;
-  totalTechnologies: number;
-  totalSkills: number;
-  technologyCounts: Record<string, number>;
-  skillCounts?: Record<string, number>;
-  items?: ExtendedJobPosting[];
-}> => {
+export const getJobPostingsStats = async (): Promise<JobStats> => {
   try {
     console.log();
     const response = await axios.get(`${API_URL}/job-stats`);
@@ -408,39 +371,121 @@ export const getJobPostingsStats = async (): Promise<{
       if (typeof v2 === "string") return Number(v2) || fallback;
       return fallback;
     };
+    // Helper: parse DynamoDB-style list items into stat items.
+    // Dynamo shape examples:
+    // { M: { count: { N: "463" }, id: { S: "python" } } }
+    const parseDynamoStatList = (
+      val: unknown
+    ): Array<{ id: string; name?: string; count: number }> => {
+      const out: Array<{ id: string; name?: string; count: number }> = [];
+      if (!Array.isArray(val)) return out;
+      for (const entry of val) {
+        if (!entry || typeof entry !== "object") continue;
+        const e = entry as Record<string, unknown>;
+        const maybeM = ("M" in e && e.M ? e.M : "m" in e && e.m ? e.m : e) as
+          | Record<string, unknown>
+          | undefined;
+        if (!maybeM || typeof maybeM !== "object") continue;
+        const m = maybeM as Record<string, unknown>;
 
-    const technologyCountsRaw =
-      (p["technologyCounts"] as Record<string, number> | undefined) ||
-      (p["technology_counts"] as Record<string, number> | undefined) ||
-      (p["technologies"] as Record<string, number> | undefined) ||
-      {};
+        // Extract id
+        let rawId: unknown = undefined;
+        if (
+          m["id"] &&
+          typeof m["id"] === "object" &&
+          (m["id"] as Record<string, unknown>)["S"]
+        ) {
+          rawId = (m["id"] as Record<string, unknown>)["S"];
+        } else if (m["id"] !== undefined) {
+          rawId = m["id"];
+        } else if (
+          m["Name"] &&
+          typeof m["Name"] === "object" &&
+          (m["Name"] as Record<string, unknown>)["S"]
+        ) {
+          rawId = (m["Name"] as Record<string, unknown>)["S"];
+        } else if (m["name"] !== undefined) {
+          rawId = m["name"];
+        } else if (m["ID"] !== undefined) {
+          rawId = m["ID"];
+        }
 
+        // Extract count
+        let rawCount: unknown = undefined;
+        if (
+          m["count"] &&
+          typeof m["count"] === "object" &&
+          (m["count"] as Record<string, unknown>)["N"]
+        ) {
+          rawCount = (m["count"] as Record<string, unknown>)["N"];
+        } else if (m["count"] !== undefined) {
+          rawCount = m["count"];
+        } else if (m["Count"] !== undefined) {
+          rawCount = m["Count"];
+        }
+
+        if (rawId == null) continue;
+        const id = String(rawId);
+        const count =
+          typeof rawCount === "number"
+            ? rawCount
+            : typeof rawCount === "string"
+            ? Number(rawCount)
+            : NaN;
+        if (Number.isNaN(count)) continue;
+        out.push({ id, name: id, count });
+      }
+      return out;
+    };
+
+    // Try multiple keys: backend may return 'technologyCounts' as map or
+    // 'technologies' as a DynamoDB-style list. Prefer list parsing when present.
+    const rawTechnologiesList =
+      (p["technologies"] as unknown[]) ??
+      (p["technologyCounts"] as unknown[]) ??
+      (p["technologies_list"] as unknown[]) ??
+      undefined;
+
+    const technologiesParsed = parseDynamoStatList(rawTechnologiesList);
+
+    // Build a map name -> count for downstream use
     const technologyCounts: Record<string, number> = {};
-    // coerce values to numbers
-    Object.entries(technologyCountsRaw || {}).forEach(([k, v]) => {
-      technologyCounts[k] = typeof v === "number" ? v : Number(v) || 0;
-    });
+    if (technologiesParsed && technologiesParsed.length > 0) {
+      technologiesParsed.forEach((t) => {
+        technologyCounts[t.id] =
+          (technologyCounts[t.id] || 0) + (Number(t.count) || 0);
+      });
+    } else {
+      // Fallback: if backend returned a plain map like { python: 123, js: 456 }
+      const technologyCountsRaw =
+        (p["technologyCounts"] as Record<string, number> | undefined) ||
+        (p["technology_counts"] as Record<string, number> | undefined) ||
+        (p["technologies_map"] as Record<string, number> | undefined) ||
+        {};
+      Object.entries(technologyCountsRaw || {}).forEach(([k, v]) => {
+        technologyCounts[k] = typeof v === "number" ? v : Number(v) || 0;
+      });
+    }
 
     const totalPostings = extractNumber("totalPostings", "total_postings", 0);
-    const totalTechnologies = extractNumber(
-      "totalTechnologies",
-      "total_technologies",
-      Object.keys(technologyCounts).length
-    );
-    const totalSkills = extractNumber("totalSkills", "total_skills", 0);
+    // const totalTechnologies = extractNumber(
+    //   "totalTechnologies",
+    //   "total_technologies",
+    //   Object.keys(technologyCounts).length
+    // );
 
-    const skillCountsRaw =
-      (p["skillCounts"] as Record<string, number> | undefined) ||
-      (p["skill_counts"] as Record<string, number> | undefined) ||
+    // Parse skills from DynamoDB-style list or fallback to map
+    const rawSkillsList =
+      (p["skills"] as unknown[]) ??
+      (p["skillCounts"] as unknown[]) ??
       undefined;
-    const skillCounts = skillCountsRaw
-      ? Object.fromEntries(
-          Object.entries(skillCountsRaw).map(([k, v]) => [
-            k,
-            typeof v === "number" ? v : Number(v) || 0,
-          ])
-        )
-      : undefined;
+    const skillsParsed = parseDynamoStatList(rawSkillsList);
+    const skillCounts: Record<string, number> | undefined =
+      skillsParsed && skillsParsed.length > 0
+        ? Object.fromEntries(skillsParsed.map((s) => [s.id, s.count]))
+        : (p["skillCounts"] as Record<string, number> | undefined) ||
+          (p["skill_counts"] as Record<string, number> | undefined) ||
+          undefined;
 
     const pData = p["data"];
     const rawItems = Array.isArray(p["items"])
@@ -451,8 +496,8 @@ export const getJobPostingsStats = async (): Promise<{
       ? ((pData as Record<string, unknown>).items as unknown[])
       : undefined;
 
-    // Narrow rawItems to ExtendedJobPosting[] if possible
-    let items: ExtendedJobPosting[] | undefined = undefined;
+    // Narrow rawItems to BaseJobListing[] if possible
+    let items: BaseJobListing[] | undefined = undefined;
     if (rawItems && Array.isArray(rawItems)) {
       items = rawItems
         .filter((it) => it && typeof it === "object")
@@ -468,19 +513,99 @@ export const getJobPostingsStats = async (): Promise<{
             raw_text: String(r["raw_text"] ?? r["description"] ?? ""),
             date: String(r["date"] ?? r["processed_date"] ?? ""),
             source_file: String(r["source_file"] ?? r["source"] ?? ""),
-          } as ExtendedJobPosting;
+          } as unknown as BaseJobListing;
         });
-      if (items.length === 0) items = undefined;
+      if (items?.length === 0) items = undefined;
     }
 
-    return {
+    // Build typed arrays using base types from shared-types
+    const skillsArray: SkillStatItem[] =
+      skillsParsed && skillsParsed.length > 0
+        ? (skillsParsed.map((s) => ({
+            id: s.id,
+            name: s.name,
+            count: s.count,
+          })) as SkillStatItem[])
+        : skillCounts
+        ? Object.entries(skillCounts).map(([name, count]) => ({
+            id: name,
+            name,
+            count,
+          }))
+        : [];
+
+    const technologiesArray: TechnologyStatItem[] =
+      technologiesParsed && technologiesParsed.length > 0
+        ? (technologiesParsed.map((t) => ({
+            id: t.id,
+            name: t.name,
+            count: t.count,
+          })) as TechnologyStatItem[])
+        : Object.entries(technologyCounts).map(([name, count]) => ({
+            id: name,
+            name,
+            count,
+          }));
+
+    const requirementsCounts =
+      typeof p["requirementsCounts"] === "number"
+        ? (p["requirementsCounts"] as number)
+        : typeof p["requirements_counts"] === "number"
+        ? (p["requirements_counts"] as number)
+        : undefined;
+    const industriesCounts =
+      typeof p["industriesCounts"] === "number"
+        ? (p["industriesCounts"] as number)
+        : typeof p["industries_counts"] === "number"
+        ? (p["industries_counts"] as number)
+        : undefined;
+    const benefitCounts =
+      typeof p["benefitCounts"] === "number"
+        ? (p["benefitCounts"] as number)
+        : typeof p["benefit_counts"] === "number"
+        ? (p["benefit_counts"] as number)
+        : undefined;
+
+    const updatedAt =
+      (p["updatedAt"] as string) ??
+      (p["updated_at"] as string) ??
+      new Date().toISOString();
+
+    // Build a strict JobStats object using the shared types.
+    // Prefer explicit totals from the payload when available; otherwise
+    // compute deterministic totals from the counts maps (number of distinct keys).
+    const computedTotalTechnologies = Object.keys(technologyCounts).length;
+    const computedTotalSkills = skillCounts
+      ? Object.keys(skillCounts).length
+      : 0;
+
+    const totalTechnologiesFinal =
+      typeof p["totalTechnologies"] === "number"
+        ? (p["totalTechnologies"] as number)
+        : typeof p["total_technologies"] === "number"
+        ? (p["total_technologies"] as number)
+        : computedTotalTechnologies;
+
+    const totalSkillsFinal =
+      typeof p["totalSkills"] === "number"
+        ? (p["totalSkills"] as number)
+        : typeof p["total_skills"] === "number"
+        ? (p["total_skills"] as number)
+        : computedTotalSkills;
+
+    const jobStats: JobStats = {
+      skills: skillsArray,
+      technologies: technologiesArray.length ? technologiesArray : undefined,
+      requirementsCounts,
+      industriesCounts,
+      benefitCounts,
       totalPostings,
-      totalTechnologies,
-      totalSkills,
-      technologyCounts,
-      skillCounts,
-      items,
+      totalSkills: totalSkillsFinal,
+      totalTechnologies: totalTechnologiesFinal,
+      updatedAt,
     };
+
+    return jobStats;
   } catch (error) {
     console.error("Failed to fetch job postings stats:", error);
     if (axios.isAxiosError(error)) {
@@ -493,25 +618,27 @@ export const getJobPostingsStats = async (): Promise<{
 /**
  * Get unique technologies across all job postings
  */
-export const getUniqueTechnologies = (jobPostings: JobPosting[]): string[] => {
-  const techSet = new Set<string>();
-  jobPostings.forEach((posting) => {
-    posting.technologies.forEach((tech) => techSet.add(tech));
-  });
-  return Array.from(techSet).sort();
-};
+// export const getUniqueTechnologies = (
+//   jobPostings: BaseJobListing[]
+// ): string[] => {
+//   const techSet = new Set<string>();
+//   jobPostings.forEach((posting) => {
+//     posting.technologies.forEach((tech) => techSet.add(tech));
+//   });
+//   return Array.from(techSet).sort();
+// };
 
 /**
  * Count technology occurrences
  */
-export const getTechnologyCounts = (
-  jobPostings: JobPosting[]
-): Record<string, number> => {
-  const counts: Record<string, number> = {};
-  jobPostings.forEach((posting) => {
-    posting.technologies.forEach((tech) => {
-      counts[tech] = (counts[tech] || 0) + 1;
-    });
-  });
-  return counts;
-};
+// export const getTechnologyCounts = (
+//   jobPostings: BaseJobListing[]
+// ): Record<string, number> => {
+//   const counts: Record<string, number> = {};
+//   jobPostings.forEach((posting) => {
+//     posting.technologies.forEach((tech) => {
+//       counts[tech] = (counts[tech] || 0) 1;
+//     });
+//   });
+//   return counts;
+// };

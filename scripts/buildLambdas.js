@@ -12,6 +12,8 @@ const lambdaDirectories = [
   "get-job-postings-stats",
   "get-skill-trends",
   "job-posting-aggregator",
+  "resume-presigned-url",
+  "process-resume",
   "scrape-agl",
   "scrape-blt-wth",
   "scrape-gls-dr",

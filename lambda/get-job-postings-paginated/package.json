@@ -1,5 +1,5 @@
 {
-  "name": "get-job-postings",
+  "name": "get-job-postings-paginated",
   "version": "1.0.0",
   "description": "Lambda function to pull job postings from external DynamoDB",
   "main": "index.js",

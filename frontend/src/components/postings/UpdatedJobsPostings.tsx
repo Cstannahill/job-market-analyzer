@@ -5,7 +5,8 @@ import {
     useQueryClient,
     type QueryFunctionContext,
 } from '@tanstack/react-query';
-import { getJobPostingsPage, getJobPostingsStats, type ExtendedJobPosting } from '@/services/api';
+import { getJobPostingsPage, getJobPostingsStats } from '@/services/api';
+import type { BaseJobListing, JobStats } from '@job-analyzer/shared-types';
 import { JobPostingCard } from '@/components/postings/JobPostingCard';
 import { JobPostingsControls } from '@/components/postings/JobPostingsControls';
 import { Spinner } from '@/components/ui/spinner';
@@ -13,23 +14,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 
 type Page = {
-    items: ExtendedJobPosting[];
+    items: BaseJobListing[];
     count: number;
     lastKey?: string | null;
 };
 
-type Stats = {
-    totalPostings: number;
-    totalTechnologies: number;
-    totalSkills: number;
-    technologyCounts: Record<string, number>;
-    skillCounts?: Record<string, number>;
-    items?: ExtendedJobPosting[];
-};
-
 export const JobPostingsSection: React.FC = () => {
-    const [jobPostings, setJobPostings] = useState<ExtendedJobPosting[]>([]);
-    const [filteredPostings, setFilteredPostings] = useState<ExtendedJobPosting[]>([]);
+    const [jobPostings, setJobPostings] = useState<BaseJobListing[]>([]);
+    const [filteredPostings, setFilteredPostings] = useState<BaseJobListing[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -41,9 +33,9 @@ export const JobPostingsSection: React.FC = () => {
 
     const queryClient = useQueryClient();
 
-    const cachedStats = queryClient.getQueryData<Stats>(['job-postings-stats']);
+    const cachedStats = queryClient.getQueryData<JobStats>(['job-postings-stats']);
 
-    const { data: stats, isLoading: statsLoading } = useQuery<Stats, Error>({
+    const { data: stats } = useQuery<JobStats, Error>({
         queryKey: ['job-postings-stats'],
         queryFn: () => getJobPostingsStats(),
         staleTime: 1000 * 60 * 5,
@@ -53,7 +45,7 @@ export const JobPostingsSection: React.FC = () => {
     });
 
     const queryKey = ['job-postings', pageSize] as const;
-    console.log(statsLoading);
+    // console.log(statsLoading);
     const {
         data,
         isLoading: rqIsLoading,
@@ -92,7 +84,7 @@ export const JobPostingsSection: React.FC = () => {
             const lowerSearch = searchTerm.toLowerCase();
             filtered = filtered.filter(
                 (posting) =>
-                    posting.title.toLowerCase().includes(lowerSearch) ||
+                    posting.job_title.toLowerCase().includes(lowerSearch) ||
                     posting.skills.some((skill) => skill.toLowerCase().includes(lowerSearch)) ||
                     posting.technologies.some((tech) => tech.toLowerCase().includes(lowerSearch))
             );
@@ -105,15 +97,6 @@ export const JobPostingsSection: React.FC = () => {
         setFilteredPostings(filtered);
     }, [pageItems, searchTerm, selectedTech]);
 
-    const techCounts = useMemo(() => {
-        if (stats?.technologyCounts && Object.keys(stats.technologyCounts).length > 0) {
-            return stats.technologyCounts;
-        }
-        return jobPostings.reduce<Record<string, number>>((acc, p) => {
-            p.technologies.forEach((t) => (acc[t] = (acc[t] || 0) + 1));
-            return acc;
-        }, {});
-    }, [stats, jobPostings]);
 
     const totalPages = stats?.totalPostings
         ? Math.ceil(stats.totalPostings / pageSize)
@@ -236,7 +219,7 @@ export const JobPostingsSection: React.FC = () => {
                 onSearchChange={setSearchTerm}
                 selectedTech={selectedTech}
                 onTechChange={setSelectedTech}
-                techCounts={techCounts}
+                techCounts={stats?.technologies}
                 pageIndex={pageIndex}
                 totalPages={totalPages}
                 pageSize={pageSize}
@@ -258,7 +241,7 @@ export const JobPostingsSection: React.FC = () => {
             ) : (
                 <div className="job-grid">
                     {filteredPostings.map((posting) => (
-                        <JobPostingCard key={posting.Id} posting={posting} />
+                        <JobPostingCard key={posting.jobId} posting={posting} />
                     ))}
                 </div>
             )}

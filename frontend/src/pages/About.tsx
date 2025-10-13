@@ -75,11 +75,16 @@ const About: React.FC = () => {
                         <div className="lg:w-2/3 xl:w-1/2">
                             <StackPanel
                                 stackItems={[
-                                    { name: "AWS Lambda (ingestion / aggregation)", iconPath: "/icons/aws.svg" },
-                                    { name: "React (Vite)", iconPath: "/icons/react.svg" },
-                                    { name: "Tailwind CSS", iconPath: "/icons/tailwind.svg" },
-                                    { name: "TypeScript", iconPath: "/icons/typescript.svg" },
-                                    { name: "Vite", iconPath: "/icons/vite-m.svg" },
+                                    { name: "AWS Lambda", iconPath: "/icons/lambda.svg", type: "backend" },
+                                    { name: "React (Vite)", iconPath: "/icons/react.svg", type: "frontend" },
+                                    { name: "Tailwind CSS", iconPath: "/icons/tailwind.svg", type: "frontend" },
+                                    { name: "TypeScript", iconPath: "/icons/typescript.svg", type: "frontend" },
+                                    { name: "Vite", iconPath: "/icons/vite-m.svg", type: "frontend" },
+                                    { name: "DynamoDB", iconPath: "/icons/dynamodb.svg", type: "storage" },
+                                    { name: "API Gateway", iconPath: "/icons/api-gateway.svg", type: "backend" },
+                                    { name: "S3", iconPath: "/icons/s3.svg", type: "storage" },
+                                    { name: "EventBridge", iconPath: "/icons/eventbridge.svg", type: "backend" },
+                                    { name: "CloudWatch", iconPath: "/icons/cloudwatch.svg", type: "backend" },
                                 ]}
                                 principles={[
                                     "Deterministic transforms first",

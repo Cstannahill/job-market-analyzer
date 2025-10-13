@@ -1,0 +1,124 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2013-05-13
+
+Parameters:
+  S3BucketName:
+    Type: String
+    Default: job-market-analyzer-bucket
+
+Globals:
+  Function:
+    Timeout: 60
+    MemorySize: 512
+    Environment:
+      Variables:
+        S3_BUCKET_NAME: !Ref S3BucketName
+        AWS_REGION: !Ref AWS::Region
+
+Resources:
+  # API Gateway
+  ResumeApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Cors:
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,x-api-key'"
+        AllowOrigin: "'*'"
+
+  # API Key
+  ApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    Properties:
+      Name: ResumeApiKey
+      Description: API key for resume uploader
+      Enabled: true
+      StageKeys:
+        - RestApi: !Ref ResumeApi
+          StageName: prod
+
+  # Usage Plan
+  UsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    Properties:
+      UsagePlanName: ResumeUsagePlan
+      ApiStages:
+        - ApiId: !Ref ResumeApi
+          Stage: prod
+      ApiKeyIds:
+        - !Ref ApiKey
+
+  # S3 Bucket
+  ResumeBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref S3BucketName
+      VersioningConfiguration:
+        Status: Enabled
+
+  # S3 Bucket Policy for CORS
+  ResumeBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ResumeBucket
+      PolicyText:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - 's3:PutObject'
+            Resource: !Sub '${ResumeBucket.Arn}/*'
+
+  # Presigned URL Lambda
+  PresignedUrlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: resume-presigned-url
+      CodeUri: lambda/resume-presigned-url/
+      Handler: src/index.handler
+      Runtime: nodejs20.x
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref S3BucketName
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /presigned-url
+            Method: POST
+            Auth:
+              ApiKeyRequired: true
+
+  # Process Resume Lambda
+  ProcessResumeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: resume-process
+      CodeUri: lambda/process-resume/
+      Handler: src/index.handler
+      Runtime: nodejs20.x
+      Timeout: 300
+      MemorySize: 1024
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref S3BucketName
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /compare/{id}
+            Method: GET
+            Auth:
+              ApiKeyRequired: true
+
+Outputs:
+  ApiEndpoint:
+    Description: API Gateway endpoint
+    Value: !Sub 'https://${ResumeApi}.execute-api.${AWS::Region}.amazonaws.com/prod'
+  
+  ApiKey:
+    Description: API Key for authentication
+    Value: !Ref ApiKey

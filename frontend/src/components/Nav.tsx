@@ -7,6 +7,7 @@ const NavLinks: { to: string; label: string }[] = [
     { to: '/top-tech', label: 'Top Tech' },
     { to: '/postings', label: 'Job Postings' },
     { to: '/trends', label: 'Trends' },
+    { to: '/resume', label: 'Upload Resume' },
     { to: '/about', label: 'About' },
 ];
 

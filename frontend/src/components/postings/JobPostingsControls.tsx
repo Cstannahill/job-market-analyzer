@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import type { TechnologyStatItem } from '@job-analyzer/shared-types';
 import {
     Select,
     SelectTrigger,
@@ -19,7 +20,7 @@ export interface JobPostingsControlsProps {
     // Technology filter state
     selectedTech: string;
     onTechChange: (value: string) => void;
-    techCounts: Record<string, number>;
+    techCounts: TechnologyStatItem[] | undefined;
 
     // Pagination state
     pageIndex: number;
@@ -145,13 +146,12 @@ export const JobPostingsControls: React.FC<JobPostingsControlsProps> = ({
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="__all__">All Technologies</SelectItem>
-                        {Object.keys(techCounts)
-                            .sort()
-                            .map((tech) => (
-                                <SelectItem key={tech} value={tech}>
-                                    {tech} ({techCounts[tech]})
-                                </SelectItem>
-                            ))}
+                        {techCounts?.sort((a, b) => b.count - a.count).map((tech) => (
+
+                            <SelectItem key={tech.name} value={tech.name || tech.id || ''}>
+                                {tech.name} ({tech.count})
+                            </SelectItem>
+                        ))}
                     </SelectContent>
                 </Select>
 

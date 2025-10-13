@@ -6,7 +6,7 @@ const FeatureCard = ({ title, description }: { title: string; description: strin
         whileHover={{ scale: 1.02 }}
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
     >
-        <Card className="bg-card/60 backdrop-blur-sm border border-border/60 shadow-sm hover:shadow-md transition feature-card">
+        <Card className="bg-card/60 backdrop-blur-sm border border-border/60 shadow-sm hover:shadow-md transition feature-card min-h-full">
             <CardContent className="p-6">
                 <CardHeader className="p-0 mb-4 feature-card-header text-center border-b-2">
                     <CardTitle>

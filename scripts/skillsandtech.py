@@ -494,19 +494,8 @@ def migrate_postings():
                     "salary_mentioned": posting.get("salary_mentioned", False),
                     "salary_range": posting.get("salary_range", "Unknown"),
                     "seniority_level": posting.get("seniority_level", "Unknown"),
-                    "status": posting.get("status", None),
+                    "status": posting.get("status", "Active"),
                 }
-
-                # Optional: include normalized lists if present (techs/skills/benefits/etc.)
-                for field in (
-                    "technologies",
-                    "skills",
-                    "benefits",
-                    "requirements",
-                    "industry",
-                ):
-                    if field in posting:
-                        NormalizedItem[field] = posting[field]
 
                 try:
                     batch.put_item(Item=NormalizedItem)

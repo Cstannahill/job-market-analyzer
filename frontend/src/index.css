@@ -12,7 +12,7 @@
 @import "./styles/section-card.css";
 @import "./styles/remote-pill.css";
 @import "./styles/JobPostingCard.css";
-
+@import "./styles/icon-svg.css";
 * {
   box-sizing: border-box;
   margin: 0;

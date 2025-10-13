@@ -10,7 +10,7 @@
 .stat-card {
   padding: var(--space-xl);
   border-radius: var(--radius-xl);
-  position: relative;
+  /* position: relative; */
   overflow: hidden;
   transition: all var(--transition-base);
 }
@@ -40,6 +40,7 @@
   align-items: center;
   gap: var(--space-sm);
   margin-bottom: var(--space-md);
+  text-align: center;
 }
 
 .stat-icon {
