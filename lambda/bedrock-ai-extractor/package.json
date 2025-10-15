@@ -4,11 +4,12 @@
   "description": "Lambda function to extract job postings in S3 bucket using Bedrock AI",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsup src"
+    "build": "tsup src"
   },
   "devDependencies": {
     "@types/node": "^24.7.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "tsup": "^8.5.0"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.908.0",

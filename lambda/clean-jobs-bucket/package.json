@@ -4,7 +4,7 @@
   "description": "Lambda function to pull job postings from external DynamoDB",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsup src",
+    "build": "tsup src",
     "package": "npm run build && node ../../zip.js .",
     "deploy": "npm run package && aws lambda update-function-code --function-name get-job-postings --zip-file fileb://lambda.zip"
   },
@@ -16,6 +16,7 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.155",
     "@types/node": "^20.19.20",
+    "tsup": "^8.5.0",
     "typescript": "^5.9.3"
   }
 }

@@ -4,10 +4,11 @@
   "description": "Lambda function to aggregate skill trends from job postings",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsup src"
+    "build": "tsup src"
   },
   "devDependencies": {
     "@types/node": "^24.6.2",
+    "tsup": "^8.5.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {

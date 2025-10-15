@@ -4,7 +4,7 @@
   "description": "Lambda function to extract skills from job postings",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsup src",
+    "build": "tsup src",
     "package": "npm run build && node ../../zip.js .",
     "deploy": "npm run package && aws lambda update-function-code --function-name job-skill-extractor --zip-file fileb://lambda.zip"
   },
@@ -17,6 +17,7 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.155",
     "@types/node": "^20.19.19",
+    "tsup": "^8.5.0",
     "@types/uuid": "^9.0.8",
     "typescript": "^5.9.3"
   }
