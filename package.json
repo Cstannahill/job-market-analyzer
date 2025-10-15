@@ -2,12 +2,12 @@
   "name": "job-market-analyzer",
   "version": "1.0.0",
   "description": "",
-  "main": "zip.js",
   "scripts": {
     "build": "(cd frontend && npm run build)",
     "dev": "(cd frontend && npm run dev)",
     "buildall": "node scripts/buildLambdas.js",
-    "packageall": "node scripts/packageLambdas.js"
+    "packageall": "node scripts/packageLambdas.js",
+    "test": "npm run test:run --workspace=frontend"
   },
   "keywords": [],
   "workspaces": [
