@@ -7,9 +7,6 @@
 # Ignore build artifacts
 **/dist/
 
-# Ignore package lock files anywhere
-**/package-lock.json
-
 # Common lockfiles
 pnpm-lock.yaml
 yarn.lock
