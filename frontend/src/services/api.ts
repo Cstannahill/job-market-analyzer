@@ -326,12 +326,16 @@ export const getJobPostingsPage = async (opts?: {
  */
 export const getJobPostingsStats = async (): Promise<JobStats> => {
   try {
-    console.log();
     const response = await axios.get(`${API_URL}/job-stats`);
-    console.log(response.data);
-
-    let payload = response.data;
-    console.log("Raw payload:", payload);
+    let payload = {};
+    console.log("Raw response data:", response.data);
+    try {
+      // payload = JSON.parse(response.data);
+      payload = response.data.stats;
+      console.log("Parsed payload:", payload);
+    } catch (error) {
+      console.error("Failed to parse response data:", error);
+    }
 
     // Unwrap Lambda proxy responses (statusCode/body)
     if (typeof payload === "object" && payload !== null) {

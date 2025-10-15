@@ -72,17 +72,16 @@ export const handler = async (
     }
 
     if (stats && stats.id) {
-      const data = JSON.stringify(stats);
-      console.log("Fetched job postings stats:", data);
+      console.log("Fetched job postings stats:", stats);
       console.log(
-        `Response format will be {statusCode: 200, headers, body: ${data}}`
+        `Response format will be {statusCode: 200, headers, body: ${stats}}`
       );
       return {
         statusCode: 200,
         headers,
         body: JSON.stringify({
           success: true,
-          data: data,
+          data: stats, // ✅ actual object, not pre-stringified
         }),
       };
     }
