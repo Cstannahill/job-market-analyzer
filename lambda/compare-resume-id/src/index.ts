@@ -1,0 +1,53 @@
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { processFile } from "./fileProcessor";
+import { handlePreflight } from "./preflight";
+import { getS3Object } from "./s3Service";
+
+// === MAIN HANDLER ===
+export const handler = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+  const { statusCode, headers, body } = await handlePreflight(event);
+
+  // If preflight/early handler returned non-200 (e.g. OPTIONS -> 204),
+  // return immediately so we don't try to parse an empty body.
+  if (statusCode !== 200) {
+    return { statusCode, headers, body };
+  }
+
+  // Now safe to parse, because handlePreflight returned a 200 and JSON body.
+  const { id: decodedKey } = JSON.parse(body);
+  try {
+    const buffer = await getS3Object(decodedKey);
+
+    if (!buffer) throw new Error("No buffer found in S3 response");
+
+    const analysis = await processFile(buffer, decodedKey);
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        status: "complete",
+        analysis: analysis,
+      }),
+    };
+  } catch (err: any) {
+    if (err.name === "NoSuchKey") {
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ status: "processing" }),
+      };
+    }
+    console.error("S3 error:", err);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({
+        status: "failed",
+        error: "Error retrieving analysis status",
+      }),
+    };
+  }
+};

@@ -2,9 +2,7 @@
 import axios from "axios";
 
 // API gateway base for trends endpoints. Prefer VITE_TRENDS_API_URL, fall back to VITE_API_URL.
-const API_URL =
-  import.meta.env.VITE_API_URL ||
-  "https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/prod";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const TRENDS_API = `${API_URL}/trends`;
 export type SkillTrend = {

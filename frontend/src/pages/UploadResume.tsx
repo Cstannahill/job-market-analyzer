@@ -1,6 +1,6 @@
 import React from 'react'
-import ResumeUploader from '@/components/resume/ResumeUploader'
 import { Layout } from '@/components/Layout'
+import ResumeUploaderModern from '@/components/resume/ResumeUploaderCards'
 
 const UploadResume: React.FC = () => {
     return (
@@ -10,7 +10,7 @@ const UploadResume: React.FC = () => {
                 Upload your resume (PDF or DOCX). We'll extract skills and compare them to market
                 trends. Files are uploaded directly to S3 via Amplify Storage.
             </p>
-            <ResumeUploader />
+            <ResumeUploaderModern />
         </Layout>
     )
 }

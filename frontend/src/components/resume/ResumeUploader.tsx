@@ -1,5 +1,7 @@
 import React, { useRef, useState } from 'react'
-import { type UploadStatus, type CompareResult, uploadResume } from '@/services/resumeService'
+import { type UploadStatus, uploadResume } from '@/services/resumeService'
+import type { CompareResult } from '@/types/resume'
+
 
 
 const ACCEPTED_TYPES = [

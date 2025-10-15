@@ -7,6 +7,7 @@ const lambdaDirectories = [
   "bedrock-ai-extractor",
   "calculate-job-stats",
   "clean-jobs-bucket",
+  "compare-resume-id",
   "get-job-postings",
   "get-job-postings-paginated",
   "get-job-postings-stats",

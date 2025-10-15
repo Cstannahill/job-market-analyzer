@@ -28,7 +28,11 @@ export const handler = async (event: any) => {
 
     return {
       statusCode: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Access-Control-Allow-Origin": "*", // or 'http://localhost:5173'
+        "Access-Control-Allow-Headers": "Content-Type, x-api-key",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+      },
       body: JSON.stringify({ url, key }),
     };
   } catch (error) {

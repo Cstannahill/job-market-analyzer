@@ -1,8 +1,9 @@
 import type { Dispatch, SetStateAction } from "react";
+import type { CompareResult } from "@/types/resume";
 
 const API_URL =
   (import.meta.env.VITE_API_URL as string | undefined) ||
-  "https://xee5kjisf5.execute-api.us-east-1.amazonaws.com/prod";
+  "https://xee5kjisf5.execute-api.us-east-1.amazonaws.com/prod/resumes";
 
 const API_KEY = (import.meta.env.VITE_API_KEY as string | undefined) || "";
 
@@ -12,12 +13,6 @@ export type UploadStatus =
   | "processing"
   | "complete"
   | "failed";
-
-export type CompareResult = {
-  status: "processing" | "complete" | "failed";
-  analysis?: Record<string, unknown>;
-  error?: string;
-};
 
 export async function uploadResume(opts: {
   file: File;

@@ -1,0 +1,25 @@
+{
+  "name": "compare-resume-id",
+  "version": "1.0.0",
+  "description": "Lambda function to compare resume ID",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.910.0",
+    "@aws-sdk/client-dynamodb": "^3.908.0",
+    "@aws-sdk/client-s3": "^3.908.0",
+    "@aws-sdk/util-dynamodb": "^3.908.0",
+    "@aws-sdk/util-stream-node": "^3.370.0",
+    "aws-lambda": "^1.0.7",
+    "json5": "^2.2.3",
+    "mammoth": "^1.11.0",
+    "pdf2json": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.155",
+    "@types/node": "^24.6.2",
+    "typescript": "^5.9.3"
+  }
+}

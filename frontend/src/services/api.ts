@@ -3,7 +3,7 @@ import axios from "axios";
 // Replace this with your actual API Gateway URL
 const API_URL =
   import.meta.env.VITE_API_URL ||
-  "https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/prod";
+  "https://xee5kjisf5.execute-api.us-east-1.amazonaws.com/prod";
 import type {
   JobStats,
   BaseJobListing,
