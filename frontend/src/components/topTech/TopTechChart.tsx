@@ -70,7 +70,7 @@ const TopTechChart: React.FC = () => {
                     return (
                         <div key={tech} className="tech-bar-container  fade-in" style={{ animationDelay: `${index * 50}ms` }}>
 
-                            <div className="tech-bar-header"><TechBadgeSvgr name={tech} size={12} hideLabel={true} roundStyle='xl' />
+                            <div className="tech-bar-header"><TechBadgeSvgr name={tech} size={40} hideLabel={true} roundStyle='xl' />
                                 <span className="tech-name">{tech}</span>
                                 <span className="tech-count">{count}</span>
                             </div>

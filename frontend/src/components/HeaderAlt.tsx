@@ -3,7 +3,7 @@ import Nav from './Nav';
 import { Link } from 'react-router-dom';
 import { useTheme } from '@/hooks/useTheme';
 import { Moon, Sun } from 'lucide-react';
-import trendDevLogo from '@/assets/trenddev.png';
+import trendDevLogo from '@/assets/trenddev.avif';
 
 export const Header: React.FC = () => {
     const { theme, toggleTheme } = useTheme();

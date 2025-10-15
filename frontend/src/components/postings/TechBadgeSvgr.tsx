@@ -1,62 +1,64 @@
 import { toProperCase } from "@/lib/stringHelpers";
-import React, { type JSX } from "react";
+import React, { type JSX, useState, useEffect } from "react";
 
-type ModuleShape = { default?: string; ReactComponent?: React.ComponentType<React.SVGProps<SVGSVGElement>> };
+export type ModuleShape = { default?: string; ReactComponent?: React.ComponentType<React.SVGProps<SVGSVGElement>> };
 
-// adjust path to where TechBadgeSvgr lives relative to src/assets/icons
-const modules = import.meta.glob('/src/assets/icons/*.svg', { eager: true }) as Record<string, ModuleShape>;
+// Lazy load modules
+const moduleLoaders = import.meta.glob('/src/assets/icons/*.svg', {
+    eager: false,
+    import: 'default'
+}) as Record<string, () => Promise<string>>;
 
-// build icon map: filename (sanitized) -> { url, Comp? }
-const iconMap: Record<string, { url?: string; Comp?: ModuleShape["ReactComponent"] }> = {};
-
-Object.keys(modules).forEach((p) => {
-    const file = p.split("/").pop() || p;
-    const key = file.replace(/\.svg$/, "").toLowerCase();
-    iconMap[key] = {
-        url: modules[p].default,
-        Comp: modules[p].ReactComponent,
-    };
-});
+// Cache for loaded icons
+const iconCache = new Map<string, string>();
 
 function normalizeLookup(name: string) {
-    if (name.toLowerCase().includes("database")) {
-        console.log("Database found in name sent to normalizer:", name);
-        checkNameLength(name);
-        // const nameLength = name.length;
-        // const nameArray = name.split(" ");
+    const lower = name.toLowerCase();
 
+    // Special cases - consolidated for readability
+    const specialCases: Record<string, string> = {
+        'llms': 'llm',
+        'rails': 'rails',
+        'ruby on rails': 'rails',
+        'aws': 'aws',
+        'c++': 'cpp',
+        'c ++': 'cpp',
+        'c + +': 'cpp',
+        'cplusplus': 'cpp',
+        'cpp': 'cpp',
+        'c plus plus': 'cpp',
+        'app engine': 'appengine',
+        'asp.net': 'aspnet',
+    };
 
-    }
-    if (name.toLowerCase() === "llms") return "llm"; // special case
-    if (name.toLowerCase() === "rags" || name.toLowerCase().includes("rag") && name.toLowerCase().includes("pipeline")) return "rag"; // special case
-    if (name.toLowerCase().includes("java/")) return "java"; // special case
-    if (name.toLowerCase().includes("postgre") || name.toLowerCase().includes("sql")) return "postgresql"; // special case
-    if (name.toLowerCase() === "rails" || name.toLowerCase() === "ruby on rails") return "rails"; // special case
-    if (name.toLowerCase() === "rest" || name.toLowerCase().includes("rest") && name.toLowerCase().includes("api")) return "rest"; // special case
-    if (name.toLowerCase() === "aws" || name.toLowerCase().includes("web services") && name.toLowerCase().includes("web services")) return "aws"; // special case
-    if (name.toLowerCase().includes("juniper")) return "juniper"; // special case
-    if (name === "C++" || name === "C ++" || name === "C + +" || name === "CPlusPlus" || name === "Cpp" || name.toLowerCase() === "c++" || name.toLowerCase() === "c plus plus" || name.toLowerCase() === "c + +" || name === "c ++") return "cpp"; // special case
-    if (name.toLowerCase() === "app engine") return "appengine"; // special case
-    if (name.toLowerCase() === "asp.net") return "aspnet"; // special case
-    if (name.toLowerCase().includes("spring") || name.toLowerCase() === "next") return "spring"; // special case
+    if (specialCases[lower]) return specialCases[lower];
+
+    // Pattern-based special cases
+    if (lower.includes('java/')) return 'java';
+    if (lower.includes('postgre') || lower.includes('sql')) return 'postgresql';
+    if (lower.includes('rag') && lower.includes('pipeline')) return 'rag';
+    if (lower === 'rags') return 'rag';
+    if (lower.includes('rest') && lower.includes('api')) return 'rest';
+    if (lower === 'rest') return 'rest';
+    if (lower.includes('web services')) return 'aws';
+    if (lower.includes('juniper')) return 'juniper';
+    if (lower.includes('spring') || lower === 'next') return 'spring';
+
+    // Default normalization
     return name
         .toLowerCase()
-        .replace(/^c#$/, "csharp")           // optional normalization rule
+        .replace(/^c#$/, "csharp")
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/-+/g, "-")
         .replace(/(^-|-$)/g, "");
-
 }
 
-const checkNameLength = (name: string) => {
-    return name.length > 15 && (name.includes("-") || name.includes(" "));
-}
-
-
+// const checkNameLength = (name: string) => {
+//     return name.length > 15 && (name.includes("-") || name.includes(" "));
+// }
 
 const mapNameColumnRows = (namePart: string, index: number): JSX.Element => {
-    console.log("Mapping name part:", namePart);
-    return (<div className="flex-row" key={index}>{namePart.toProperCase()}</div>)
+    return (<div className="flex-row" key={index}>{toProperCase(namePart)}</div>);
 }
 
 export type Props = {
@@ -67,42 +69,107 @@ export type Props = {
     roundStyle: "none" | "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "full";
 };
 
-export default function TechBadgeSvgr({ name, size = 20, className = "", hideLabel = false, roundStyle = "md" }: Props) {
+export default function TechBadgeSvgr({
+    name,
+    size = 20,
+    className = "",
+    hideLabel = false,
+    roundStyle = "md"
+}: Props) {
+    const [iconUrl, setIconUrl] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+
     const key = normalizeLookup(name);
-    if (key.toLowerCase().includes("database")) {
-        console.log("Database key:", key);
-        console.log("Database name:", name);
-        const keyCheck = checkNameLength(key);
-        const nameCheck = checkNameLength(name);
-        console.log("Key length check (>15 & includes '-' or ' '):", keyCheck);
-        console.log("Name length check (>15 & includes '-' or ' '):", nameCheck);
-    }
-    const entry = iconMap[key];
-    const sizeClass = `w-${size} h-${size}`;
+    const iconPath = `/src/assets/icons/${key}.svg`;
+
+    useEffect(() => {
+        // Check cache first
+        if (iconCache.has(key)) {
+            setIconUrl(iconCache.get(key)!);
+            setLoading(false);
+            return;
+        }
+
+        // Load icon dynamically
+        const loader = moduleLoaders[iconPath];
+        if (loader) {
+            loader().then((url) => {
+                iconCache.set(key, url);
+                setIconUrl(url);
+                setLoading(false);
+            }).catch(() => {
+                setLoading(false);
+            });
+        } else {
+            setLoading(false);
+        }
+    }, [key, iconPath]);
+
+    // Fix dynamic Tailwind classes - use style prop instead
+    const sizeStyle = { width: size, height: size };
+
+    // Map roundStyle to actual Tailwind classes
+    const roundClasses = {
+        'none': 'rounded-none',
+        '2xs': 'rounded-sm',
+        'xs': 'rounded',
+        'sm': 'rounded-md',
+        'md': 'rounded-lg',
+        'lg': 'rounded-xl',
+        'xl': 'rounded-2xl',
+        '2xl': 'rounded-3xl',
+        'full': 'rounded-full'
+    };
+
     return (
-        <div className={`inline-flex flex-col items-center gap-2 px-2 py-1 text-xs font-medium ${className}`} title={name} aria-label={name}>
-            {entry?.Comp ? (
-                // If ReactComponent is present (rare in your current output), render it
-                <entry.Comp width={size} height={size} aria-hidden className="flex-shrink-0" />
-            ) : entry?.url ? (
-                // Most modules will come here: render the url as an <img/>
-                <div className={`rounded-${roundStyle} inline-flex text-black items-center  bg-white/5 p-1.5 shadow-sm`}>
-                    <div className={`rounded-${roundStyle} ${sizeClass} text-background  flex items-center justify-center bg-white/10`}>
-                        <img src={entry.url} alt={toProperCase(name)} className="w-full h-full object-contain" />
+        <div
+            className={`inline-flex flex-col items-center gap-2 px-2 py-1 text-xs font-medium ${className}`}
+            title={name}
+            aria-label={name}
+        >
+            {loading ? (
+                // Loading skeleton
+                <div
+                    className={`${roundClasses[roundStyle]} inline-flex items-center bg-gray-200 p-1.5 shadow-sm animate-pulse`}
+                    style={sizeStyle}
+                />
+            ) : iconUrl ? (
+                // Render loaded icon
+                <div className={`${roundClasses[roundStyle]} inline-flex text-black items-center bg-white/5 p-1.5 shadow-sm`}>
+                    <div
+                        className={`${roundClasses[roundStyle]} flex items-center justify-center bg-white/10`}
+                        style={sizeStyle}
+                    >
+                        <img
+                            src={iconUrl}
+                            alt={toProperCase(name)}
+                            className="w-full h-full object-contain"
+                        />
                     </div>
                 </div>
-
             ) : (
-                // final fallback: letter circle
-                <div style={{ width: size, height: size }} className={`rounded-${roundStyle} flex items-center justify-center  bg-gray-200 text-sm`} aria-hidden>
-                    {name.charAt(0)}
+                // Fallback: letter circle
+                <div
+                    style={sizeStyle}
+                    className={`${roundClasses[roundStyle]} flex items-center justify-center bg-gray-200 text-sm`}
+                    aria-hidden
+                >
+                    {name.charAt(0).toUpperCase()}
                 </div>
             )}
 
-            {!hideLabel && <small className="text-black tech-icon-svg-label truncate">
-                {name && name.length < 4 ? name.toUpperCase() : name.length > 3 && name.length < 15 ? toProperCase(name) : key.length > 15 && key.includes("-") &&
-                    <div className="flex flex-col">{key.split("-").map(mapNameColumnRows)}</div>}</small>}
-
+            {!hideLabel && (
+                <small className="text-black tech-icon-svg-label truncate">
+                    {name.length < 4
+                        ? name.toUpperCase()
+                        : name.length <= 14
+                            ? toProperCase(name)
+                            : key.length > 15 && key.includes("-")
+                                ? <div className="flex flex-col">{key.split("-").map(mapNameColumnRows)}</div>
+                                : toProperCase(name)
+                    }
+                </small>
+            )}
         </div>
     );
 }
