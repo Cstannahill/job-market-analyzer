@@ -4,7 +4,7 @@
   "description": "Lambda function to process and analyze resumes",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsup src"
+    "build": "tsup src"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.908.0",
@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.6.2",
+    "tsup": "^8.5.0",
     "typescript": "^5.9.3"
   }
 }

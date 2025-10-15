@@ -4,7 +4,7 @@
   "description": "Lambda function to pull job postings stats from external DynamoDB",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsup src"
+    "build": "tsup src"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.902.0",
@@ -13,6 +13,7 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.155",
     "@types/node": "^20.19.19",
+    "tsup": "^8.5.0",
     "typescript": "^5.9.3"
   }
 }

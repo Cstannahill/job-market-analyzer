@@ -36,9 +36,9 @@ function buildLambdas() {
       execSync("npm install", { stdio: "inherit", cwd: `lambda/${dir}` });
 
       // 2. Run tsup build
-      console.log(`-> Running npx tsup src in lambda/${dir}`);
+      console.log(`-> Running tsup src in lambda/${dir}`);
       // Note: cwd sets the Current Working Directory for the command
-      execSync("npx tsup src", { stdio: "inherit", cwd: `lambda/${dir}` });
+      execSync("tsup src", { stdio: "inherit", cwd: `lambda/${dir}` });
 
       console.log(`✅ Successfully built ${dir}`);
     } catch (error) {
