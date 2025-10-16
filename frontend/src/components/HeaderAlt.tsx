@@ -4,9 +4,14 @@ import { Link } from 'react-router-dom';
 import { useTheme } from '@/hooks/useTheme';
 import { Moon, Sun } from 'lucide-react';
 import trendDevLogo from '@/assets/trenddev.avif';
+import useIsMobile from '@/hooks/useIsMobile';
 
 export const Header: React.FC = () => {
     const { theme, toggleTheme } = useTheme();
+    const isMobile = useIsMobile();
+    const navClassName = isMobile
+        ? 'flex items-center gap-4 mobile-menu-toggle'
+        : 'flex items-center gap-4';
 
     return (
         <header className="w-full sticky top-0 z-50 border-b rounded-lg border-white/5" >
@@ -21,7 +26,7 @@ export const Header: React.FC = () => {
             <div className="absolute rounded-lg  border-1 border-white/5 inset-0 bg-gradient-to-r from-slate-900/98 via-slate-900/95 to-slate-900/98 dark:from-slate-900/98 dark:via-slate-900/95 dark:to-slate-900/98 backdrop-blur-xl" />
 
             <div className="relative rounded-lg container mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center gap-4">
+                <div className={navClassName}>
                     <img src={trendDevLogo} className="h-10 w-10 m-0 rounded-md shadow-md shadow-violet-600" alt="TrendDev Logo" />
                     <Link to="/" className="inline-flex items-center gap-3 no-underline focus:outline-none">
 

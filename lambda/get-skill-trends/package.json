@@ -10,12 +10,12 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.902.0",
     "@aws-sdk/lib-dynamodb": "^3.902.0",
-    "aws-lambda": "^1.0.7"
+    "aws-lambda": "^1.0.7",
+    "tsup": "^8.5.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.138",
     "@types/node": "^20.0.0",
-    "tsup": "^8.5.0",
     "typescript": "^5.0.0"
   }
 }

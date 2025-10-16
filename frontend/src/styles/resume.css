@@ -1,0 +1,14 @@
+.resume-card {
+  padding: 1rem !important;
+  /* margin-bottom: 1rem !important; */
+}
+
+.resume-upload-status {
+  float: left !important;
+  width: 100% !important;
+}
+
+.resume-button {
+  padding: 0.5rem 1rem !important;
+  border-radius: 0.44rem !important;
+}

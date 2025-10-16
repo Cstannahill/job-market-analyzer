@@ -222,7 +222,7 @@ export function extractEducation(text: string): Education[] {
   return results;
 }
 
-export function extractExperience(text: string): Experience[] {
+export function extractExperienceOld(text: string): Experience[] {
   const results: Experience[] = [];
 
   if (!text || !text.trim()) return results;
@@ -359,6 +359,187 @@ export function extractExperience(text: string): Experience[] {
       // Final guardrails
       if (title && /experience/i.test(title)) title = undefined;
       if (company && company.length > 200) company = undefined;
+
+      results.push({
+        title,
+        company,
+        location,
+        duration: duration.trim(),
+      });
+    }
+  }
+
+  return results;
+}
+export function extractExperience(text: string): Experience[] {
+  const results: Experience[] = [];
+
+  if (!text || !text.trim()) return results;
+
+  // 1) Try to find an "Experience" section by common headings
+  const headingRegex =
+    /^(?:\s*#{1,6}\s*)?(?:work experience|professional experience|experience|employment history|previous experience|professional background)\b.*$/im;
+
+  // Boundaries that often indicate the next major section
+  const nextSectionRegex =
+    /\n\s*(?:projects?|education|skills|certifications?|awards?|publications?|volunteer|references|summary)\b/i;
+
+  let block = text;
+  const headingMatch = text.match(headingRegex);
+
+  if (headingMatch && typeof headingMatch.index === "number") {
+    // Found "EXPERIENCE" heading - extract that section
+    const start = headingMatch.index + headingMatch[0].length;
+    const rest = text.slice(start);
+
+    // Find where the experience section ends (next major section)
+    const nextSectionMatch = rest.match(nextSectionRegex);
+    block = nextSectionMatch ? rest.slice(0, nextSectionMatch.index) : rest;
+  } else {
+    // No explicit "EXPERIENCE" heading found
+    // Try to extract experience entries from the whole document by looking for date patterns
+    // But stop at common section boundaries
+
+    // Find the earliest section boundary
+    const sectionMatch = text.match(nextSectionRegex);
+    if (sectionMatch && sectionMatch.index) {
+      // If we find a section like "PROJECTS" or "EDUCATION", assume experience comes before it
+      const possibleExperienceBlock = text.slice(0, sectionMatch.index);
+
+      // Check if this block has date patterns (indicates experience entries)
+      const monthNames =
+        "(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)";
+      const dateRangeRegex = new RegExp(
+        `(?:${monthNames}\\s+\\d{4}|\\d{4})\\s*(?:-|–|—|to)\\s*(?:Present|Now|${monthNames}\\s+\\d{4}|\\d{4})`,
+        "i"
+      );
+
+      if (dateRangeRegex.test(possibleExperienceBlock)) {
+        block = possibleExperienceBlock;
+      } else {
+        // No dates found before first section - return empty
+        return results;
+      }
+    }
+    // else: no section boundaries found, use entire text (will be filtered by date presence below)
+  }
+
+  // 2) Normalize whitespace and split into non-empty lines
+  const rawLines = block
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .map((l) => l.replace(/\u00A0/g, " ").trim()); // convert NBSP
+  const lines = rawLines.filter((l) => l.length > 0);
+
+  // 3) Date range detection (covers many common forms)
+  const monthNames =
+    "(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)";
+  const dateRangeRegex = new RegExp(
+    `\\b(?:${monthNames}\\s+\\d{4}|\\d{4})\\s*(?:-|–|—|to)\\s*(?:Present|Now|${monthNames}\\s+\\d{4}|\\d{4})\\b`,
+    "i"
+  );
+  const simpleYearRange = /\b\d{4}\s*(?:-|–|—|to)\s*(?:Present|Now|\d{4})\b/;
+
+  // 4) Walk lines; when we find a date line, look backward for title/company (up to N lines)
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    if (dateRangeRegex.test(line) || simpleYearRange.test(line)) {
+      const duration = line;
+      // collect up to 4 preceding non-empty lines as context
+      const context: string[] = [];
+      for (let k = 1; k <= 4; k++) {
+        const idx = i - k;
+        if (idx < 0) break;
+        const cand = lines[idx];
+        if (cand) context.push(cand);
+      }
+
+      // heuristics to pick title/company/location from context
+      let title: string | undefined;
+      let company: string | undefined;
+      let location: string | undefined;
+
+      // Usually:
+      //  - lines[ i-1 ] => company (or company • location)
+      //  - lines[ i-2 ] => title
+      // But some resumes invert that; apply flexible rules.
+
+      if (context.length >= 1) {
+        const prev = context[0];
+        // try to parse company + optional location separated by • or comma or " - "
+        const compSplit = prev
+          .split(/[\u2022•·•|]|[-–—]\s+|,\s+at\s+|,\s+/)
+          .map((s) => s.trim());
+        // If there are two meaningful parts, treat first as company and second as location
+        if (compSplit.length >= 2) {
+          company = compSplit[0];
+          location = compSplit.slice(1).join(", ");
+        } else {
+          // detect company keywords or corporate abbreviations
+          if (
+            /(Inc|LLC|Ltd|Corp|Company|Co\.|Solutions|Systems|Technologies|LLP|PLC|GmbH|Operations|Health)/i.test(
+              prev
+            ) ||
+            prev.split(/\s+/).length <= 6
+          ) {
+            company = prev;
+          } else {
+            // ambiguous: keep as candidate for title or company later
+            company = prev;
+          }
+        }
+      }
+
+      if (context.length >= 2) {
+        title = context[1];
+      }
+
+      // if still missing title, try splitting the company line on separators for a title/company combo
+      if (!title && company) {
+        const maybe = company.split(/[,—–@-]/).map((s) => s.trim());
+        if (maybe.length >= 2) {
+          // choose the shorter chunk as title heuristically
+          if (maybe[0].split(/\s+/).length <= maybe[1].split(/\s+/).length) {
+            title = maybe[0];
+            company = maybe.slice(1).join(", ");
+          } else {
+            title = maybe.slice(1).join(", ");
+            company = maybe[0];
+          }
+        }
+      }
+
+      // If title is still missing, check further up for a plausible title (e.g., line containing 'Senior', 'Engineer', 'Manager')
+      if (!title && context.length >= 3) {
+        for (let j = 2; j < Math.min(context.length, 4); j++) {
+          if (
+            /(Senior|Lead|Principal|Engineer|Developer|Manager|Director|Coordinator|Analyst|Programmer|Technician)/i.test(
+              context[j]
+            )
+          ) {
+            title = context[j];
+            break;
+          }
+        }
+      }
+
+      // sanitize: remove trailing separators and noise
+      const sanitize = (s?: string) =>
+        s
+          ? s.replace(/^[\u2022\-–—•\s]+|[\u2022\-–—•\s]+$/g, "").trim()
+          : undefined;
+
+      title = sanitize(title);
+      company = sanitize(company);
+      location = sanitize(location);
+
+      // Final guardrails
+      if (title && /experience/i.test(title)) title = undefined;
+      if (company && company.length > 200) company = undefined;
+
+      // Skip if we don't have at least a title or company
+      if (!title && !company) continue;
 
       results.push({
         title,

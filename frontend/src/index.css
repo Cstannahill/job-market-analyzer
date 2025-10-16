@@ -13,6 +13,7 @@
 @import "./styles/remote-pill.css";
 @import "./styles/JobPostingCard.css";
 @import "./styles/icon-svg.css";
+@import "./styles/resume.css";
 * {
   box-sizing: border-box;
   margin: 0;

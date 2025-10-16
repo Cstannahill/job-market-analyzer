@@ -18,11 +18,7 @@ export const handler = async (
   // Now safe to parse, because handlePreflight returned a 200 and JSON body.
   const { id: decodedKey } = JSON.parse(body);
   try {
-    const buffer = await getS3Object(decodedKey);
-
-    if (!buffer) throw new Error("No buffer found in S3 response");
-
-    const analysis = await processFile(buffer, decodedKey);
+    const analysis = await processFile(decodedKey);
 
     return {
       statusCode: 200,

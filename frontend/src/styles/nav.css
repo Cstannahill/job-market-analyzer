@@ -98,7 +98,11 @@
   box-shadow: 0 0 28px rgba(124, 58, 237, 0.1);
   opacity: 1;
 }
-
+.mobile-menu-toggle {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between !important;
+}
 /* small screens: keep spacing reasonable */
 @media (max-width: 640px) {
   .main-nav {

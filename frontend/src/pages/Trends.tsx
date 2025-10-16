@@ -3,10 +3,12 @@ import { useEffect, useState, useRef } from 'react';
 import { Layout } from '../components/Layout';
 import { Spinner } from '../components/ui/spinner';
 import { Card, CardContent, CardHeader } from '../components/ui/card';
-import { fetchTop, fetchSkill, type SkillTrend } from '../services/trends';
+import { fetchTop, fetchSkill } from '../services/trendsService';
+import type { SkillTrend } from '@/shared-types';
 import SkillList from '../components/trends/SkillList';
 import SkillDetailPanel from '../components/trends/SkillDetailPanel';
 import SectionCard from '@/components/about/SectionCard';
+import Seo from '@/components/Seo';
 
 export default function Trends() {
     const [loading, setLoading] = useState(true);
@@ -68,6 +70,12 @@ export default function Trends() {
 
     return (
         <Layout>
+            <Seo
+                title="Trends — Job Market Analyzer"
+                description="Explore the latest trends in job skills and technologies."
+                path="/trends"
+                image="/public/og/trends.avif"
+            />
             <SectionCard title="Trends">
 
 
@@ -126,7 +134,7 @@ export default function Trends() {
 
                     {/* Mobile drawer (unchanged) */}
                     <div className="md:hidden">
-                        <button
+                        {/* <button
                             className="mobile-insight-btn fixed bottom-6 right-6 bg-purple-600 text-white px-4 py-2 rounded-full shadow-lg"
                             onClick={() => {
                                 setMobileVisible(true);
@@ -135,7 +143,7 @@ export default function Trends() {
                             aria-label="Open insights"
                         >
                             Insights
-                        </button>
+                        </button> */}
                         {mobileVisible && (
                             <>
                                 <div

@@ -6,7 +6,8 @@ import {
     useQueryClient,
     type QueryFunctionContext,
 } from '@tanstack/react-query';
-import { getJobPostingsPage, getJobPostingsStats } from '@/services/api';
+import { getJobPostingsStats } from '@/services/jobStatsService';
+import { getJobPostingsPage } from '@/services/jobPostingsService';
 import type { BaseJobListing } from '@/shared-types';
 import { JobPostingCard } from '@/components/postings/JobPostingCard';
 import { Spinner } from '@/components/ui/spinner';

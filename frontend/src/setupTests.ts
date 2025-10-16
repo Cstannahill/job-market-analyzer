@@ -78,4 +78,42 @@ Object.defineProperty(globalThis, "ResizeObserver", {
 //   (globalThis as any).ResizeObserver.__setSize({ width: 400, height: 800 })
 // The class already defines static __setSize and __currentSize.
 
+// Basic window.matchMedia mock for jsdom environment.
+// Vitest/jsdom doesn't implement matchMedia, and some hooks/components
+// call window.matchMedia at module init or during render.
+if (typeof window !== "undefined" && typeof window.matchMedia !== "function") {
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    configurable: true,
+    value: (query: string) => {
+      // Minimal mock: matches false by default, supports addEventListener/removeEventListener
+      let listeners: Array<(e: { matches: boolean }) => void> = [];
+      const mql = {
+        matches: false,
+        media: query,
+        onchange: null,
+        addEventListener: (type: string, listener: (e: any) => void) => {
+          if (type === "change") listeners.push(listener);
+        },
+        removeEventListener: (type: string, listener: (e: any) => void) => {
+          if (type === "change")
+            listeners = listeners.filter((l) => l !== listener);
+        },
+        addListener: (listener: (e: any) => void) => {
+          // legacy
+          listeners.push(listener);
+        },
+        removeListener: (listener: (e: any) => void) => {
+          listeners = listeners.filter((l) => l !== listener);
+        },
+        dispatchEvent: (ev: { matches: boolean }) => {
+          listeners.forEach((l) => l(ev));
+        },
+      } as unknown as MediaQueryList;
+
+      return mql;
+    },
+  });
+}
+
 export default () => {};

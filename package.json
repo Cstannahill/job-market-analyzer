@@ -19,7 +19,9 @@
   "type": "commonjs",
   "devDependencies": {
     "@types/node": "^24.7.1",
-    "archiver": "^7.0.1",
+    "archiver": "^7.0.1"
+  },
+  "dependencies": {
     "tsup": "^8.5.0"
   }
 }

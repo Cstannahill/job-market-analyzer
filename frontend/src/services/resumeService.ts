@@ -1,9 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
-import type { CompareResult } from "@/types/resume";
+import type { CompareResult } from "@/shared-types";
 
-const API_URL =
-  (import.meta.env.VITE_API_URL as string | undefined) ||
-  "https://xee5kjisf5.execute-api.us-east-1.amazonaws.com/prod/resumes";
+const API_URL = (import.meta.env.VITE_API_URL as string | undefined) || "";
 
 const API_KEY = (import.meta.env.VITE_API_KEY as string | undefined) || "";
 
@@ -41,7 +39,7 @@ export async function uploadResume(opts: {
 
   try {
     // 1) get presigned URL from lambda
-    const presignedRes = await fetch(`${apiBase}/upload-resume`, {
+    const presignedRes = await fetch(`${apiBase}/resumes/upload-resume`, {
       method: "POST",
       headers: {
         ...(apiKey ? { "x-api-key": apiKey } : {}),
@@ -52,8 +50,8 @@ export async function uploadResume(opts: {
         contentType: file.type,
       }),
     });
-
     if (!presignedRes.ok) {
+      console.log("Presigned error:", presignedRes);
       const text = await presignedRes.text().catch(() => "");
       throw new Error(`Failed to get presigned URL${text ? ": " + text : ""}`);
     }
@@ -98,7 +96,7 @@ export async function uploadResume(opts: {
     const poll = async () => {
       try {
         const id = encodeURIComponent(key);
-        const response = await fetch(`${apiBase}/compare/${id}`, {
+        const response = await fetch(`${apiBase}/resumes/compare/${id}`, {
           headers: apiKey ? { "x-api-key": apiKey } : undefined,
         });
 
