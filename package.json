@@ -10,16 +10,11 @@
     "test": "npm run test:run --workspace=frontend"
   },
   "keywords": [],
-  "workspaces": [
-    "frontend",
-    "packages/*"
-  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
     "@types/node": "^24.7.1",
-    "archiver": "^7.0.1",
-    "tsup": "^8.5.0"
+    "archiver": "^7.0.1"
   }
 }

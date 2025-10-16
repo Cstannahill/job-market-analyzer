@@ -15,3 +15,13 @@
   color: var(--text-primary);
   /* font-family: var(--font-mono); */
 }
+
+.section-description {
+  color: var(--text-secondary);
+}
+
+@media (max-width: 64rem) {
+  .section-description {
+    font-size: 0.75rem !important;
+  }
+}

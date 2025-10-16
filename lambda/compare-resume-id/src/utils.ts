@@ -1,43 +1,36 @@
-// utils.ts
-import PDFParser from "pdf2json";
+interface PdfApiResponse {
+  success: boolean;
+  filename: string;
+  text?: string;
+  page_count?: number;
+  error?: string;
+  timestamp: string;
+}
 
-/**
- * Extracts plain text from a PDF buffer using pdf2json.
- * Works in AWS Lambda (pure JS, no native deps).
- */
-export async function extractTextWithPdf2json(buffer: Buffer): Promise<string> {
-  return new Promise((resolve, reject) => {
-    // no `this` usage — instantiate cleanly
-    const pdfParser = new PDFParser(undefined, /* needRawText = */ true);
+export async function extractTextWithApi(file: File, filename: string) {
+  // Convert Buffer to base64
 
-    pdfParser.on("pdfParser_dataError", (err: any) => {
-      reject(err?.parserError || err);
-    });
-
-    pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
-      try {
-        const pages = pdfData?.formImage?.Pages ?? [];
-        const texts: string[] = [];
-
-        for (const page of pages) {
-          for (const textBlock of page.Texts ?? []) {
-            // textBlock.R is an array of strings with URL-escaped text fragments
-            const fragments = (textBlock.R ?? []).map((r: any) =>
-              decodeURIComponent(r.T ?? "")
-            );
-            texts.push(fragments.join(""));
-          }
-          texts.push("\n");
-        }
-
-        const finalText = texts.join(" ").replace(/\s+/g, " ").trim();
-        resolve(finalText);
-      } catch (e) {
-        reject(e);
-      }
-    });
-
-    // Parse the buffer
-    pdfParser.parseBuffer(buffer);
+  const response = await fetch("https://py-pdf.onrender.com/extract/pdf", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      file: file,
+      filename,
+    }),
   });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`PDF API request failed: ${response.status} - ${text}`);
+  }
+
+  const data = (await response.json()) as PdfApiResponse;
+
+  if (!data.success) {
+    throw new Error(`PDF API extraction failed: ${data.error}`);
+  }
+
+  return data.text;
 }

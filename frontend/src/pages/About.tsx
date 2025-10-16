@@ -1,6 +1,7 @@
 // src/pages/About.tsx
 import React from "react";
 import { Layout } from "../components/Layout";
+import Seo from '@/components/Seo';
 import { Card, CardContent } from "@/components/ui/card";
 import { PipelineWithDiagram } from "@/components/about/PipelineTimeline";
 import { StackPanel } from "@/components/about/StackPanel";
@@ -13,6 +14,12 @@ import SectionCard from "@/components/about/SectionCard";
 const About: React.FC = () => {
     return (
         <Layout>
+            <Seo
+                title="About — Job Market Analyzer"
+                description="Learn how Job Market Analyzer collects, processes and exposes job-skill trend data."
+                path="/about"
+                image="/public/og/about.avif"
+            />
             {/* Hero Section */}
             <section className="relative overflow-hidden py-20 text-center">
                 <FeatureHero />

@@ -5,6 +5,19 @@ const s3 = new S3Client({ region: process.env.AWS_REGION || "us-east-1" });
 
 export const handler = async (event: any) => {
   try {
+    const headers = {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "Content-Type, x-api-key",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+    };
+    if (event.httpMethod === "OPTIONS") {
+      return {
+        statusCode: 204,
+        headers,
+        body: "",
+      };
+    }
     const body = JSON.parse(event.body || "{}");
     const { filename, contentType } = body;
 
@@ -29,7 +42,8 @@ export const handler = async (event: any) => {
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": "*", // or 'http://localhost:5173'
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "Content-Type, x-api-key",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
       },

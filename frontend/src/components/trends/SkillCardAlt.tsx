@@ -1,6 +1,6 @@
 // SkillCard.tsx
 import { toProperCase } from '@/lib/stringHelpers';
-import type { SkillTrend } from '../../services/trends';
+import type { SkillTrend } from '@/shared-types';
 
 export interface SkillCardProps {
     skill: SkillTrend;

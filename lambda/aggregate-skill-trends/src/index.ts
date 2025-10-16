@@ -55,8 +55,6 @@ interface TrendRecord {
  * Lambda handler - triggered by EventBridge schedule
  */
 export const handler = async () => {
-  console.log(`Aggregating skills from last ${LOOKBACK_HOURS} hours...`);
-
   try {
     // Step 1: Scan for recent enriched jobs
     const cutoffTime = new Date(
@@ -65,14 +63,11 @@ export const handler = async () => {
     const jobs = await fetchRecentJobs(cutoffTime);
 
     if (jobs.length === 0) {
-      console.log("No jobs found in time window");
       return {
         statusCode: 200,
         body: JSON.stringify({ message: "No jobs to aggregate" }),
       };
     }
-
-    console.log(`Found ${jobs.length} jobs to aggregate`);
 
     // Step 2: Aggregate by skill/region/seniority
     const aggregates = aggregateSkills(jobs);
@@ -81,12 +76,8 @@ export const handler = async () => {
     const totalJobs = jobs.length;
     const trendRecords = buildTrendRecords(aggregates, totalJobs);
 
-    console.log(`Generated ${trendRecords.length} trend records`);
-
     // Step 4: Batch write to DynamoDB
     await batchWriteTrends(trendRecords);
-
-    console.log("Aggregation completed successfully");
 
     return {
       statusCode: 200,
@@ -294,7 +285,6 @@ async function batchWriteTrends(records: TrendRecord[]): Promise<void> {
     });
 
     await docClient.send(command);
-    console.log(`Wrote batch ${Math.floor(i / BATCH_SIZE) + 1}`);
   }
 }
 

@@ -85,25 +85,18 @@ interface EnrichedJobData {
  * Lambda handler - runs on schedule (EventBridge)
  */
 export const handler = async () => {
-  console.log("Starting Bedrock LLM enrichment process...");
-  console.log(`Using model: ${SELECTED_MODEL.modelId}`);
-
   try {
     const unprocessedFiles = await getUnprocessedFiles();
 
     if (unprocessedFiles.length === 0) {
-      console.log("No unprocessed files found");
       return {
         statusCode: 200,
         body: JSON.stringify({ message: "No files to process" }),
       };
     }
 
-    console.log(`Found ${unprocessedFiles.length} unprocessed files`);
     const filesToProcess = unprocessedFiles.slice(0, MAX_FILES_PER_RUN);
     const results = await processBatches(filesToProcess);
-
-    console.log("Enrichment completed:", results);
 
     return {
       statusCode: 200,
@@ -412,7 +405,6 @@ Return a JSON array with one object per job, maintaining the same order as input
       body: JSON.stringify(requestBody),
     });
 
-    console.log(`Invoking Bedrock model: ${SELECTED_MODEL.modelId}`);
     const response = await bedrockClient.send(command);
 
     // Parse the response
@@ -426,12 +418,6 @@ Return a JSON array with one object per job, maintaining the same order as input
     if (!content) {
       throw new Error("No content in Bedrock response");
     }
-
-    console.log(
-      "Raw Bedrock response (first 200 chars):",
-      content.substring(0, 200)
-    );
-
     // Clean response
     const cleanedContent = content
       .replace(/```json\n?/g, "")

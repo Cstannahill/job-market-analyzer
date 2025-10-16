@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizeRow } from "../../services/trends";
+import { normalizeRow } from "../../services/trendsService";
 
 describe("trends.normalizeRow", () => {
   it("parses a spring boot sample", () => {

@@ -1,4 +1,4 @@
-import { type SkillTrend } from '../../services/trends';
+import { type SkillTrend } from '@/shared-types';
 import SkillCard from './SkillCard';
 
 type Props = {

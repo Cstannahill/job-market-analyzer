@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { SkillTrend } from '../../services/trends';
+import type { SkillTrend } from '@/shared-types';
 
 type Props = {
     skill: SkillTrend;
