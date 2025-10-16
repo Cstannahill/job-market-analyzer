@@ -10,6 +10,10 @@
     "test": "npm run test:run --workspace=frontend"
   },
   "keywords": [],
+  "workspaces": [
+    "frontend",
+    "lambdas"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
