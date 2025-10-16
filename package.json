@@ -12,7 +12,7 @@
   "keywords": [],
   "workspaces": [
     "frontend",
-    "lambdas"
+    "packages/*"
   ],
   "author": "",
   "license": "ISC",
