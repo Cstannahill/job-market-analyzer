@@ -34,6 +34,9 @@ function normalizeLookup(name: string) {
     if (specialCases[lower]) return specialCases[lower];
 
     // Pattern-based special cases
+    if (lower.includes('react')) return 'react';
+    if (lower.includes('google cloud')) return 'gcp';
+    if (lower === 'go' || lower === 'golang') return 'go';
     if (lower.includes('java/')) return 'java';
     if (lower.includes('postgre') || lower.includes('sql')) return 'postgresql';
     if (lower.includes('rag') && lower.includes('pipeline')) return 'rag';
