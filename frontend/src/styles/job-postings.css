@@ -1,0 +1,8 @@
+.job-postings-footer {
+  display: flex;
+  justify-content: center !important;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}

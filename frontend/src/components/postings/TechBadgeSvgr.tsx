@@ -34,6 +34,13 @@ function normalizeLookup(name: string) {
     if (specialCases[lower]) return specialCases[lower];
 
     // Pattern-based special cases
+    if (lower.includes('html')) return 'html5';
+    if (lower.includes('css')) return 'css3';
+    if (lower.includes('node')) return 'node';
+    if (lower === 'database' || lower === 'databases') return 'database-management-systems';
+    if (lower.includes('java') && !lower.includes('javascript')) return 'java';
+    if (lower.includes('android')) return 'android';
+    if (lower.includes('cloud platform')) return 'cloud';
     if (lower.includes('react')) return 'react';
     if (lower.includes('google cloud')) return 'gcp';
     if (lower === 'go' || lower === 'golang') return 'go';
