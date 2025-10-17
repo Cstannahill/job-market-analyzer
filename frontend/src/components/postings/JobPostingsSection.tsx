@@ -281,15 +281,15 @@ export const JobPostingsSection: React.FC = () => {
                 >
                     Prev
                 </Button>
-
+                <span className="sr-only">Current page:</span>
+                {`Page ${pageIndex} `}
+                {totalPages ? <span className="text-xs text-white/70 ml-2">{` of ${totalPages}`}</span> : null}
                 <div
                     className="relative px-4 py-1 rounded-lg text-sm font-semibold text-white bg-white/5 ring-1 ring-white/6
                    shadow-sm flex items-center justify-center min-w-[120px]"
                     aria-live="polite"
                 >
-                    <span className="sr-only">Current page:</span>
-                    {`Page ${pageIndex} `}
-                    {totalPages ? <span className="text-xs text-white/70 ml-2">{` of ${totalPages}`}</span> : null}
+
                 </div>
 
                 <Button
@@ -399,11 +399,16 @@ export const JobPostingsSection: React.FC = () => {
                 )}
             </div>
 
-            <div className="results-info">
+
+
+            <div className="results-info text-center">
                 Showing {jobPostings.length} job postings (page {pageIndex})
                 {typeof stats?.totalPostings === 'number' ? ` — Total: ${stats.totalPostings}` : null}
+
+                <div style={{ display: 'flex', gap: 0, alignItems: 'center', flex: 1 }}>{PaginationControls}</div>
+
             </div>
-            {PaginationControls}
+
         </>
     );
 };

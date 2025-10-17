@@ -217,7 +217,7 @@
 }
 
 /* Gradient Text */
-.gradient-text {
+/* .gradient-text {
   background: linear-gradient(
     135deg,
     var(--color-primary),
@@ -226,6 +226,26 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+
+.gradient-text::before {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  color: #000;
+  text-shadow: 0 1px 0 #222, 0 2px 2px #0a0a0a, 0 4px 6px #000;
+  opacity: 0.8;
+}
+ */
+
+.gradient-text {
+  background: linear-gradient(135deg, #ba08e6, #d2a0f4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
 }
 
 /* Gradient Backgrounds */

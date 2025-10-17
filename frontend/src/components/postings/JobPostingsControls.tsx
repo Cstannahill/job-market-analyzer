@@ -20,7 +20,7 @@ export interface JobPostingsControlsProps {
     // Technology filter state
     selectedTech: string;
     onTechChange: (value: string) => void;
-    techCounts: TechnologyStatItem[] | undefined;
+    techCounts?: TechnologyStatItem[] | undefined;
 
     // Pagination state
     pageIndex: number;
@@ -50,7 +50,7 @@ export const JobPostingsControls: React.FC<JobPostingsControlsProps> = ({
     searchPlaceholder = "Search by title, skill, or technology...",
     selectedTech,
     onTechChange,
-    techCounts,
+    techCounts = [],
     pageIndex,
     totalPages,
     pageSize,
