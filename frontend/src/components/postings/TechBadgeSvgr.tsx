@@ -29,6 +29,7 @@ function normalizeLookup(name: string) {
         'c plus plus': 'cpp',
         'app engine': 'appengine',
         'asp.net': 'aspnet',
+
     };
 
     if (specialCases[lower]) return specialCases[lower];
@@ -43,7 +44,7 @@ function normalizeLookup(name: string) {
     if (lower.includes('cloud platform')) return 'cloud';
     if (lower.includes('react')) return 'react';
     if (lower.includes('google cloud')) return 'gcp';
-    if (lower === 'go' || lower === 'golang') return 'go';
+    if (lower === 'go' || lower === 'golang' || lower.includes('golang')) return 'go';
     if (lower.includes('java/')) return 'java';
     if (lower.includes('postgre') || lower.includes('sql')) return 'postgresql';
     if (lower.includes('rag') && lower.includes('pipeline')) return 'rag';
