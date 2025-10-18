@@ -566,7 +566,7 @@ body {
 /* global.css */
 .scrollbar-thin::-webkit-scrollbar {
   height: 8px;
-  width: 8px;
+  width: 10px;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background-color: rgba(148, 163, 184, 0.12);

@@ -2,9 +2,12 @@ import {
   BedrockRuntimeClient,
   ConverseCommand,
 } from "@aws-sdk/client-bedrock-runtime";
-import { updateInsights } from "./dbService";
-import { InsightsItem } from "./types";
-import { extractFirstBalancedJson, sanitizeAndParseJson } from "./sanitizers";
+import { updateInsights } from "./dbService.js";
+import { InsightsItem } from "./types.js";
+import {
+  extractFirstBalancedJson,
+  sanitizeAndParseJson,
+} from "./sanitizers.js";
 
 const bedrock = new BedrockRuntimeClient({
   region: "us-east-1",

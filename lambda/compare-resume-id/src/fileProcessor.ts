@@ -2,18 +2,17 @@ import mammoth from "mammoth";
 import {
   extractSkills,
   extractEducation,
-  extractExperience,
-} from "./extractors";
+  extractExperiencePdf,
+} from "./extractors.js";
+import { extractExperience } from "./docx.js";
 import { randomUUID } from "crypto";
-import { insertResume } from "./dbService";
+import { insertResume } from "./dbService.js";
 import {
   genInsightsWithBedrock,
   normalizeSkillsWithBedrock,
-} from "./aiService";
-import { extractTextWithApi } from "./utils";
-import { getS3Object } from "./s3Service";
+} from "./aiService.js";
+import { getS3Object } from "./s3Service.js";
 import fs from "fs";
-import FormData from "form-data";
 
 interface PDFResponse {
   success: boolean;
@@ -28,7 +27,7 @@ export async function processFile(key: string) {
   // 1️⃣ Determine file type
   const extension = key.split(".").pop()?.toLowerCase() || "";
   let text = "";
-
+  let experience: any[] = [];
   if ("filePath" in s3Object) {
     // Read file and encode to base64
     const fileBuffer = fs.readFileSync(s3Object.filePath);
@@ -63,10 +62,16 @@ export async function processFile(key: string) {
     }
 
     text = data.text;
+    experience = extractExperiencePdf(text);
   } else if (extension === "docx") {
     // DOCX extraction
-    const result = await mammoth.extractRawText({ buffer: s3Object });
-    text = result.value;
+    // const result = await mammoth.extractRawText({ buffer: s3Object });
+    // const html = result.value; // use mammoth's HTML (contains <p>, <br>, etc.)
+    // experience = extractExperienceHTML(html);
+    const fullRes = await mammoth.extractRawText({ buffer: s3Object });
+    text = fullRes.value;
+    experience = extractExperience(text);
+    // experience = extractExperienceHTML(text);
   } else {
     throw new Error("Unsupported file type");
   }
@@ -80,7 +85,7 @@ export async function processFile(key: string) {
   };
   const rawSkills = extractSkills(text);
   const education = extractEducation(text);
-  const experience = extractExperience(text);
+  // const experience = extractExperience(text);
 
   const normalizedSkills = await normalizeSkillsWithBedrock(
     rawSkills,

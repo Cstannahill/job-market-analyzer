@@ -15,14 +15,7 @@ const lambdaDirectories = [
   // "get-skill-trends",
   // "job-posting-aggregator",
   // "resume-presigned-url",
-  // "process-resume",
-  // "scrape-agl",
-  // "scrape-blt-wth",
-  // "scrape-gls-dr",
-  // "scrape-stack-ofj",
-  // "skill-extractor",
   // "skill-extractor-ai",
-  // "skill-extractor-algo",
 ];
 
 function packageLambdas() {
