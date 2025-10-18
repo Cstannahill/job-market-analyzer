@@ -141,3 +141,14 @@ export function extractFirstBalancedJson(text: string): string | null {
 
   return null;
 }
+
+export function cleanDocxText(text: string): string {
+  return text
+    .replace(/\r\n/g, "\n")
+    .replace(/\n{2,}/g, "\n\n") // collapse extra blank lines
+    .replace(/\s{2,}/g, " ") // remove excessive spacing
+    .replace(/•/g, "\n•") // ensure bullets start new lines
+    .replace(/(EXPERIENCE)/i, "\n\n$1\n") // isolate key headers
+    .replace(/([A-Z][A-Za-z]+ [A-Z][A-Za-z]+)(\s+)([A-Z][A-Za-z]+)/g, "$1\n$3") // split names/roles
+    .trim();
+}

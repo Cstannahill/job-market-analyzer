@@ -14,14 +14,7 @@ const lambdaDirectories = [
   "get-skill-trends",
   "job-posting-aggregator",
   "resume-presigned-url",
-  // "process-resume",
-  // "scrape-agl",
-  // "scrape-blt-wth",
-  // "scrape-gls-dr",
-  // "scrape-stack-ofj",
-  // "skill-extractor",
   "skill-extractor-ai",
-  // "skill-extractor-algo",
 ];
 
 function buildLambdas() {
@@ -37,9 +30,16 @@ function buildLambdas() {
 
       // 2. Run tsup build
       console.log(`-> Running tsup src in lambda/${dir}`);
-      // Note: cwd sets the Current Working Directory for the command
-      execSync("tsup src", { stdio: "inherit", cwd: `lambda/${dir}` });
-
+      if (dir === "compare-resume-id") {
+        // Updated to properly build compare-resume-id lambda (switched to esm)
+        execSync("tsup src/index.ts --format esm --dts", {
+          stdio: "inherit",
+          cwd: `lambda/${dir}`,
+        });
+      } else {
+        // Note: cwd sets the Current Working Directory for the command
+        execSync("tsup src", { stdio: "inherit", cwd: `lambda/${dir}` });
+      }
       console.log(`✅ Successfully built ${dir}`);
     } catch (error) {
       console.error(`❌ Error building ${dir}:`);

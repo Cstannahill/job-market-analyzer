@@ -4,7 +4,7 @@ import {
   PutItemCommand,
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall, marshall } from "@aws-sdk/util-dynamodb";
-import { InsightsItem } from "./types";
+import { InsightsItem } from "./types.js";
 
 const RESUME_TABLE = process.env.RESUME_TABLE || "Resumes";
 const INSIGHTS_TABLE = process.env.INSIGHTS_TABLE || "ResumeInsights";

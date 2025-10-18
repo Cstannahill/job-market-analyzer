@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { processFile } from "./fileProcessor";
-import { handlePreflight } from "./preflight";
-import { getS3Object } from "./s3Service";
+import { processFile } from "./fileProcessor.js";
+import { handlePreflight } from "./preflight.js";
+import { getS3Object } from "./s3Service.js";
 
 // === MAIN HANDLER ===
 export const handler = async (
@@ -15,8 +15,18 @@ export const handler = async (
     return { statusCode, headers, body };
   }
 
-  // Now safe to parse, because handlePreflight returned a 200 and JSON body.
-  const { id: decodedKey } = JSON.parse(body);
+  let decodedKey: string;
+  try {
+    const parsed = JSON.parse(body || "{}");
+    decodedKey = parsed.id;
+    if (!decodedKey) throw new Error("Missing id in body");
+  } catch (err) {
+    return {
+      statusCode: 400,
+      headers,
+      body: JSON.stringify({ error: "Invalid or missing id" }),
+    };
+  }
   try {
     const analysis = await processFile(decodedKey);
 

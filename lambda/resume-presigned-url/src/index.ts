@@ -3,34 +3,45 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const s3 = new S3Client({ region: process.env.AWS_REGION || "us-east-1" });
 
+const ALLOWED_ORIGINS = [
+  "http://localhost:5173",
+  "https://main.d2qk81z2cubp0y.amplifyapp.com",
+];
+
+function buildCorsHeaders(origin?: string) {
+  const allowedOrigin =
+    origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]; // fallback (localhost)
+
+  return {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "Content-Type, x-api-key",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    Vary: "Origin",
+  };
+}
+
 export const handler = async (event: any) => {
+  const origin = event.headers.Origin || event.headers.origin;
+  const headers = buildCorsHeaders(origin);
+
   try {
-    const headers = {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Headers": "Content-Type, x-api-key",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-    };
     if (event.httpMethod === "OPTIONS") {
-      return {
-        statusCode: 204,
-        headers,
-        body: "",
-      };
+      return { statusCode: 204, headers, body: "" };
     }
+
     const body = JSON.parse(event.body || "{}");
     const { filename, contentType } = body;
 
     if (!filename || !contentType) {
       return {
         statusCode: 400,
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ error: "Missing filename or contentType" }),
       };
     }
 
     const key = `resumes/${Date.now()}-${filename}`;
-
     const command = new PutObjectCommand({
       Bucket: process.env.S3_BUCKET_NAME!,
       Key: key,
@@ -41,19 +52,14 @@ export const handler = async (event: any) => {
 
     return {
       statusCode: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type, x-api-key",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-      },
+      headers,
       body: JSON.stringify({ url, key }),
     };
   } catch (error) {
     console.error("Presigned URL error:", error);
     return {
       statusCode: 500,
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ error: "Failed to generate presigned URL" }),
     };
   }

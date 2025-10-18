@@ -1,10 +1,10 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { buildCorsHeaders } from "./cors";
+import { buildCorsHeaders } from "./cors.js";
 
 export const handlePreflight = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-  const origin = event.headers.Origin || event.headers.origin || null;
+  const origin = event.headers.Origin || event.headers.origin;
   const headers = buildCorsHeaders(origin);
   let decodedKey: string = "ID not processed";
   // Handle OPTIONS preflight
