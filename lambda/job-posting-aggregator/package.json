@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "description": "Lambda function to aggregate job postings in S3 bucket from various sources (APIs)",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "build": "tsup src"
+    "build": "tsup"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.901.0",
     "axios": "^1.12.2",
-    "cheerio": "^1.1.2",
-    "tsup": "^8.5.0"
+    "cheerio": "^1.1.2"
   },
   "devDependencies": {
     "@types/node": "^24.6.2",

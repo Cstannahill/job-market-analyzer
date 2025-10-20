@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import type { JobStats, TechnologyStatItem, SkillStatItem } from "./jobs";
+import type { JobStats, TechnologyStatItem, SkillStatItem } from "./jobs.js";
 import {
   DynamoDBDocumentClient,
   ScanCommand,

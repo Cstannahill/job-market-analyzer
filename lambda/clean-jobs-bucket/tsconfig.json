@@ -1,25 +1,14 @@
 {
     "compilerOptions": {
-        "target": "ES2020",
-        "module": "commonjs",
-        "lib": [
-            "ES2020"
-        ],
-        "outDir": "./dist",
-        "rootDir": "./src",
+        "target": "ES2022",
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
         "strict": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
-        "resolveJsonModule": true,
-        "declaration": true,
-        "sourceMap": false
+        "outDir": "dist"
     },
     "include": [
-        "src/**/*"
-    ],
-    "exclude": [
-        "node_modules",
-        "dist"
+        "src"
     ]
 }

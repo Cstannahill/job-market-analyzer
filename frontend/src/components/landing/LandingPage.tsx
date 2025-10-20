@@ -59,7 +59,7 @@ function LandingPage() {
           <LandingHeroText totalPostings={totalPostings} />
           {/* Animated Stats Cards */}
           <div className="stats-grid fade-in">
-            {loading ? <div className="flex justify-center"><Spinner className="size-7 landing-spinner" /></div> : (
+            {loading ? <div className="flex justify-center"><Spinner className="size-12 landing-spinner" /></div> : (
               <>
                 <StatsCard
                   icon={Briefcase}
