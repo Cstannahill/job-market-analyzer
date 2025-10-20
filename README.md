@@ -15,7 +15,7 @@ This repository contains a small set of Node.js Lambda functions (in `lambda/`) 
 - Added a root-level `zip.js` (CommonJS) that packages a target lambda directory (dist, node_modules, package.json) into `lambda.zip` in that target folder.
 - Installed `archiver` at the repository root so packaging tooling is available centrally.
 - Removed `archiver` from the per-lambda `devDependencies` and updated per-lambda `package` scripts to call the root script (`node ../../zip.js .`).
-- Replaced lambda-local `zip.js` files (where present) with small shims that delegate to the root-level `zip.js`.
+- Replaced lambda-local `zip.js` files (where present) with small shims that delegate to the root-level `zip.js` script.
 - Updated `.gitignore` to ignore `**/*.zip`, `**/node_modules/`, `**/dist/`, and `**/package-lock.json` recursively.
 
 This reduces per-lambda duplication and keeps packaging logic centralized for easier maintenance and consistent outputs.
