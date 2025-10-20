@@ -1,0 +1,21 @@
+{
+  "name": "auth-get-current-user",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsup",
+    "package": "npm run build && cd dist && zip -r ../lambda.zip .",
+    "clean": "rm -rf dist lambda.zip"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.913.0",
+    "@aws-sdk/lib-dynamodb": "^3.913.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.156",
+    "@types/node": "^24.8.1",
+    "typescript": "^5.9.3",
+    "tsup": "^8.5.0"
+  }
+}

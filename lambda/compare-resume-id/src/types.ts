@@ -12,3 +12,14 @@ export interface Experience {
   duration?: string;
   description?: string[];
 }
+
+export interface ResumeBaseItem {
+  PK: string;
+  SK: string;
+  status: "pending" | "processed" | "failed";
+  originalFileName: string;
+  s3Key: string;
+  contentType: string;
+  uploadInitiatedAt: string;
+  ttl: number;
+}

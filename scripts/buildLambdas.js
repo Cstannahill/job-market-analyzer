@@ -3,18 +3,24 @@
 const { execSync } = require("child_process");
 
 const lambdaDirectories = [
-  "aggregate-skill-trends",
-  "bedrock-ai-extractor",
-  "calculate-job-stats",
-  "clean-jobs-bucket",
-  "compare-resume-id",
-  "get-job-postings",
-  "get-job-postings-paginated",
-  "get-job-postings-stats",
-  "get-skill-trends",
-  "job-posting-aggregator",
-  "resume-presigned-url",
-  "skill-extractor-ai",
+  // "aggregate-skill-trends",
+  "auth-get-current-user",
+  "auth-login",
+  "auth-logout",
+  "auth-register",
+  "auth-verify-email",
+  // "bedrock-ai-extractor",
+  // "calculate-job-stats",
+  // "clean-jobs-bucket",
+  "cognito-post-confirmation",
+  // "compare-resume-id",
+  // "get-job-postings",
+  // "get-job-postings-paginated",
+  // "get-job-postings-stats",
+  // "get-skill-trends",
+  // "job-posting-aggregator",
+  // "resume-presigned-url",
+  // "skill-extractor-ai",
 ];
 
 function buildLambdas() {
@@ -32,13 +38,13 @@ function buildLambdas() {
       console.log(`-> Running tsup src in lambda/${dir}`);
       if (dir === "compare-resume-id") {
         // Updated to properly build compare-resume-id lambda (switched to esm)
-        execSync("tsup src/index.ts --format esm --dts", {
+        execSync("tsup", {
           stdio: "inherit",
           cwd: `lambda/${dir}`,
         });
       } else {
         // Note: cwd sets the Current Working Directory for the command
-        execSync("tsup src", { stdio: "inherit", cwd: `lambda/${dir}` });
+        execSync("npx tsup", { stdio: "inherit", cwd: `lambda/${dir}` });
       }
       console.log(`✅ Successfully built ${dir}`);
     } catch (error) {

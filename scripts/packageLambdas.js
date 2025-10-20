@@ -5,10 +5,16 @@ const path = require("path");
 
 const lambdaDirectories = [
   // "aggregate-skill-trends",
+  "auth-get-current-user",
+  "auth-login",
+  "auth-logout",
+  "auth-register",
+  "auth-verify-email",
   // "bedrock-ai-extractor",
   // "calculate-job-stats",
   // "clean-jobs-bucket",
-  "compare-resume-id",
+  "cognito-post-confirmation",
+  // "compare-resume-id",
   // "get-job-postings",
   // "get-job-postings-paginated",
   // "get-job-postings-stats",

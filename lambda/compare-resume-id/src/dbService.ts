@@ -2,9 +2,12 @@ import {
   DynamoDBClient,
   GetItemCommand,
   PutItemCommand,
+  UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
+import { QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { unmarshall, marshall } from "@aws-sdk/util-dynamodb";
 import { InsightsItem } from "./types.js";
+import type { ResumeBaseItem } from "./types.js";
 
 const RESUME_TABLE = process.env.RESUME_TABLE || "Resumes";
 const INSIGHTS_TABLE = process.env.INSIGHTS_TABLE || "ResumeInsights";
@@ -28,14 +31,36 @@ export async function updateInsights(insightsItem: InsightsItem) {
   return item;
 }
 
-export const insertResume = async (resumeItem: any) => {
+export const updateResume = async (resumeItem: any) => {
   await dynamo.send(
-    new PutItemCommand({
+    new UpdateItemCommand({
       TableName: RESUME_TABLE,
-      Item: marshall(resumeItem, { removeUndefinedValues: true }),
+      Key: marshall({ PK: resumeItem.PK, SK: resumeItem.SK }),
+      UpdateExpression:
+        "SET #contactInfo = :contactInfo, #skills = :skills, #education = :education, #experience = :experience, #status = :status, #uploadedAt = :uploadedAt, #updatedAt = :updatedAt",
+      ExpressionAttributeNames: {
+        "#contactInfo": "contactInfo",
+        "#skills": "skills",
+        "#education": "education",
+        "#experience": "experience",
+        "#status": "status",
+        "#uploadedAt": "uploadedAt",
+        "#updatedAt": "updatedAt",
+      },
+      ExpressionAttributeValues: marshall({
+        ":contactInfo": resumeItem.contactInfo,
+        ":skills": resumeItem.skills,
+        ":education": resumeItem.education,
+        ":experience": resumeItem.experience,
+        ":status": resumeItem.status,
+        ":uploadedAt": resumeItem.uploadedAt,
+        ":updatedAt": resumeItem.updatedAt,
+      }),
+      ConditionExpression: "attribute_exists(PK) AND attribute_exists(SK)",
     })
   );
 };
+
 export const getResumeById = async (resumeId: string) => {
   const params = {
     TableName: RESUME_TABLE,
@@ -52,4 +77,21 @@ export const getResumeById = async (resumeId: string) => {
     throw new Error("Resume not found");
   }
   return unmarshall(Item);
+};
+
+export const getResumeByS3Key = async (s3Key: string) => {
+  const params = {
+    TableName: RESUME_TABLE,
+    IndexName: "s3KeyIndex", // <-- must match your GSI name
+    KeyConditionExpression: "s3Key = :s3Key",
+    ExpressionAttributeValues: {
+      ":s3Key": s3Key,
+    },
+    Limit: 1,
+  };
+
+  const { Items } = await dynamo.send(new QueryCommand(params));
+  if (!Items?.length) throw new Error("Resume not found");
+
+  return Items[0] as ResumeBaseItem;
 };

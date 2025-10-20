@@ -5,14 +5,22 @@ import { useTheme } from '@/hooks/useTheme';
 import { Moon, Sun } from 'lucide-react';
 import trendDevLogo from '@/assets/trenddev.avif';
 import useIsMobile from '@/hooks/useIsMobile';
+import { Button } from '@/components/ui/button';
+import { useAuthStore, useAuthUser } from '@/stores/authStore';
 
 export const Header: React.FC = () => {
+
     const { theme, toggleTheme } = useTheme();
+    const user = useAuthUser();
+    const logout = useAuthStore((state) => state.logout);
     const isMobile = useIsMobile();
     const navClassName = isMobile
         ? 'flex items-center gap-4 mobile-menu-toggle'
         : 'flex items-center gap-4';
+    const handleLogout = async () => {
+        await logout();
 
+    };
     return (
         <header className="w-full sticky top-0 z-50 border-b rounded-lg border-white/5" >
             <a
@@ -45,6 +53,15 @@ export const Header: React.FC = () => {
 
                     {/* Right Controls */}
                     <div className="flex items-center gap-2 lg:gap-3">
+
+                        {!user && (
+                            <Link to="/login" >
+                                <Button variant="secondary" className='p-2 w-16 h-8' size="lg">Login</Button>
+                            </Link>
+                        )}
+                        {user && (
+                            <Button variant="secondary" type="button" onClick={handleLogout} className='p-2 w-16 h-8' size="lg">Logout</Button>
+                        )}
                         {/* Theme Toggle */}
                         <button
                             onClick={toggleTheme}

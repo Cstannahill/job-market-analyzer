@@ -14,6 +14,7 @@ export type UploadStatus =
 
 export async function uploadResume(opts: {
   file: File;
+  userId: string;
   setStatus: Dispatch<SetStateAction<UploadStatus>>;
   setProgress: Dispatch<SetStateAction<number>>;
   setError: Dispatch<SetStateAction<string | null>>;
@@ -23,6 +24,7 @@ export async function uploadResume(opts: {
 }): Promise<void> {
   const {
     file,
+    userId,
     setStatus,
     setProgress,
     setError,
@@ -30,7 +32,7 @@ export async function uploadResume(opts: {
     apiBase = API_URL,
     apiKey = API_KEY,
   } = opts;
-
+  if (!userId) return;
   if (!file) return;
 
   setStatus("uploading");
@@ -48,6 +50,7 @@ export async function uploadResume(opts: {
       body: JSON.stringify({
         filename: file.name,
         contentType: file.type,
+        userId,
       }),
     });
     if (!presignedRes.ok) {

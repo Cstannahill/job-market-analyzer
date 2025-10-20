@@ -7,6 +7,7 @@ import type { CompareResult, ExperienceItem } from "@/shared-types";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useAuthUser } from "@/stores/authStore";
 
 const ACCEPTED_TYPES = [
     "application/pdf",
@@ -30,6 +31,7 @@ function IconSpinner() {
 }
 
 export default function ResumeUploader() {
+    const user = useAuthUser();
     const inputRef = useRef<HTMLInputElement | null>(null);
 
     const [file, setFile] = useState<File | null>(null);
@@ -91,13 +93,19 @@ export default function ResumeUploader() {
     };
 
     const handleUpload = async () => {
+        console.log(user);
         if (!file) return;
+        if (!user) {
+            setError('Authentication required');
+            return;
+        }
         setError(null);
         setStatus("uploading");
         setProgress(0);
         try {
             await uploadResume({
                 file,
+                userId: user?.userId || "",
                 setStatus,
                 setProgress,
                 setError,

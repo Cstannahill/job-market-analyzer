@@ -1,0 +1,32 @@
+.forgot-password-link {
+  margin-left: auto !important;
+}
+.bg-background.text-muted-foreground.relative.mx-auto.block.w-fit.px-2 {
+  padding: 0rem 0rem !important;
+  background-color: transparent !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+
+.or-continue-with {
+  display: flex;
+  font-size: 0.75rem !important;
+  color: var(--color-stone-400) !important;
+  text-align: center !important;
+  transform: translateX(7.5rem);
+}
+
+@media (max-width: 640px) {
+  .or-continue-with {
+    transform: translateX(6rem);
+  }
+}
+
+.auth-card {
+  height: 85svh;
+  margin: 1rem auto;
+}
+
+.register-image-div img {
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.8));
+}

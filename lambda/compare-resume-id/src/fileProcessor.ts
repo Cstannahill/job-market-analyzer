@@ -5,8 +5,8 @@ import {
   extractExperiencePdf,
 } from "./extractors.js";
 import { extractExperience } from "./docx.js";
-import { randomUUID } from "crypto";
-import { insertResume } from "./dbService.js";
+import { v4 as uuidv4 } from "uuid";
+import { getResumeByS3Key, updateResume } from "./dbService.js";
 import {
   genInsightsWithBedrock,
   normalizeSkillsWithBedrock,
@@ -22,10 +22,14 @@ interface PDFResponse {
 
 export async function processFile(key: string) {
   const s3Object = await getS3Object(key);
-  const resumeId = randomUUID();
-
+  console.log("S3 object retrieved for key:", s3Object);
+  const resumeBaseItem = await getResumeByS3Key(key);
+  const resumePK = resumeBaseItem.PK;
+  const resumeId = resumeBaseItem.SK;
+  const fileName = resumeBaseItem.originalFileName;
+  const fileType = resumeBaseItem.contentType;
   // 1️⃣ Determine file type
-  const extension = key.split(".").pop()?.toLowerCase() || "";
+  const extension = fileName.split(".").pop()?.toLowerCase() || "";
   let text = "";
   let experience: any[] = [];
   if ("filePath" in s3Object) {
@@ -63,15 +67,14 @@ export async function processFile(key: string) {
 
     text = data.text;
     experience = extractExperiencePdf(text);
-  } else if (extension === "docx") {
-    // DOCX extraction
-    // const result = await mammoth.extractRawText({ buffer: s3Object });
-    // const html = result.value; // use mammoth's HTML (contains <p>, <br>, etc.)
-    // experience = extractExperienceHTML(html);
+  } else if (
+    extension === "docx" ||
+    fileType ===
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  ) {
     const fullRes = await mammoth.extractRawText({ buffer: s3Object });
     text = fullRes.value;
     experience = extractExperience(text);
-    // experience = extractExperienceHTML(text);
   } else {
     throw new Error("Unsupported file type");
   }
@@ -85,7 +88,6 @@ export async function processFile(key: string) {
   };
   const rawSkills = extractSkills(text);
   const education = extractEducation(text);
-  // const experience = extractExperience(text);
 
   const normalizedSkills = await normalizeSkillsWithBedrock(
     rawSkills,
@@ -94,19 +96,18 @@ export async function processFile(key: string) {
   );
 
   const resumeItem = {
-    PK: `RESUME#${resumeId}`,
-    SK: "PARSED",
-    resumeId,
-    filename: key.split("/").pop(),
-    // size: { buffer ?buffer.length },
+    PK: resumePK,
+    SK: resumeId,
     contactInfo,
-    skills: normalizedSkills, // Use normalized version
+    skills: normalizedSkills,
     education,
     experience,
-    createdAt: new Date().toISOString(),
+    status: "processed",
+    uploadedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 
-  await insertResume(resumeItem);
+  await updateResume(resumeItem);
   const insights = await genInsightsWithBedrock(text, resumeId);
   // 5️⃣ Return summary
   return {

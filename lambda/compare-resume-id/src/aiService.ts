@@ -16,6 +16,12 @@ const bedrock = new BedrockRuntimeClient({
 let SELECTED_MODEL = process.env.BEDROCK_MODEL_ID;
 const NOVA_MODEL = "amazon.nova-pro-v1:0";
 
+if (!SELECTED_MODEL) {
+  SELECTED_MODEL = NOVA_MODEL;
+  console.warn(
+    `No Bedrock model configured, defaulting to ${NOVA_MODEL}. Set BEDROCK_MODEL_ID env var to override.`
+  );
+}
 function extractTextFromBedrockResponse(response: any): string {
   // Try several likely places and join content parts safely
   try {
@@ -69,21 +75,6 @@ function extractTextFromBedrockResponse(response: any): string {
   }
 }
 
-// Ensure non-Amazon models use inference profile format
-if (
-  SELECTED_MODEL &&
-  !SELECTED_MODEL.startsWith("amazon.") &&
-  !SELECTED_MODEL.startsWith("us.")
-) {
-  SELECTED_MODEL = `us.${SELECTED_MODEL}`;
-}
-if (!SELECTED_MODEL) {
-  SELECTED_MODEL = NOVA_MODEL;
-  console.warn(
-    `No Bedrock model configured, defaulting to ${NOVA_MODEL}. Set BEDROCK_MODEL_ID env var to override.`
-  );
-}
-
 export async function genInsightsWithBedrock(
   resumeText: string,
   resumeId: string
@@ -99,7 +90,7 @@ OVERVIEW:
 
 INPUT:
 RESUME_TEXT_START
-${resumeText.substring(0, 8000)}
+${resumeText.substring(0, 10000)}
 RESUME_TEXT_END
 
 OUTPUT FORMAT (required JSON):

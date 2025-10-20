@@ -5,6 +5,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 0.75rem;
   background: linear-gradient(135deg, #798eed 0%, #a873dd 100%);
   overflow: hidden;
   padding: var(--space-3xl) 0;
@@ -35,4 +36,18 @@
   max-width: 700px;
   margin: 0 auto;
   line-height: 1.6;
+}
+
+.landing-spinner {
+  border: 0.25rem solid rgba(156, 3, 244, 0.152);
+  border-top: 0.25rem solid rgb(161, 0, 248);
+  color: var(--color-purple-500);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  /* animation: spin 1s linear infinite; */
+  margin: 0 auto;
 }
