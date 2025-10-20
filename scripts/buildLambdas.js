@@ -3,24 +3,24 @@
 const { execSync } = require("child_process");
 
 const lambdaDirectories = [
-  // "aggregate-skill-trends",
+  "aggregate-skill-trends",
   "auth-get-current-user",
   "auth-login",
   "auth-logout",
   "auth-register",
   "auth-verify-email",
-  // "bedrock-ai-extractor",
-  // "calculate-job-stats",
-  // "clean-jobs-bucket",
+  "bedrock-ai-extractor",
+  "calculate-job-stats",
+  "clean-jobs-bucket",
   "cognito-post-confirmation",
-  // "compare-resume-id",
-  // "get-job-postings",
-  // "get-job-postings-paginated",
-  // "get-job-postings-stats",
-  // "get-skill-trends",
-  // "job-posting-aggregator",
-  // "resume-presigned-url",
-  // "skill-extractor-ai",
+  "compare-resume-id",
+  "get-job-postings",
+  "get-job-postings-paginated",
+  "get-job-postings-stats",
+  "get-skill-trends",
+  "job-posting-aggregator",
+  "resume-presigned-url",
+  "skill-extractor-ai",
 ];
 
 function buildLambdas() {
