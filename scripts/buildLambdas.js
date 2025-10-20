@@ -36,16 +36,10 @@ function buildLambdas() {
 
       // 2. Run tsup build
       console.log(`-> Running tsup src in lambda/${dir}`);
-      if (dir === "compare-resume-id") {
-        // Updated to properly build compare-resume-id lambda (switched to esm)
-        execSync("tsup", {
-          stdio: "inherit",
-          cwd: `lambda/${dir}`,
-        });
-      } else {
-        // Note: cwd sets the Current Working Directory for the command
-        execSync("npx tsup", { stdio: "inherit", cwd: `lambda/${dir}` });
-      }
+
+      // Note: cwd sets the Current Working Directory for the command
+      execSync("tsup", { stdio: "inherit", cwd: `lambda/${dir}` });
+
       console.log(`✅ Successfully built ${dir}`);
     } catch (error) {
       console.error(`❌ Error building ${dir}:`);

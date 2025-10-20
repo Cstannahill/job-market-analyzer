@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "description": "AWS Lambda function to calculate job statistics",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "build": "tsc"
+    "build": "tsup"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.902.0",
-    "@aws-sdk/lib-dynamodb": "^3.902.0",
-    "tsup": "^8.5.0"
+    "@aws-sdk/lib-dynamodb": "^3.902.0"
   },
   "devDependencies": {
     "@types/node": "^24.7.0",

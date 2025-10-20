@@ -3,16 +3,14 @@
   "version": "1.0.0",
   "description": "Lambda function to pull job postings from external DynamoDB",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "build": "tsup src",
-    "package": "npm run build && node ../../zip.js .",
-    "deploy": "npm run package && aws lambda update-function-code --function-name get-job-postings --zip-file fileb://lambda.zip"
+    "build": "tsup"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.902.0",
     "@aws-sdk/client-s3": "^3.901.0",
-    "@aws-sdk/lib-dynamodb": "^3.902.0",
-    "tsup": "^8.5.0"
+    "@aws-sdk/lib-dynamodb": "^3.902.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.155",
