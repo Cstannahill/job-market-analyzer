@@ -51,7 +51,7 @@ function LandingPage() {
   }
 
   return (
-    <div className="app">
+    <div className="max-h-none overflow-hidden">
       {/* Hero Section with Animated Background */}
       <section className="hero-section">
         <ParticleBackground />

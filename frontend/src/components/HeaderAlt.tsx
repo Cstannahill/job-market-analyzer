@@ -53,15 +53,17 @@ export const Header: React.FC = () => {
 
                     {/* Right Controls */}
                     <div className="flex items-center gap-2 lg:gap-3">
+                        {!isMobile &&
+                            !user && (
+                                <Link to="/login" >
+                                    <Button variant="secondary" className='p-2 w-16 h-8' size="lg">Login</Button>
+                                </Link>
+                            )}
 
-                        {!user && (
-                            <Link to="/login" >
-                                <Button variant="secondary" className='p-2 w-16 h-8' size="lg">Login</Button>
-                            </Link>
-                        )}
-                        {user && (
-                            <Button variant="secondary" type="button" onClick={handleLogout} className='p-2 w-16 h-8' size="lg">Logout</Button>
-                        )}
+                        {!isMobile &&
+                            user && (
+                                <Button variant="secondary" type="button" onClick={handleLogout} className='p-2 w-16 h-8' size="lg">Logout</Button>
+                            )}
                         {/* Theme Toggle */}
                         <button
                             onClick={toggleTheme}
