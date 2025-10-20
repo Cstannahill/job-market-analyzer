@@ -1,14 +1,10 @@
 # Job Market Analyzer
 
-This repository contains a small set of Node.js Lambda functions and a React frontend used to analyze job postings and extract skills. The project is organized to be friendly for CI/CD and production packaging.
-
-# Job Market Analyzer
-
-This repository contains a small set of Node.js Lambda functions and a React frontend used to analyze job postings and extract skills. The project is organized to be friendly for CI/CD and production packaging.
+This repository contains a small set of Node.js Lambda functions (in `lambda/`) and a React frontend used to analyze job postings and extract skills. The project is organized to be friendly for CI/CD and production packaging.
 
 ## Key components
 
-- `lambda-functions/` - One or more AWS Lambda function folders. Each contains a TypeScript source tree that builds to `dist/` and packaging scripts.
+- `lambda/` - One or more AWS Lambda function folders. Each contains a TypeScript source tree that builds to `dist/` and packaging scripts.
 - `frontend/` - React + Vite frontend (TypeScript + Tailwind + shadcn components).
 - `zip.js` - Root-level packaging script that zips up a target lambda folder into `lambda.zip` using `archiver` installed at the repository root. Designed to avoid installing `archiver` in every lambda folder.
 
@@ -29,31 +25,50 @@ This reduces per-lambda duplication and keeps packaging logic centralized for ea
 1. Build inside the lambda folder (or from the repo root via npm workspaces/commands):
 
 ```bash
-# from within a lambda folder (e.g. lambda-functions/get-job-postings)
+# from within a lambda folder (e.g. lambda/get-job-postings)
 npm run build
 # then package using the root script (per-lambda package scripts are updated to do this):
 npm run package
 # or call the root packer directly from repo root:
-node zip.js lambda-functions/get-job-postings
+node zip.js lambda/get-job-postings
 ```
 
 2. A `lambda.zip` will be created inside the target lambda folder. `./.gitignore` is set to ignore zip files.
 
 ## How to package all lambdas (optional)
 
-You can script this in CI or locally. A simple node or bash script can iterate `lambda-functions/*` and call the root `zip.js` for each directory.
+You can script this in CI or locally. A simple node or bash script can iterate `lambda/*` and call the root `zip.js` for each directory.
 
 Example (bash):
 
 ```bash
-for d in lambda-functions/*; do
+for d in lambda/*; do
   if [ -d "$d" ]; then
     node ./zip.js "$d"
   fi
 done
 ```
 
-I can add a `scripts/pack-all.js` file if you want a cross-platform Node script that does this for you.
+The repository includes `scripts/packageLambdas.js` which demonstrates packaging a selection of lambdas by calling `node zip.js lambda/<name>`.
+
+## Lambdas included in this repository
+
+The current `lambda/` directory contains the following function folders (each generally includes `src/`, `package.json`, and build scripts):
+
+- `aggregate-skill-trends`
+- `bedrock-ai-extractor`
+- `calculate-job-stats`
+- `clean-jobs-bucket`
+- `compare-resume-id`
+- `get-job-postings`
+- `get-job-postings-paginated`
+- `get-job-postings-stats`
+- `get-skill-trends`
+- `job-posting-aggregator`
+- `resume-presigned-url`
+- `skill-extractor-ai`
+
+Refer to each lambda's `package.json` for the exact `build` and `package` commands used by that function.
 
 ## Recommended repo layout and conventions
 
@@ -93,7 +108,7 @@ I can add a `scripts/pack-all.js` file if you want a cross-platform Node script 
 ## How to test locally (quick checklist)
 
 - Build and package a lambda:
-  - cd lambda-functions/<name>
+  - cd lambda/<name>
   - npm ci
   - npm run build
   - npm run package # invokes root zip.js
@@ -101,6 +116,79 @@ I can add a `scripts/pack-all.js` file if you want a cross-platform Node script 
   - cd frontend
   - npm install
   - npm run dev
+
+## Frontend (React + Vite)
+
+The frontend is a TypeScript React app built with Vite and Tailwind. It lives in `frontend/` and exposes a small dashboard for exploring job market trends, top technologies, job postings, and a resume upload analyzer.
+
+Key pages (routes):
+
+- `/` — Home landing page with quick stats and CTAs (`src/App.tsx`, `src/pages/Home.tsx`).
+- `/trends` — Trends explorer with a left-hand skill list and an insights panel (charts, co-occurrence, trend history). (`src/pages/Trends.tsx`, `src/components/trends/*`).
+- `/top-tech` — Simple visual list / bars of top technologies (`src/pages/TopTech.tsx`, `src/components/topTech/TopTechChart.tsx`).
+- `/postings` — Job postings viewer and paginated posting list (`src/pages/Postings.tsx`, components under `src/components/postings`).
+- `/resume` — Upload a resume (PDF/DOCX), get an AI-powered analysis and suggestions (`src/pages/UploadResume.tsx`, `src/components/resume/ResumeUploader.tsx`, `src/services/resumeService.ts`).
+
+Frontend features discovered:
+
+- Trends list + detail panel: fetches top skills and skill detail from `/trends` endpoints; includes sparkline/line charts, co-occurrence bar charts, CSV export and clipboard copy.
+- Top Tech view: renders most in-demand technologies with animated bars and SVG badges.
+- Job Postings: robust parsing of backend responses with helpers for messy shapes; supports paginated fetch (`getJobPostingsPage`).
+- Resume upload: drag & drop or file picker; client-side validation (PDF/DOCX, max 10MB); uploads call `resumeService` which talks to backend/Amplify for direct S3 upload and analysis; UI shows progress, result summary, downloadable JSON, and copy-to-clipboard.
+- React Query is used throughout for data fetching and caching (`@tanstack/react-query`).
+- Charts use `recharts` and animations via `framer-motion`.
+- Test helpers: a ResizeObserver mock and helpers are included to make Recharts work in jsdom tests (see `frontend/README.md` and `src/test-utils/resize.ts`).
+
+Environment variables
+
+- `VITE_API_URL` — Base URL for the deployed API Gateway (must include stage, e.g. `https://.../prod`). The frontend constructs requests to routes like `${VITE_API_URL}/trends/technology` or `${VITE_API_URL}/job-postings`.
+
+How to run (frontend)
+
+1. Install deps and start dev server:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+2. Build for production:
+
+```bash
+cd frontend
+npm run build
+```
+
+3. Tests and e2e:
+
+- Unit tests (vitest):
+
+```bash
+cd frontend
+npm run test        # interactive
+npm run test:run    # run and exit
+npm run test:coverage
+```
+
+- E2E / screenshots: Playwright scripts are in `frontend/e2e/`.
+  - `npm run e2e:screens` will run the `e2e/trends.run.mjs` screenshot runner.
+  - `npm run e2e:with-dev` runs a helper `run-with-dev.js` that starts the dev server and runs tests.
+
+Important files and where to look for features
+
+- `frontend/src/services/trendsService.ts` — API client + normalization for trends endpoints.
+- `frontend/src/services/jobStatsService.ts` — consolidates stats used on the homepage and Top Tech view.
+- `frontend/src/components/trends/*` — Skill list, SkillCard, SkillDetailPanel (charts, CSV export, copy).
+- `frontend/src/components/topTech/TopTechChart.tsx` — Top technologies UI.
+- `frontend/src/components/resume/ResumeUploader.tsx` — Resume upload UI and integration with `resumeService`.
+- `frontend/src/components/postings/UpdatedJobsPostings.tsx` — Job postings list UI.
+
+Notes and recommendations
+
+- The frontend expects the API to return either raw arrays or Lambda-proxy shaped responses. The services include helpers to normalize both shapes.
+- Keep `VITE_API_URL` configured in `frontend/.env` during local development to point at a staging or mocked API.
+- The repository includes a `frontend/dist/` folder (likely built output); you may want to remove that from source control if it was committed by accident.
 
 ## Questions & notes for PR reviewers
 
@@ -251,7 +339,7 @@ This tree shows how the code maps to the architecture above. It represents the i
 ├─ JobMarketAnalyzer.md
 ├─ zip.js                # repo-level packaging script (creates lambda.zip)
 ├─ package.json          # root devDependencies (archiver, build tooling)
-├─ lambda-functions/
+├─ lambda/
 │  ├─ get-job-postings/
 │  │  ├─ src/            # TypeScript sources for ingestion lambda
 │  │  ├─ dist/           # build output (ignored)
@@ -275,6 +363,6 @@ This tree shows how the code maps to the architecture above. It represents the i
 
 Mapping notes:
 
-- `lambda-functions/*/src` implements the Lambdas shown in the diagram (ingest, aggregator, resume extractor, read APIs).
+- `lambda/*/src` implements the Lambdas shown in the diagram (ingest, aggregator, resume extractor, read APIs).
 - `frontend/` is the React dashboard served through Amplify or CloudFront.
 - `zip.js` is the centralized packer used by per-lambda `package` scripts.

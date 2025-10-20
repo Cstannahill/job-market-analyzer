@@ -1,7 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { processFile } from "./fileProcessor.js";
 import { handlePreflight } from "./preflight.js";
-import { getS3Object } from "./s3Service.js";
 
 // === MAIN HANDLER ===
 export const handler = async (

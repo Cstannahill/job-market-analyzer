@@ -48,7 +48,8 @@
   line-height: 1;
   color: var(--nav-text);
   text-decoration: none;
-  border-radius: 999px; /* pill */
+  /* border-radius: 999px; */
+  border-radius: 0.5rem;
   color: white;
   border: 1px solid var(--muted-border);
   background: transparent;

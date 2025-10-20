@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 @import "./styles/tokens.css";
 @import "./styles/cta.css";
 @import "./styles/tech-chart.css";
@@ -15,6 +16,9 @@
 @import "./styles/job-postings.css";
 @import "./styles/icon-svg.css";
 @import "./styles/resume.css";
+@import "./styles/auth.css";
+@import "./styles/App.css";
+
 * {
   box-sizing: border-box;
   margin: 0;

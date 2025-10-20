@@ -2,7 +2,7 @@
 /*
  Root-level zip script (CommonJS)
  Usage: node zip.js <path-to-lambda-dir>
- Example: node zip.js lambda-functions/get-job-postings
+ Example: node zip.js lambda/get-job-postings
 
  This script will create <target>/lambda.zip containing:
   - dist/ (if present)
