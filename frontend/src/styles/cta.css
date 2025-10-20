@@ -12,6 +12,7 @@
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
   box-shadow: 0 10px 20px 1px rgba(101, 18, 146, 0.55);
+  max-height: 30vh !important;
 }
 
 .cta-card h3 {
@@ -35,4 +36,28 @@
 /* CTA card visuals */
 .cta-card {
   justify-self: center;
+}
+
+@media (max-width: 900px) {
+  .cta-card {
+    padding: var(--space-md);
+  }
+  .cta-card h2 {
+    font-size: var(--text-lg) !important;
+  }
+
+  .cta-card p {
+    font-size: var(--text-base);
+  }
+  .cta-buttons {
+    display: flex;
+    flex-direction: row !important;
+    gap: var(--space-md);
+    justify-content: center;
+  }
+  .cta-buttons a {
+    max-width: 25%;
+    font-size: var(--text-sm);
+    padding: var(--space-sm) !important;
+  }
 }

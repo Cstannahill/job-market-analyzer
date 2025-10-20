@@ -104,6 +104,11 @@
   align-items: center;
   justify-content: space-between !important;
 }
+
+.mobile-nav-auth-div {
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
 /* small screens: keep spacing reasonable */
 @media (max-width: 640px) {
   .main-nav {

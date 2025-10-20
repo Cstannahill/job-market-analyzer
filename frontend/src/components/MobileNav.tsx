@@ -2,13 +2,21 @@ import React from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { Button } from "./ui/button";
 import { Menu } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { useLocation } from 'react-router-dom';
+import { useAuthStore, useAuthUser } from '@/stores/authStore';
 
 type LinkItem = { to: string; label: string; icon: React.ReactNode };
 
 export const MobileNav: React.FC<{ links: LinkItem[] }> = ({ links }) => {
     const { pathname } = useLocation();
+    const user = useAuthUser();
+    const logout = useAuthStore((state) => state.logout);
+
+    const handleLogout = async () => {
+        await logout();
+
+    };
     const isActive = (path: string) => pathname === path;
     return (
         <div className="md:hidden w-full flex">
@@ -48,6 +56,15 @@ export const MobileNav: React.FC<{ links: LinkItem[] }> = ({ links }) => {
                                 {link.label}
                             </NavLink>
                         ))}
+                        <div className="flex border-t border-slate-800/30  justify-center mobile-nav-auth-div">
+                            {!user ? (
+                                <Link to="/login" >
+                                    <Button variant="secondary" className='p-2 w-[40vw] h-8' size="lg">Login</Button>
+                                </Link>
+                            ) : (
+                                <Button variant="secondary" type="button" onClick={handleLogout} className='p-2 w-[40vw] h-8' size="lg">Logout</Button>
+                            )}
+                        </div>
                     </nav>
                 </SheetContent>
             </Sheet>
