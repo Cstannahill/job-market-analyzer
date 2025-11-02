@@ -8,6 +8,7 @@ import {
   extractFirstBalancedJson,
   sanitizeAndParseJson,
 } from "./sanitizers.js";
+import { v4 as uuidv4 } from "uuid";
 
 const bedrock = new BedrockRuntimeClient({
   region: "us-east-1",
@@ -15,6 +16,8 @@ const bedrock = new BedrockRuntimeClient({
 });
 let SELECTED_MODEL = process.env.BEDROCK_MODEL_ID;
 const NOVA_MODEL = "amazon.nova-pro-v1:0";
+const SKILL_NORMALIZATION_MODEL =
+  process.env.BEDROCK_NORMALIZATION_MODEL_ID || "amazon.nova-micro-v1:0";
 
 if (!SELECTED_MODEL) {
   SELECTED_MODEL = NOVA_MODEL;
@@ -80,6 +83,9 @@ export async function genInsightsWithBedrock(
   resumeId: string
 ) {
   const MODEL = SELECTED_MODEL;
+  console.log("Using Insights model:", MODEL);
+  const insightId = uuidv4();
+
   const llmPrompt = `
 You are an expert hiring manager and resume coach with 10+ years of experience recruiting software engineers across startups and scaleups. Analyze the RESUME_TEXT below and produce a concise, actionable, and machine-friendly JSON report. Do NOT produce any freeform text outside the JSON object.
 
@@ -90,7 +96,7 @@ OVERVIEW:
 
 INPUT:
 RESUME_TEXT_START
-${resumeText.substring(0, 10000)}
+${resumeText.substring(0, 15000)}
 RESUME_TEXT_END
 
 OUTPUT FORMAT (required JSON):
@@ -141,7 +147,7 @@ End of instructions.
           text: "You are an expert resume analyst. Provide detailed, constructive feedback.",
         },
       ],
-      inferenceConfig: { temperature: 0.2, maxTokens: 5000 } as any,
+      inferenceConfig: { temperature: 0.2, maxTokens: 8000 } as any,
     });
 
     const response = await bedrock.send(command);
@@ -167,7 +173,8 @@ End of instructions.
     if (!jsonCandidate) {
       await updateInsights({
         resumeId,
-        insightsText: cleaned.slice(0, 10000),
+        insightId: `INSIGHT#${insightId}`,
+        insightsText: cleaned,
         generatedAt: new Date().toISOString(),
         generatedBy: MODEL || "unknown",
       });
@@ -185,7 +192,8 @@ End of instructions.
     } catch (err) {
       await updateInsights({
         resumeId,
-        insightsText: cleaned.slice(0, 10000),
+        insightId: `INSIGHT#${insightId}`,
+        insightsText: cleaned,
         generatedAt: new Date().toISOString(),
         generatedBy: MODEL || "unknown",
       });
@@ -201,7 +209,8 @@ End of instructions.
     if (typeof parsed !== "object" || parsed === null) {
       await updateInsights({
         resumeId,
-        insightsText: JSON.stringify(parsed).slice(0, 10000),
+        insightId: `INSIGHT#${insightId}`,
+        insightsText: JSON.stringify(parsed),
         generatedAt: new Date().toISOString(),
         generatedBy: MODEL || "unknown",
       });
@@ -211,12 +220,21 @@ End of instructions.
     // Persist pretty JSON
     await updateInsights({
       resumeId,
+      insightId: `INSIGHT#${insightId}`,
       insightsText: JSON.stringify(parsed, null, 2),
       generatedAt: new Date().toISOString(),
       generatedBy: MODEL || "unknown",
     });
 
-    return parsed;
+    return {
+      parsed,
+      insightsItem: {
+        insightId: `INSIGHT#${insightId}`,
+        insightsText: JSON.stringify(parsed, null, 2),
+        generatedAt: new Date().toISOString(),
+        generatedBy: MODEL || "unknown",
+      } as InsightsItem,
+    };
   } catch (error) {
     console.error("Error calling Bedrock model:", error);
     throw error;
@@ -228,8 +246,8 @@ export async function normalizeSkillsWithBedrock(
   resumeText: string,
   resumeId: string
 ) {
-  const MODEL = SELECTED_MODEL;
-  console.log("Using model:", MODEL);
+  const MODEL = SKILL_NORMALIZATION_MODEL;
+  console.log("Using skill normalization model:", MODEL);
 
   const prompt = `
 You are a resume analyst. Given these technologies and skills extracted from a resume, 
@@ -238,8 +256,8 @@ normalize and deduplicate them. Remove duplicates and combine related items.
 Extracted Technologies: ${extractedSkills.technologies.join(", ")}
 Extracted Soft Skills: ${extractedSkills.softSkills.join(", ")}
 
-Resume context (first 500 chars):
-${resumeText.substring(0, 500)}
+Resume context (first 1000 chars):
+${resumeText.substring(0, 1000)}
 
 Return ONLY valid JSON with no markdown formatting, nothing else:
 {

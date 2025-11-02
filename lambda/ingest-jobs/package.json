@@ -1,0 +1,27 @@
+{
+  "name": "ingest-jobs",
+  "version": "1.0.0",
+  "description": "Lambda function to ingest job postings in S3 bucket from various sources (APIs)",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "smoke": "node -r dotenv/config --enable-source-maps --no-warnings --import tsx ./src/scripts/smoke.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.913.0",
+    "@aws-sdk/client-s3": "^3.913.0",
+    "@aws-sdk/util-dynamodb": "^3.913.0",
+    "axios": "^1.12.2",
+    "cheerio": "^1.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.2",
+    "dotenv": "^17.2.3",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

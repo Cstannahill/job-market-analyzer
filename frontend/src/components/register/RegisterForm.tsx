@@ -52,6 +52,7 @@ export function RegisterForm() {
     const [formData, setFormData] = useState<FormData>(initialFormData);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+    const [loadingState, setLoadingState] = useState(false);
 
     // Handle input changes
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,6 +128,7 @@ export function RegisterForm() {
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        setLoadingState(true);
         setError('');
         setSuccess(false);
 
@@ -145,6 +147,7 @@ export function RegisterForm() {
 
             // Registration successful - redirect to verification page
             setSuccess(true);
+            setLoadingState(false);
             setFormData(initialFormData);
             if (result && result.message) {
                 console.log("Verification Sent!")
@@ -302,8 +305,8 @@ export function RegisterForm() {
                                         />
                                     </div>
 
-                                    <Button type="submit" className="w-full" disabled={loading}>
-                                        {loading ? 'Creating account...' : 'Create account'}
+                                    <Button type="submit" className="w-full" disabled={loadingState}>
+                                        {loadingState ? 'Creating account...' : 'Create account'}
                                     </Button>
                                 </div>
 

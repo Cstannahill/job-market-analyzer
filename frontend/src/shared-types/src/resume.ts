@@ -50,6 +50,12 @@ export type ExperienceItem = {
   duration?: string;
 };
 
+export type SkillsItem = {
+  technologies?: string[];
+  softSkills?: string[];
+  reasoning?: string;
+};
+
 export type AnalysisPayload = {
   resumeId?: string;
   contactInfo?: { email?: string; phone?: string | null };

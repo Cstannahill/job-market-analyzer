@@ -6,13 +6,18 @@ import {
 } from "./extractors.js";
 import { extractExperience } from "./docx.js";
 import { v4 as uuidv4 } from "uuid";
-import { getResumeByS3Key, updateResume } from "./dbService.js";
+import {
+  getResumeByS3Key,
+  insertResumeWithInsights,
+  updateResume,
+} from "./dbService.js";
 import {
   genInsightsWithBedrock,
   normalizeSkillsWithBedrock,
 } from "./aiService.js";
 import { getS3Object } from "./s3Service.js";
 import fs from "fs";
+import type { ResumeItem } from "./types.js";
 
 interface PDFResponse {
   success: boolean;
@@ -102,13 +107,29 @@ export async function processFile(key: string) {
     skills: normalizedSkills,
     education,
     experience,
-    status: "processed",
     uploadedAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
-
-  await updateResume(resumeItem);
-  const insights = await genInsightsWithBedrock(text, resumeId);
+  console.log(
+    "Resume item prepared, updating resume in database with : ",
+    resumeItem
+  );
+  const updatedResumeItem = await updateResume(resumeItem);
+  console.log("Resume item updated in database:", updatedResumeItem);
+  console.log("Generating insights for resume ID:", resumeId);
+  const { parsed, insightsItem } = await genInsightsWithBedrock(text, resumeId);
+  const insights = parsed;
+  console.log("Insights generated:", insights);
+  const fullResumeItem: ResumeItem = {
+    ...updatedResumeItem,
+    s3Key: key,
+    contentType: fileType,
+    originalFileName: fileName,
+    uploadInitiatedAt: resumeBaseItem.uploadInitiatedAt,
+  };
+  console.log("Full resume item prepared:", fullResumeItem);
+  await insertResumeWithInsights(fullResumeItem, insightsItem);
+  console.log("Resume with insights inserted into database.");
   // 5️⃣ Return summary
   return {
     resumeId,

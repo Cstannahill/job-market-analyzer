@@ -104,6 +104,7 @@ export async function uploadResume(opts: {
         });
 
         if (response.ok) {
+          console.log(response.json());
           const json = (await response.json()) as CompareResult;
 
           if (json.status === "complete") {

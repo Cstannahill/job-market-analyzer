@@ -152,3 +152,16 @@ export function cleanDocxText(text: string): string {
     .replace(/([A-Z][A-Za-z]+ [A-Z][A-Za-z]+)(\s+)([A-Z][A-Za-z]+)/g, "$1\n$3") // split names/roles
     .trim();
 }
+
+export function removeUndefinedDeep(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map(removeUndefinedDeep).filter((v) => v !== undefined);
+  } else if (obj && typeof obj === "object") {
+    return Object.fromEntries(
+      Object.entries(obj)
+        .map(([k, v]) => [k, removeUndefinedDeep(v)])
+        .filter(([, v]) => v !== undefined)
+    );
+  }
+  return obj;
+}
