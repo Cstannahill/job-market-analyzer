@@ -1,0 +1,19 @@
+{
+  "name": "get-job-postings",
+  "version": "1.0.0",
+  "description": "Lambda function to pull job postings from external DynamoDB",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsup"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.902.0",
+    "@aws-sdk/lib-dynamodb": "^3.902.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.155",
+    "@types/node": "^20.19.19",
+    "typescript": "^5.9.3"
+  }
+}

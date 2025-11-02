@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Ingest Jobs Lambda (dedupe-before-archive)
+
+Parameters:
+  JobsTableName:
+    Type: String
+  ArchiveBucketName:
+    Type: String
+    Default: ""
+  CompanySlugs:
+    Type: String
+    Default: "" # comma-separated, e.g. "vercel,ramp,retool"
+  SinceDays:
+    Type: Number
+    Default: 14
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 60
+    MemorySize: 512
+    Architectures: [arm64]
+    Environment:
+      Variables:
+        JOBS_TABLE: !Ref JobsTableName
+        ADAPTERS: "muse,greenhouse,usajobs"
+        ARCHIVE_S3_BUCKET: !Ref ArchiveBucketName
+        ARCHIVE_POLICY: "new"
+        MUSE_API_KEY: ""
+        USAJOBS_API_KEY: ""
+        COMPANY_SLUGS: !Ref CompanySlugs
+        SINCE_DAYS: !Ref SinceDays
+
+Resources:
+  IngestJobsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: ingest-jobs
+      Handler: dist/index.handler # <-- uses your tsup output
+      CodeUri: dist/ # <-- this folder (must contain dist/)
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:BatchGetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+              Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${JobsTableName}
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: "*"
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+              Resource: !If
+                - HasArchive
+                - !Sub arn:aws:s3:::${ArchiveBucketName}/*
+                - !Ref AWS::NoValue
+      Events:
+        ScheduleRule:
+          Type: Schedule
+          Properties:
+            Schedule: rate(2 hours)
+
+Conditions:
+  HasArchive: !Not [!Equals [!Ref ArchiveBucketName, ""]]
+
+Outputs:
+  FunctionName:
+    Value: !Ref IngestJobsFunction

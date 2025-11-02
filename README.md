@@ -366,3 +366,368 @@ Mapping notes:
 - `lambda/*/src` implements the Lambdas shown in the diagram (ingest, aggregator, resume extractor, read APIs).
 - `frontend/` is the React dashboard served through Amplify or CloudFront.
 - `zip.js` is the centralized packer used by per-lambda `package` scripts.
+
+## Updated Tree
+
+```bash
+npx tree-node-cli -I ".github|.vscode|node_modules|assets|icons|public|dist|packages|package-lock.json"
+```
+
+```
+/job-market-analyzer
+├── README.md
+├── frontend
+│   ├── README.md
+│   ├── components.json
+│   ├── e2e
+│   │   ├── run-with-dev.js
+│   │   ├── screenshot-all.mjs
+│   │   ├── trends.run.mjs
+│   │   └── trends.spec.mjs
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package.json
+│   ├── scripts
+│   │   ├── screenshot.js
+│   │   └── trends-parse-test.mjs
+│   ├── src
+│   │   ├── App.tsx
+│   │   ├── components
+│   │   │   ├── AnimatedCounter.tsx
+│   │   │   ├── Footer.tsx
+│   │   │   ├── Header.tsx
+│   │   │   ├── HeaderAlt.tsx
+│   │   │   ├── Layout.tsx
+│   │   │   ├── MobileNav.tsx
+│   │   │   ├── Nav.tsx
+│   │   │   ├── ParticleBackground.tsx
+│   │   │   ├── Seo.tsx
+│   │   │   ├── ThemeProvider.tsx
+│   │   │   ├── about
+│   │   │   │   ├── FeatureCard.tsx
+│   │   │   │   ├── FeatureHero.tsx
+│   │   │   │   ├── PipelineTimeline.tsx
+│   │   │   │   ├── RoadmapGrid.tsx
+│   │   │   │   ├── SectionCard.tsx
+│   │   │   │   └── StackPanel.tsx
+│   │   │   ├── landing
+│   │   │   │   ├── LandingCTA.tsx
+│   │   │   │   ├── LandingHero.tsx
+│   │   │   │   └── LandingPage.tsx
+│   │   │   ├── login
+│   │   │   │   └── LoginForm.tsx
+│   │   │   ├── postings
+│   │   │   │   ├── JobPostingCard.tsx
+│   │   │   │   ├── JobPostingsControls.tsx
+│   │   │   │   ├── JobPostingsSection.tsx
+│   │   │   │   ├── MetaPillContainer.tsx
+│   │   │   │   ├── TechBadge.tsx
+│   │   │   │   ├── TechBadgeSvgr.tsx
+│   │   │   │   └── UpdatedJobsPostings.tsx
+│   │   │   ├── register
+│   │   │   │   └── RegisterForm.tsx
+│   │   │   ├── resume
+│   │   │   │   ├── ResumeExperience.tsx
+│   │   │   │   ├── ResumeInsights.tsx
+│   │   │   │   ├── ResumeSummary.tsx
+│   │   │   │   ├── ResumeTechnologies.tsx
+│   │   │   │   └── ResumeUploader.tsx
+│   │   │   ├── shared
+│   │   │   │   ├── AuthCard.tsx
+│   │   │   │   ├── ProtectedRoute.tsx
+│   │   │   │   └── StatsCard.tsx
+│   │   │   ├── topTech
+│   │   │   │   └── TopTechChart.tsx
+│   │   │   ├── trends
+│   │   │   │   ├── SkillCard.test.tsx
+│   │   │   │   ├── SkillCard.tsx
+│   │   │   │   ├── SkillCardAlt.tsx
+│   │   │   │   ├── SkillDetailPanel.test.tsx
+│   │   │   │   ├── SkillDetailPanel.tsx
+│   │   │   │   ├── SkillList.test.tsx
+│   │   │   │   ├── SkillList.tsx
+│   │   │   │   ├── SkillListOld.tsx
+│   │   │   │   └── trends.test.ts
+│   │   │   └── ui
+│   │   │       ├── badge.tsx
+│   │   │       ├── button.tsx
+│   │   │       ├── card.tsx
+│   │   │       ├── field.tsx
+│   │   │       ├── input.tsx
+│   │   │       ├── label.tsx
+│   │   │       ├── select.tsx
+│   │   │       ├── separator.tsx
+│   │   │       ├── sheet.tsx
+│   │   │       ├── skeleton.tsx
+│   │   │       ├── spinner.tsx
+│   │   │       └── typography.tsx
+│   │   ├── contexts
+│   │   │   ├── AuthContext.tsx
+│   │   │   └── ThemeContext.tsx
+│   │   ├── hooks
+│   │   │   ├── useAuthInitialization.ts
+│   │   │   ├── useIsMobile.ts
+│   │   │   └── useTheme.ts
+│   │   ├── index.css
+│   │   ├── lib
+│   │   │   ├── postingsBadgeHelpers.ts
+│   │   │   ├── stringHelpers.ts
+│   │   │   └── utils.ts
+│   │   ├── main.tsx
+│   │   ├── pages
+│   │   │   ├── About.tsx
+│   │   │   ├── Home.tsx
+│   │   │   ├── Login.tsx
+│   │   │   ├── Postings.tsx
+│   │   │   ├── Register.tsx
+│   │   │   ├── TopTech.tsx
+│   │   │   ├── Trends.tsx
+│   │   │   ├── UploadResume.tsx
+│   │   │   └── VerifyEmail.tsx
+│   │   ├── services
+│   │   │   ├── authService.ts
+│   │   │   ├── jobPostingsService.ts
+│   │   │   ├── jobStatsService.ts
+│   │   │   ├── resumeService.ts
+│   │   │   └── trendsService.ts
+│   │   ├── setupTests.ts
+│   │   ├── shared-types
+│   │   │   ├── index.ts
+│   │   │   └── src
+│   │   │       ├── jobs.ts
+│   │   │       ├── lambda.ts
+│   │   │       ├── resume.ts
+│   │   │       └── trends.ts
+│   │   ├── stores
+│   │   │   ├── authStore.ts
+│   │   │   └── useJobPostingsStore.ts
+│   │   ├── styles
+│   │   │   ├── App.css
+│   │   │   ├── JobPostingCard.css
+│   │   │   ├── ParticleBackground.css
+│   │   │   ├── auth.css
+│   │   │   ├── cta.css
+│   │   │   ├── feature-cards.css
+│   │   │   ├── general.css
+│   │   │   ├── icon-svg.css
+│   │   │   ├── job-postings.css
+│   │   │   ├── landing.css
+│   │   │   ├── mobile-insights.css
+│   │   │   ├── nav.css
+│   │   │   ├── pagination.css
+│   │   │   ├── remote-pill.css
+│   │   │   ├── resume.css
+│   │   │   ├── section-card.css
+│   │   │   ├── stats-cards.css
+│   │   │   ├── tech-bar.css
+│   │   │   ├── tech-chart.css
+│   │   │   ├── tokens.css
+│   │   │   └── trends.css
+│   │   ├── test-typings.d.ts
+│   │   ├── test-utils
+│   │   │   └── resize.ts
+│   │   └── types
+│   │       └── mermaid.d.ts
+│   ├── tests
+│   │   └── about.test.tsx
+│   ├── tsconfig.app.json
+│   ├── tsconfig.json
+│   ├── tsconfig.node.json
+│   ├── vite.config.ts
+│   └── vitest.config.ts
+├── lambda
+│   ├── aggregate-skill-trends
+│   │   ├── README.md
+│   │   ├── lambda.zip
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   └── index.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── auth-get-current-user
+│   │   ├── lambda.zip
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   └── index.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── auth-login
+│   │   ├── lambda.zip
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   └── index.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── auth-logout
+│   │   ├── lambda.zip
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   └── index.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── auth-register
+│   │   ├── lambda.zip
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   └── index.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── auth-verify-email
+│   │   ├── lambda.zip
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   └── index.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── bedrock-ai-extractor
+│   │   ├── lambda.zip
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   └── index.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── calculate-job-stats
+│   │   ├── lambda.zip
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   ├── index.ts
+│   │   │   └── jobs.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── clean-jobs-bucket
+│   │   ├── lambda.zip
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   └── index.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── cognito-post-confirmation
+│   │   ├── lambda.zip
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   └── index.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── compare-resume-id
+│   │   ├── lambda.zip
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   ├── aiService.ts
+│   │   │   ├── calibrator.ts
+│   │   │   ├── cors.ts
+│   │   │   ├── dbService.ts
+│   │   │   ├── docx.ts
+│   │   │   ├── extractors.ts
+│   │   │   ├── fileProcessor.ts
+│   │   │   ├── index.ts
+│   │   │   ├── preflight.ts
+│   │   │   ├── s3Service.ts
+│   │   │   ├── sanitizers.ts
+│   │   │   └── types.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── compare-resume-id.zip
+│   ├── get-job-postings
+│   │   ├── lambda.zip
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   └── index.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── get-job-postings-paginated
+│   │   ├── lambda.zip
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   └── index.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── get-job-postings-stats
+│   │   ├── lambda.zip
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   └── index.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── get-skill-trends
+│   │   ├── README.md
+│   │   ├── lambda.zip
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   └── index.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── get-user-resumes
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   ├── cors.ts
+│   │   │   ├── index.ts
+│   │   │   └── preflight.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── ingest-jobs
+│   │   ├── README.md
+│   │   ├── package.json
+│   │   ├── samconfig.toml
+│   │   ├── src
+│   │   │   ├── adapters
+│   │   │   │   ├── greenhouse.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── lever.ts
+│   │   │   │   ├── muse.ts
+│   │   │   │   ├── types.ts
+│   │   │   │   └── usajobs.ts
+│   │   │   ├── company-slugs.json
+│   │   │   ├── index.ts
+│   │   │   ├── lib
+│   │   │   │   ├── dedupe.test.ts
+│   │   │   │   ├── dedupe.ts
+│   │   │   │   ├── devFilter.ts
+│   │   │   │   ├── runAdapters.ts
+│   │   │   │   └── upsert.ts
+│   │   │   └── scripts
+│   │   │       ├── discover-lever.ts
+│   │   │       ├── find-boards.ts
+│   │   │       └── smoke.ts
+│   │   ├── template.yaml
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── job-posting-aggregator
+│   │   ├── lambda.zip
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   ├── adapters.ts
+│   │   │   ├── index.ts
+│   │   │   └── types.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── normalize-tables
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   └── index.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── resume-presigned-url
+│   │   ├── lambda.zip
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   ├── dynamoService.ts
+│   │   │   └── index.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   └── skill-extractor-ai
+│       ├── lambda.zip
+│       ├── package.json
+│       ├── src
+│       │   └── index.ts
+│       ├── tsconfig.json
+│       └── tsup.config.ts
+├── output.json
+├── package.json
+├── scripts
+│   ├── buildLambdas.js
+│   ├── packageLambdas.js
+│   ├── playwright
+│   ├── skillsandtech.py
+│   └── status.py
+└── zip.js
+```

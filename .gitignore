@@ -13,3 +13,6 @@ yarn.lock
 
 # Ignore local lambdas packaged output
 lambda.zip
+.vscode/
+
+.env

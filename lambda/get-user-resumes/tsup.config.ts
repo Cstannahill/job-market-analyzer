@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/index.ts"], // one entry per Lambda file
+  entry: ["src/*.ts"], // one entry per Lambda file
   bundle: true, // bundle everything into single files
   format: ["esm"], // Node 20 prefers ESM
   platform: "node",
