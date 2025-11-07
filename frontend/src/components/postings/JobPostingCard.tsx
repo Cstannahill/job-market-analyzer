@@ -44,7 +44,7 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
                 </div>
             </CardHeader>
             <CardDescription className="job-card-description">
-                {posting.job_description ? posting.job_description : (posting.job_description ? posting.job_description.slice(0, 200) + (posting.job_description.length > 200 ? '...' : '') : 'No description available')}
+                {(posting.job_description ? posting.job_description.slice(0, 200) + (posting.job_description.length > 200 ? '...' : '') : 'No description available')}
 
             </CardDescription>
             <CardContent >

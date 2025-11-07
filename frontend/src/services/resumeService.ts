@@ -1,7 +1,8 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { CompareResult } from "@/shared-types";
 
-const API_URL = (import.meta.env.VITE_API_URL as string | undefined) || "";
+const API_URL =
+  (import.meta.env.VITE_RESUME_API_URL as string | undefined) || "";
 
 const API_KEY = (import.meta.env.VITE_API_KEY as string | undefined) || "";
 
@@ -41,7 +42,7 @@ export async function uploadResume(opts: {
 
   try {
     // 1) get presigned URL from lambda
-    const presignedRes = await fetch(`${apiBase}/resumes/upload-resume`, {
+    const presignedRes = await fetch(`${apiBase}/resumes/upload`, {
       method: "POST",
       headers: {
         ...(apiKey ? { "x-api-key": apiKey } : {}),
@@ -99,12 +100,11 @@ export async function uploadResume(opts: {
     const poll = async () => {
       try {
         const id = encodeURIComponent(key);
-        const response = await fetch(`${apiBase}/resumes/compare/${id}`, {
+        const response = await fetch(`${apiBase}/resumes/upload/${id}`, {
           headers: apiKey ? { "x-api-key": apiKey } : undefined,
         });
 
         if (response.ok) {
-          console.log(response.json());
           const json = (await response.json()) as CompareResult;
 
           if (json.status === "complete") {

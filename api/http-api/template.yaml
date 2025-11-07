@@ -1,0 +1,193 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: HTTP API scaffold with pluggable Lambda integrations
+
+Parameters:
+  StageName:
+    Type: String
+    Default: prod
+
+  # Paste full Lambda function ARNs here when ready (can be left blank initially)
+  JobPostingsFnArn:
+    Type: String
+    Default: "arn:aws:lambda:us-east-1:815254799150:function:get-job-postings-paginated" # e.g. arn:aws:lambda:us-east-1:123456789012:function:get-job-postings
+  JobStatsFnArn:
+    Type: String
+    Default: "arn:aws:lambda:us-east-1:815254799150:function:get-job-postings-stats"
+  TrendsTechnologyFnArn:
+    Type: String
+    Default: "arn:aws:lambda:us-east-1:815254799150:function:get-skill-trends"
+  TrendsRegionFnArn:
+    Type: String
+    Default: "arn:aws:lambda:us-east-1:815254799150:function:get-skill-trends"
+  TrendsSkillFnArn:
+    Type: String
+    Default: "arn:aws:lambda:us-east-1:815254799150:function:get-skill-trends"
+
+Conditions:
+  HasJobPostings: !Not [!Equals [!Ref JobPostingsFnArn, ""]]
+  HasJobStats: !Not [!Equals [!Ref JobStatsFnArn, ""]]
+  HasTrendsTechnology: !Not [!Equals [!Ref TrendsTechnologyFnArn, ""]]
+  HasTrendsRegion: !Not [!Equals [!Ref TrendsRegionFnArn, ""]]
+  HasTrendsSkill: !Not [!Equals [!Ref TrendsSkillFnArn, ""]]
+
+Resources:
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: !Ref StageName
+      CorsConfiguration:
+        AllowOrigins: ["*"]
+        AllowMethods: ["GET", "OPTIONS"]
+        AllowHeaders: ["*"]
+
+  # ---------------- Integrations (only created when ARN is provided)
+  IntJobPostings:
+    Type: AWS::ApiGatewayV2::Integration
+    Condition: HasJobPostings
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationMethod: POST
+      PayloadFormatVersion: "2.0"
+      TimeoutInMillis: 29000
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${JobPostingsFnArn}/invocations
+
+  IntJobStats:
+    Type: AWS::ApiGatewayV2::Integration
+    Condition: HasJobStats
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationMethod: POST
+      PayloadFormatVersion: "2.0"
+      TimeoutInMillis: 29000
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${JobStatsFnArn}/invocations
+
+  IntTrendsTechnology:
+    Type: AWS::ApiGatewayV2::Integration
+    Condition: HasTrendsTechnology
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationMethod: POST
+      PayloadFormatVersion: "1.0"
+      TimeoutInMillis: 29000
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TrendsTechnologyFnArn}/invocations
+
+  IntTrendsRegion:
+    Type: AWS::ApiGatewayV2::Integration
+    Condition: HasTrendsRegion
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationMethod: POST
+      PayloadFormatVersion: "1.0"
+      TimeoutInMillis: 29000
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TrendsRegionFnArn}/invocations
+
+  IntTrendsSkill:
+    Type: AWS::ApiGatewayV2::Integration
+    Condition: HasTrendsSkill
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationMethod: POST
+      PayloadFormatVersion: "1.0"
+      TimeoutInMillis: 29000
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TrendsSkillFnArn}/invocations
+
+  # ---------------- Routes
+  RouteJobPostings:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: HasJobPostings
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: GET /job-postings
+      Target: !Sub integrations/${IntJobPostings}
+
+  RouteJobStats:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: HasJobStats
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: GET /job-stats
+      Target: !Sub integrations/${IntJobStats}
+
+  RouteTrendsTechnology:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: HasTrendsTechnology
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: GET /trends/technology
+      Target: !Sub integrations/${IntTrendsTechnology}
+
+  RouteTrendsRegion:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: HasTrendsRegion
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: GET /trends/region
+      Target: !Sub integrations/${IntTrendsRegion}
+
+  RouteTrendsSkill:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: HasTrendsSkill
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: GET /trends/skill/{skill}
+      Target: !Sub integrations/${IntTrendsSkill}
+
+  # ---------------- Stage (explicit, to force a deployment)
+
+  # ---------------- Lambda invoke permissions (created only when ARN provided)
+  PermJobPostings:
+    Type: AWS::Lambda::Permission
+    Condition: HasJobPostings
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref JobPostingsFnArn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/GET/job-postings
+
+  PermJobStats:
+    Type: AWS::Lambda::Permission
+    Condition: HasJobStats
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref JobStatsFnArn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/GET/job-stats
+
+  PermTrendsTechnology:
+    Type: AWS::Lambda::Permission
+    Condition: HasTrendsTechnology
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref TrendsTechnologyFnArn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/GET/trends/technology
+
+  PermTrendsRegion:
+    Type: AWS::Lambda::Permission
+    Condition: HasTrendsRegion
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref TrendsRegionFnArn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/GET/trends/region
+
+  PermTrendsSkill:
+    Type: AWS::Lambda::Permission
+    Condition: HasTrendsSkill
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref TrendsSkillFnArn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/GET/trends/skill/*
+
+Outputs:
+  ApiId:
+    Value: !Ref HttpApi
+  ApiEndpoint:
+    Value: !Sub https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}

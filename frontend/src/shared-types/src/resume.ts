@@ -78,3 +78,14 @@ export type CompareResult = {
   status?: "processing" | "complete" | "failed";
   error?: string | undefined;
 };
+type ContactInfo = {
+  phone?: string;
+  email?: string;
+};
+
+export interface ResumeWithInsights {
+  id: string;
+  userId: string;
+  contactInfo: ContactInfo;
+  contentType: string;
+}
