@@ -1,0 +1,198 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: "Resume REST API: /resumes/upload (POST) & /resumes/upload/{id} (GET) protected by API Key"
+
+Parameters:
+  StageName:
+    Type: String
+    Default: prod
+  ApiName:
+    Type: String
+    Default: trenddev-resume-api
+  ApiKeyName:
+    Type: String
+    Default: resume-api-key
+  PresignFnArn:
+    Type: String
+    Description: Full ARN of the Lambda that returns a presigned S3 URL (resume-presigned-url)
+  CompareFnArn:
+    Type: String
+    Description: Full ARN of the Lambda function that handles compare/poll by key (compare-resume-id)
+
+Conditions:
+  HasPresign: !Not [!Equals [!Ref PresignFnArn, ""]]
+  HasCompare: !Not [!Equals [!Ref CompareFnArn, ""]]
+
+Resources:
+  RestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Ref ApiName
+      StageName: !Ref StageName
+      EndpointConfiguration: REGIONAL
+      TracingEnabled: false
+      # We use an OpenAPI definition so we can mark only these methods as API-key required
+      DefinitionBody:
+        openapi: "3.0.1"
+        info:
+          title: !Ref ApiName
+          version: "1.0.0"
+        paths:
+          /resumes/upload:
+            options:
+              summary: CORS preflight
+              responses:
+                "200":
+                  description: OK
+                  headers:
+                    Access-Control-Allow-Headers:
+                      schema: { type: string }
+                    Access-Control-Allow-Methods:
+                      schema: { type: string }
+                    Access-Control-Allow-Origin:
+                      schema: { type: string }
+              x-amazon-apigateway-integration:
+                type: mock
+                requestTemplates:
+                  application/json: '{"statusCode": 200}'
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Headers: "'*'"
+                      method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
+            post:
+              security:
+                - api_key: []
+              responses:
+                "200":
+                  description: OK
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                payloadFormatVersion: "1.0"
+                uri:
+                  Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PresignFnArn}/invocations
+
+          /resumes/upload/{id}:
+            options:
+              summary: CORS preflight
+              parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema: { type: string }
+              responses:
+                "200":
+                  description: OK
+                  headers:
+                    Access-Control-Allow-Headers:
+                      schema: { type: string }
+                    Access-Control-Allow-Methods:
+                      schema: { type: string }
+                    Access-Control-Allow-Origin:
+                      schema: { type: string }
+              x-amazon-apigateway-integration:
+                type: mock
+                requestTemplates:
+                  application/json: '{"statusCode": 200}'
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Headers: "'*'"
+                      method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
+            get:
+              security:
+                - api_key: []
+              parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema: { type: string }
+              responses:
+                "200":
+                  description: OK
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                payloadFormatVersion: "1.0"
+                uri:
+                  Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CompareFnArn}/invocations
+
+        components:
+          securitySchemes:
+            api_key:
+              type: apiKey
+              name: x-api-key
+              in: header
+        x-amazon-apigateway-gateway-responses:
+          ACCESS_DENIED:
+            responseParameters:
+              gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+              gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+              gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+          UNAUTHORIZED:
+            responseParameters:
+              gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+              gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+              gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+
+  # API Key + Usage Plan (bind to this API stage)
+  ApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    Properties:
+      Enabled: true
+      Name: !Ref ApiKeyName
+
+  UsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    DependsOn:
+      - RestApiStage # implicit Stage created by the SAM Api above
+    Properties:
+      UsagePlanName: !Sub "${ApiName}-plan"
+      ApiStages:
+        - ApiId: !Ref RestApi
+          Stage: !Ref StageName
+      Throttle:
+        BurstLimit: 50
+        RateLimit: 100
+
+  UsagePlanKey:
+    Type: AWS::ApiGateway::UsagePlanKey
+    DependsOn:
+      - UsagePlan
+      - ApiKey
+    Properties:
+      KeyId: !Ref ApiKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref UsagePlan
+
+  # Lambda invoke permissions (only created if ARNs provided)
+  PermPresign:
+    Type: AWS::Lambda::Permission
+    Condition: HasPresign
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PresignFnArn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/resumes/upload
+
+  PermCompare:
+    Type: AWS::Lambda::Permission
+    Condition: HasCompare
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref CompareFnArn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/resumes/upload/*
+
+Outputs:
+  ApiId:
+    Value: !Ref RestApi
+  ApiEndpoint:
+    Value: !Sub "https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}"
+  ApiKeyId:
+    Value: !Ref ApiKey

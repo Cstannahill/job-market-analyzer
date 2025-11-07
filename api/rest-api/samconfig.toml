@@ -1,0 +1,10 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "trenddev-resume-api"
+s3_prefix = "trenddev-resume-api"
+region = "us-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "StageName=\"prod\" ApiName=\"trenddev-resume-api\" ApiKeyName=\"resume-api-key\" PresignFnArn=\"arn:aws:lambda:us-east-1:815254799150:function:resume-presigned-url\" CompareFnArn=\"arn:aws:lambda:us-east-1:815254799150:function:compare-resume-id\""
+image_repositories = []

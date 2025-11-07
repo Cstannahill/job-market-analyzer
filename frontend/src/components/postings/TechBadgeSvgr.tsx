@@ -37,7 +37,7 @@ function normalizeLookup(name: string) {
     // Pattern-based special cases
     if (lower.includes('html')) return 'html5';
     if (lower.includes('css')) return 'css3';
-    if (lower.includes('node')) return 'node';
+    if (lower.includes('node') || lower.includes('node.js')) return 'node';
     if (lower === 'database' || lower === 'databases') return 'database-management-systems';
     if (lower.includes('java') && !lower.includes('javascript')) return 'java';
     if (lower.includes('android')) return 'android';
