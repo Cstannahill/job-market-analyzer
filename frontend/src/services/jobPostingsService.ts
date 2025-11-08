@@ -255,6 +255,7 @@ export const getJobPostings = async (): Promise<BaseJobListing[]> => {
 export const getJobPostingsPage = async (opts?: {
   limit?: number;
   lastKey?: string | null;
+  tech?: string;
 }): Promise<{
   items: BaseJobListing[];
   count: number;
@@ -263,6 +264,7 @@ export const getJobPostingsPage = async (opts?: {
   const params: Record<string, string> = {};
   if (opts?.limit) params.limit = String(opts.limit);
   if (opts?.lastKey) params.lastKey = opts.lastKey;
+  if (opts?.tech) params.tech = opts.tech;
 
   const q = new URLSearchParams(params).toString();
   const url = `${API_URL}/job-postings${q ? `?${q}` : ""}`;

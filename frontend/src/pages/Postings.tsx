@@ -1,6 +1,6 @@
 import React from 'react';
 import { Layout } from '../components/Layout';
-import JobPostingsSection from '@/components/postings/UpdatedJobsPostings';
+import JobPostingsSection from '@/components/postings/JobPostingsSection';
 import SectionCard from '@/components/about/SectionCard';
 import Seo from '@/components/Seo';
 

@@ -1,6 +1,11 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  QueryCommand,
+  BatchGetCommand,
+} from "@aws-sdk/lib-dynamodb";
+import { slugifyTech } from "./utils.js";
 
 // Initialize DynamoDB client
 const dynamoClient = new DynamoDBClient({});
@@ -25,38 +30,26 @@ interface JobPosting {
   skills: string[];
   technologies: string[];
 }
+function encodeCursor(obj: unknown) {
+  return Buffer.from(JSON.stringify(obj), "utf8").toString("base64");
+}
+function decodeCursor(b64: string) {
+  return JSON.parse(Buffer.from(b64, "base64").toString("utf8"));
+}
 
-/**
- * Lambda handler for API Gateway
- * Returns paginated job postings from DynamoDB using Query on GSI
- *
- * GSI: status-processed_date-index
- *   - Partition Key: status (e.g., "Active")
- *   - Sort Key: processed_date (enables sorting and efficient pagination)
- *
- * Best Practices Implemented:
- * 1. Query instead of Scan for better performance
- * 2. Efficient pagination using DynamoDB's native LastEvaluatedKey
- * 3. Results automatically sorted by processed_date (descending/newest first)
- * 4. Configurable page size with sensible defaults
- * 5. Proper error handling and logging
- * 6. Support for status filtering via query parameter
- */
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   console.log("Request received:", JSON.stringify(event, null, 2));
 
-  // Enable CORS
   const headers = {
     "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*", // Restrict in production
+    "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "GET, OPTIONS",
   };
 
   try {
-    // Handle OPTIONS request (CORS preflight)
     if (event.httpMethod === "OPTIONS") {
       return {
         statusCode: 200,
@@ -65,25 +58,25 @@ export const handler = async (
       };
     }
 
-    const TableName = process.env.DYNAMODB_TABLE_NAME || "JobPostings";
+    const TableName =
+      process.env.DYNAMODB_TABLE_NAME || "job-postings-enhanced";
     const IndexName = process.env.GSI_NAME || "status-processed_date-index";
+    const TechIndexTable =
+      process.env.JOB_TECH_INDEX_TABLE || "job-tech-index-v2";
 
-    // Default to querying "Active" status postings
+    const qs = event.queryStringParameters ?? {};
     const StatusValue = event.queryStringParameters?.status || "Active";
-
-    // Parse query parameters
+    const techParam = qs.tech?.trim();
     const limitParam = event.queryStringParameters?.limit;
     const lastKeyParam = event.queryStringParameters?.lastKey;
-    const sortOrderParam = event.queryStringParameters?.sortOrder || "DESC"; // DESC for newest first
+    const sortOrderParam = event.queryStringParameters?.sortOrder || "DESC";
 
-    // Default to 20 items per page, max 100 to prevent abuse
     const limit = limitParam
       ? Math.min(Math.max(parseInt(limitParam, 10), 1), 100)
       : 20;
 
     const ScanIndexForward = sortOrderParam.toUpperCase() === "ASC";
 
-    // Decode the lastKey (base64-encoded JSON)
     let ExclusiveStartKey: Record<string, unknown> | undefined;
     if (lastKeyParam) {
       try {
@@ -101,6 +94,72 @@ export const handler = async (
           }),
         };
       }
+    }
+
+    // tech query
+    if (techParam) {
+      const techSlug = slugifyTech(techParam);
+
+      // Query companion table by PK=tech and SK prefix = `${status}#`
+      const q = new QueryCommand({
+        TableName: TechIndexTable,
+        KeyConditionExpression: "#pk = :t AND begins_with(#sk, :p)",
+        ExpressionAttributeNames: { "#pk": "PK", "#sk": "SK" },
+        ExpressionAttributeValues: {
+          ":t": techSlug,
+          ":p": `${StatusValue}#`,
+        },
+        Limit: limit,
+        ScanIndexForward, // ASC=>oldest first, DESC=>newest first
+        ...(ExclusiveStartKey && { ExclusiveStartKey }),
+      });
+
+      const iq = await docClient.send(q);
+      const indexRows = iq.Items ?? [];
+
+      // Get jobIds from either explicit attr or from SK suffix
+      const jobIds = indexRows
+        .map((it) => (it.jobId as string) || String(it.SK).split("#").pop())
+        .filter(Boolean) as string[];
+
+      let jobs: JobPosting[] = [];
+      if (jobIds.length > 0) {
+        // BatchGet full items from main table (assumes PK = Id)
+        const keys = jobIds.map((jobId) => ({ jobId }));
+        const bg = new BatchGetCommand({
+          RequestItems: { [TableName]: { Keys: keys } },
+        });
+        const br = await docClient.send(bg);
+        jobs = (br.Responses?.[TableName] ?? []) as JobPosting[];
+
+        // BatchGet order is undefined — sort to match requested order
+        // (We sort by processed_date; Dynamo already handed us SK order)
+        jobs.sort((a, b) =>
+          ScanIndexForward
+            ? (a.processed_date ?? "").localeCompare(b.processed_date ?? "")
+            : (b.processed_date ?? "").localeCompare(a.processed_date ?? "")
+        );
+      }
+
+      const next = iq.LastEvaluatedKey
+        ? encodeCursor(iq.LastEvaluatedKey)
+        : null;
+
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          count: jobs.length,
+          data: jobs,
+          lastKey: next,
+          hasMore: !!next,
+          status: StatusValue,
+          sortOrder: ScanIndexForward ? "ASC" : "DESC",
+          techSlug, // helpful for the client
+          source: "tech-index",
+        }),
+      };
     }
 
     // Query DynamoDB using GSI with pagination
