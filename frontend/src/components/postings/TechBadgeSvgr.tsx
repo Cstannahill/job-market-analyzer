@@ -35,7 +35,8 @@ function normalizeLookup(name: string) {
     if (specialCases[lower]) return specialCases[lower];
 
     // Pattern-based special cases
-    if (lower.includes("next.js") || lower.includes("nextjs")) return "next"
+    if (lower.includes("cloudflare")) return "cloudfare";
+    if (lower.includes("next.js") || lower.includes("nextjs")) return "next";
     if (lower.includes('html')) return 'html5';
     if (lower.includes('css')) return 'css3';
     if (lower.includes('node') || lower.includes('node.js')) return 'node';
