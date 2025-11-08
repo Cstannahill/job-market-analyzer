@@ -41,7 +41,7 @@ export function MetaPillContainer({ posting, date }: MetaPillContainerProps) {
                 </span>
             )}
 
-            {posting.remote_status && (
+            {posting.remote_status && posting.remote_status.toLowerCase() === "remote" && (
                 <div className="inline-flex">
                     <Wifi size={14} className="remote-icon" />
                 </div>

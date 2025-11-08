@@ -1,5 +1,5 @@
 {
-  "name": "compare-resume-id",
+  "name": "worker-process-resume",
   "version": "1.0.0",
   "description": "Lambda function to compare resume ID",
   "main": "index.ts",
@@ -8,14 +8,24 @@
     "build": "tsup"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.910.0",
     "@aws-sdk/client-dynamodb": "^3.908.0",
+    "@aws-sdk/client-s3": "^3.908.0",
     "@aws-sdk/client-sqs": "^3.927.0",
     "@aws-sdk/lib-dynamodb": "^3.913.0",
+    "@aws-sdk/util-dynamodb": "^3.908.0",
+    "@aws-sdk/util-stream-node": "^3.370.0",
     "aws-lambda": "^1.0.7",
+    "domhandler": "^5.0.3",
+    "form-data": "^4.0.4",
+    "json5": "^2.2.3",
+    "mammoth": "^1.11.0",
+    "sanitize-html": "^2.17.0",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.155",
+    "@types/aws-lambda": "^8.10.157",
+    "@types/cheerio": "^0.22.35",
     "@types/node": "^24.6.2",
     "typescript": "^5.9.3"
   }

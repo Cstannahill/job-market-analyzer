@@ -19,7 +19,7 @@ export type EducationItem = {
   location?: string;
 };
 export type Insights = {
-  summary?: { oneLine?: string; "3line"?: string };
+  summary?: { oneLine?: string; threeLine: string };
   strengths?: {
     text: string;
     why: string;

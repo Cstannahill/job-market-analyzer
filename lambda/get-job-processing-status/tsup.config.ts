@@ -5,7 +5,7 @@ export default defineConfig({
   bundle: true, // bundle everything into single files
   format: ["esm"], // Node 20 prefers ESM
   platform: "node",
-  target: "node22", // matches Lambda runtime
+  target: "node20", // matches Lambda runtime
   minify: true, // smaller zip size
   sourcemap: false,
   clean: true, // clears dist/ before build
