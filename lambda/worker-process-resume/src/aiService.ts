@@ -103,7 +103,7 @@ OUTPUT FORMAT (required JSON):
 Return compact JSON (no pretty-printing or extra whitespace) object with these keys exactly:
 
 {
-  "summary": { "oneLine": string, "3line": string },
+  "summary": { "oneLine": string, "threeLine": string, "overallImpression": string },
   "strengths": [ { "text": string, "why": string, "confidence": "high" | "medium" | "low" } ],
   "gaps": [ { "missing": string, "impact": string, "suggestedLearningOrAction": string, "priority": "high" | "medium" | "low" } ],
   "skills": {
@@ -114,7 +114,7 @@ Return compact JSON (no pretty-printing or extra whitespace) object with these k
   "achievements": [ { "headline": string, "metric": string | null, "suggestedBullet": string } ],
   "resumeEdits": {
     "titleAndSummary": { "headline": string, "professionalSummary": string },
-    "improvedBullets": [ { "old": string | null, "new": string } ]  // produce up to 3 rewritten bullets that use metrics
+    "improvedBullets": [ { "old": string | null, "new": string } ]  // produce up to 5 rewritten bullets that use metrics
   },
   "atsAndFormat": { "isATSFriendly": boolean, "recommendations": [string] },
   "confidence": "high" | "medium" | "low",
@@ -122,14 +122,15 @@ Return compact JSON (no pretty-printing or extra whitespace) object with these k
 }
 
 INSTRUCTIONS:
-1. Keep arrays short and high-value (max 6 items for strengths/gaps/skills).
+1. Keep arrays short and high-value (aim for 6 items each for strengths/gaps/skills).
 2. For each "skills.technical" entry, estimate level and include the short text from the resume that supports the estimate in "evidenceLine".
-3. For "topRoles" choose 3 roles and give a numeric fitScore 0-100 (rounded integer).
-4. For "achievements" create up to 3 crisp headline achievements inferred from the resume; if you cannot infer metrics, suggest realistic metrics to quantify the achievement and mark them as "suggested" in the metric field.
-5. In "resumeEdits.improvedBullets" output up to 3 rewritten bullet lines that are action-result-metric oriented and ATS-friendly (use verbs, quantify impact, include tech used).
-6. For "atsAndFormat.recommendations" list changes like "add quantifiable metrics", "use reverse-chronological dates", "avoid images/graphics", "use simple fonts", etc.
+3. For "topRoles" choose 3 roles and give a numeric fitScore 0-100 (rounded integer); include suggested level for role such as junior, senior, etc., factoring in ability, experience, as well as years of experience; be practical, less than 5 years of experience should not be recommended a senior level position for instance.
+4. For "achievements" create 3 crisp headline achievements inferred from the resume; if you cannot infer metrics, suggest realistic metrics to quantify the achievement and mark them as "suggested" in the metric field.
+5. In "resumeEdits.improvedBullets" output up to 5 rewritten bullet lines that are action-result-metric oriented or better replace weak or unclear bullets that are ATS-friendly (use verbs, quantify impact, include tech used).
+6. For "atsAndFormat.recommendations" list changes like "add quantifiable metrics", "use reverse-chronological dates", "avoid images/graphics", "use simple fonts", etc. but only if true; also include opinions on structure/format of the information and recommendations on restructuring sections if necessary.
 7. Set "confidence" overall for how complete/clear the resume is based on the provided text.
 8. If the input was truncated (you received only part of the resume), add an entry to "assumptions" describing what may be missing.
+9. The overallImpression property within summary should be based on all information, discerning what you can based on the skills and experience of the developer from your point of view as the hiring manager; this should be the hiring manager's overall impression of the developer.
 
 DO NOT:
 - Do not return any markdown, headings, or commentary — only the JSON object.
@@ -147,7 +148,7 @@ End of instructions.
           text: "You are an expert resume analyst. Provide detailed, constructive feedback.",
         },
       ],
-      inferenceConfig: { temperature: 0.2, maxTokens: 8000 } as any,
+      inferenceConfig: { temperature: 0.7, maxTokens: 8000 } as any,
     });
 
     const response = await bedrock.send(command);

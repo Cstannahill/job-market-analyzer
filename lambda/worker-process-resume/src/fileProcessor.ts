@@ -19,6 +19,7 @@ import { getS3Object } from "./s3Service.js";
 import fs from "fs";
 import type { ResumeItem } from "./types.js";
 import { isPdf, normalizeS3PayloadToBuffer } from "./fileHelpers.js";
+import { enrichExperienceDurations, totalMonthsMerged } from "./dateHelpers.js";
 
 interface PDFResponse {
   success: boolean;
@@ -86,6 +87,15 @@ export async function processFile(key: string) {
   } else {
     throw new Error("Unsupported file type");
   }
+  const enrichedExperience = enrichExperienceDurations(experience);
+  const totalMonths = totalMonthsMerged(enrichedExperience);
+  const totalExperienceLabel =
+    totalMonths < 24
+      ? `${totalMonths} months`
+      : `${(totalMonths / 12).toFixed(1)} years`;
+
+  // Replace the raw list with the enriched one
+  experience = enrichedExperience;
 
   const isLocalTemp = (x: unknown): x is { filePath: string } =>
     !!x && typeof x === "object" && "filePath" in x;
@@ -110,12 +120,15 @@ export async function processFile(key: string) {
     PK: resumePK,
     SK: resumeId,
     contactInfo,
+    totalExperienceLabel,
+    totalExperienceMonths: totalMonths,
     skills: normalizedSkills,
     education,
     experience,
     uploadedAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
+
   console.log(
     "Resume item prepared, updating resume in database with : ",
     resumeItem

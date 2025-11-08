@@ -1,5 +1,5 @@
 {
-  "name": "compare-resume-id",
+  "name": "get-job-processing-status",
   "version": "1.0.0",
   "description": "Lambda function to compare resume ID",
   "main": "index.ts",
@@ -8,14 +8,12 @@
     "build": "tsup"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.908.0",
-    "@aws-sdk/client-sqs": "^3.927.0",
-    "@aws-sdk/lib-dynamodb": "^3.913.0",
-    "aws-lambda": "^1.0.7",
-    "uuid": "^13.0.0"
+    "@aws-sdk/client-dynamodb": "^3.927.0",
+    "@aws-sdk/lib-dynamodb": "^3.927.0",
+    "aws-lambda": "^1.0.7"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.155",
+    "@types/aws-lambda": "^8.10.157",
     "@types/node": "^24.6.2",
     "typescript": "^5.9.3"
   }

@@ -27,6 +27,8 @@ export interface ResumeBaseItem {
 
 export interface ResumeItem extends ResumeBaseItem {
   contactInfo: Record<string, any>;
+  totalExperienceMonths?: number;
+  totalExperienceLabel?: string;
   skills: string[];
   education?: any[];
   experience: Experience[];

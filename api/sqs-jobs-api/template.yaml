@@ -1,0 +1,145 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Jobs API (POST /jobs, GET /jobs/{jobId}) with CORS, proxying to existing Lambdas
+
+Parameters:
+  StageName:
+    Type: String
+    Default: prod
+  EnqueueLambdaArn:
+    Type: String
+    Default: arn:aws:lambda:us-east-1:815254799150:function:compare-resume-id
+  StatusLambdaArn:
+    Type: String
+    Default: arn:aws:lambda:us-east-1:815254799150:function:get-job-processing-status
+
+Resources:
+  JobsApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: JobsApi
+      StageName: !Ref StageName
+      # NOTE: Because we're providing DefinitionBody, the Cors block is ignored.
+      # We'll implement CORS manually in DefinitionBody (OPTIONS mocks + gateway responses).
+      DefinitionBody:
+        swagger: "2.0"
+        info:
+          title: JobsApi
+          version: "1.0"
+        schemes:
+          - https
+        basePath: "/{stage}"
+        x-amazon-apigateway-gateway-responses:
+          DEFAULT_4XX:
+            responseParameters:
+              gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+              gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Requested-With,Authorization,x-api-key'"
+              gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+          DEFAULT_5XX:
+            responseParameters:
+              gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+              gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Requested-With,Authorization,x-api-key'"
+              gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+        paths:
+          /jobs:
+            options:
+              consumes: [application/json]
+              produces: [application/json]
+              responses:
+                "200":
+                  description: CORS preflight
+                  headers:
+                    Access-Control-Allow-Origin: { type: string }
+                    Access-Control-Allow-Methods: { type: string }
+                    Access-Control-Allow-Headers: { type: string }
+              x-amazon-apigateway-integration:
+                type: mock
+                requestTemplates:
+                  application/json: '{"statusCode": 200}'
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
+                      method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Requested-With,Authorization,x-api-key'"
+            post:
+              consumes: [application/json]
+              produces: [application/json]
+              responses:
+                "202":
+                  description: Accepted
+                  headers:
+                    Access-Control-Allow-Origin: { type: string }
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                passthroughBehavior: when_no_match
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${EnqueueLambdaArn}/invocations
+
+          /jobs/{jobId}:
+            parameters:
+              - name: jobId
+                in: path
+                required: true
+                type: string
+            options:
+              consumes: [application/json]
+              produces: [application/json]
+              responses:
+                "200":
+                  description: CORS preflight
+                  headers:
+                    Access-Control-Allow-Origin: { type: string }
+                    Access-Control-Allow-Methods: { type: string }
+                    Access-Control-Allow-Headers: { type: string }
+              x-amazon-apigateway-integration:
+                type: mock
+                requestTemplates:
+                  application/json: '{"statusCode": 200}'
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
+                      method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Requested-With,Authorization,x-api-key'"
+            get:
+              produces: [application/json]
+              responses:
+                "200":
+                  description: OK
+                  headers:
+                    Access-Control-Allow-Origin: { type: string }
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                passthroughBehavior: when_no_match
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${StatusLambdaArn}/invocations
+
+  # Allow API Gateway to invoke the Lambdas
+  PermEnqueueInvoke:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref EnqueueLambdaArn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Sub: arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${JobsApi}/*/POST/jobs
+
+  PermStatusInvoke:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref StatusLambdaArn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Sub: arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${JobsApi}/*/GET/jobs/*
+
+Outputs:
+  ApiBaseUrl:
+    Description: Base URL for the API
+    Value:
+      Fn::Sub: https://${JobsApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}

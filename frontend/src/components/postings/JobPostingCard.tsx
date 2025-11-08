@@ -40,7 +40,6 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
 
                 <div className="flex w-full justify-between">
                     <span className="salary">{posting.salary_range ? `$${posting.salary_range}` : null}</span>
-
                 </div>
             </CardHeader>
             <CardDescription className="job-card-description">

@@ -1,48 +1,52 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+// preflight.ts
+import type { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { buildCorsHeaders } from "./cors.js";
 
+/**
+ * Responds only to OPTIONS preflight. Do NOT validate bodies here.
+ * Let your real handlers (enqueue/status) handle POST/GET.
+ */
 export const handlePreflight = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const origin = event.headers.Origin || event.headers.origin;
-  const headers = buildCorsHeaders(origin);
-  let decodedKey: string = "ID not processed";
-  // Handle OPTIONS preflight
+  const baseHeaders = buildCorsHeaders(origin);
+
+  // Only handle CORS preflight
   if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers, body: "" };
+    // Echo requested method/headers if present, otherwise allow a sane set
+    const reqMethod =
+      event.headers["access-control-request-method"] ??
+      event.headers["Access-Control-Request-Method"] ??
+      "GET, POST, PUT, DELETE, OPTIONS";
+
+    const reqHeaders =
+      event.headers["access-control-request-headers"] ??
+      event.headers["Access-Control-Request-Headers"] ??
+      "Content-Type, X-Api-Key, Authorization, X-Amz-Date, X-Amz-Security-Token";
+
+    return {
+      statusCode: 204,
+      headers: {
+        ...baseHeaders,
+        "Access-Control-Allow-Methods": reqMethod,
+        "Access-Control-Allow-Headers": reqHeaders,
+        // Keep credentials + vary for proper caching
+        "Access-Control-Allow-Credentials": "true",
+        Vary: "Origin",
+      },
+      body: "",
+    };
   }
 
-  // GET /resumes/compare/{id}
-  if (event.httpMethod === "GET") {
-    try {
-      const id = event.pathParameters?.id;
-      if (!id) {
-        return {
-          statusCode: 400,
-          headers,
-          body: JSON.stringify({ error: "Missing id parameter" }),
-        };
-      }
-
-      decodedKey = decodeURIComponent(id);
-    } catch (error) {
-      console.error("Process error:", error);
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({
-          status: "failed",
-          error: error instanceof Error ? error.message : "Unknown error",
-        }),
-      };
-    }
-  }
+  // For any non-OPTIONS requests routed here by mistake, just say "method not allowed".
   return {
-    statusCode: 200,
-    headers,
-    body: JSON.stringify({
-      status: "success",
-      id: decodedKey,
-    }),
+    statusCode: 405,
+    headers: {
+      ...baseHeaders,
+      "Access-Control-Allow-Credentials": "true",
+      Vary: "Origin",
+    },
+    body: "",
   };
 };

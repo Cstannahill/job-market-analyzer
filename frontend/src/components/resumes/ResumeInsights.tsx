@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Insights } from "@/shared-types/src/resume";
 
 export const ResumeInsights = (insights: Insights | undefined) => {
+    console.log(insights, "RESUME");
     return (
         <>
             <Card className="resume-card">

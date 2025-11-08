@@ -102,6 +102,7 @@ export default function ResumeUploader() {
         setError(null);
         setStatus("uploading");
         setProgress(0);
+        console.log(user?.userId, "FROM RESUME UPLOADER")
         try {
             await uploadResume({
                 file,
@@ -296,19 +297,20 @@ export default function ResumeUploader() {
                             <div className="bg-surface-2 rounded-lg p-4 shadow-sm border border-surface-3">
                                 <div className="flex items-start justify-between gap-4">
                                     <div>
-                                        <h2 className="text-2xl font-bold break-words max-w-[60ch]">
-                                            {result.analysis?.insights?.summary?.oneLine ?? "Resume Summary"}
-                                        </h2>
-                                        <p className="text-sm text-muted mt-2">{result.analysis?.insights?.summary?.["3line"]}</p>
-                                        <div className="mt-3 flex gap-2 flex-wrap">
-                                            {(result.analysis?.insights?.topRoles ?? []).slice(0, 3).map((r) => (
+                                        <p style={{ padding: ".25rem 1rem" }} className="text-lg font-bold break-words max-w-[60ch]">
+                                            {result?.insights?.summary?.oneLine ?? "Resume Summary"}</p>
+
+
+                                        <p style={{ padding: ".25rem 1rem" }} className="text-sm text-muted mt-2">{result?.insights?.summary?.threeLine}</p>
+                                        <div style={{ padding: ".25rem 1rem" }} className="mt-3 flex gap-2 flex-wrap">
+                                            {(result?.insights?.topRoles ?? []).slice(0, 3).map((r) => (
                                                 <Badge key={r.title} className="px-2 py-1">{r.title} ({r.fitScore ?? 0})</Badge>
                                             ))}
                                         </div>
                                     </div>
                                     <div className="text-sm text-muted text-right">
-                                        <div className="font-medium">Confidence</div>
-                                        <div className="mt-1">{result.analysis?.insights?.confidence ?? "medium"}</div>
+                                        <div style={{ padding: ".25rem 1rem" }} className="font-medium">Confidence</div>
+                                        <div style={{ padding: ".25rem 1rem" }} className="mt-1">{result?.insights?.confidence ?? "medium"}</div>
                                     </div>
                                 </div>
                             </div>
@@ -360,30 +362,30 @@ export default function ResumeUploader() {
                                 <CardTitle>Insights</CardTitle>
                             </CardHeader>
                             <CardContent className="overflow-hidden">
-                                <div className="space-y-4">
+                                <div className="space-y-2">
                                     <div>
                                         <div className="font-semibold">Strengths</div>
                                         <ul className="list-disc list-inside mt-2 text-sm break-words">
-                                            {(result.analysis?.insights?.strengths ?? []).map((s, i) => (
+                                            {(result?.insights?.strengths ?? []).map((s, i) => (
                                                 <li key={i}><strong>{s.text}</strong>: <span className="text-muted">{s.why}</span></li>
                                             ))}
                                         </ul>
                                     </div>
-
+                                    <br />
                                     <div>
                                         <div className="font-semibold">Gaps</div>
                                         <ul className="list-disc list-inside mt-2 text-sm break-words">
-                                            {(result.analysis?.insights?.gaps ?? []).map((g, i) => (
+                                            {(result?.insights?.gaps ?? []).map((g, i) => (
                                                 <li key={i}><strong>{g.missing}</strong>: <span className="text-muted">{g.suggestedLearningOrAction}</span></li>
                                             ))}
                                         </ul>
                                     </div>
-
+                                    <br />
                                     {/* suggested bullets */}
                                     <div>
                                         <div className="font-semibold">Suggested bullets</div>
                                         <ul className="list-disc list-inside mt-2 text-sm break-words">
-                                            {(result.analysis?.insights?.resumeEdits?.improvedBullets ?? []).map((b, idx) => (
+                                            {(result?.insights?.resumeEdits?.improvedBullets ?? []).map((b, idx) => (
                                                 <li key={idx}>{b.new}</li>
                                             ))}
                                         </ul>
