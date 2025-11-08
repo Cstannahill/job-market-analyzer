@@ -1,7 +1,16 @@
 import React from 'react';
 import useIsMobile from '@/hooks/useIsMobile';
 import { NavLink } from 'react-router-dom';
-import { Briefcase, ChartBarDecreasing, FileQuestionMark, FileUser, Home, TrendingUpDown } from 'lucide-react';
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
+import { Button } from '@/components/ui/button'
+import { Briefcase, ChartBarDecreasing, FileQuestionMark, FileUser, Home, TrendingUpDown, ListChecks, ChevronDown } from 'lucide-react';
 import { MobileNav } from '@/components/MobileNav';
 
 const NavLinks: { to: string; label: string; icon: React.ReactNode }[] = [
@@ -9,9 +18,10 @@ const NavLinks: { to: string; label: string; icon: React.ReactNode }[] = [
     { to: '/top-tech', label: 'Top Tech', icon: <ChartBarDecreasing /> },
     { to: '/postings', label: 'Job Postings', icon: <Briefcase /> },
     { to: '/trends', label: 'Trends', icon: <TrendingUpDown /> },
-    { to: '/resume', label: 'Upload Resume', icon: <FileUser /> },
+    // { to: '/resume', label: 'Upload Resume', icon: <FileUser /> },
     { to: '/about', label: 'About', icon: <FileQuestionMark /> },
 ];
+
 
 export const Nav: React.FC = () => {
     const isMobile = useIsMobile();
@@ -32,20 +42,57 @@ export const Nav: React.FC = () => {
                             end={l.to === '/'}
                             className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
                         >
+                            {l.icon}
                             {l.label}
                         </NavLink>
 
 
 
                     ))}
+
+                    {/* Resume dropdown */}
+                    <li className="relative">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    className="nav-link flex items-center gap-1"
+                                    aria-label="Resume menu"
+                                >
+                                    <FileUser className="h-4 w-4" />
+                                    Resume
+                                    <ChevronDown className="h-4 w-4 opacity-70" />
+                                </Button>
+                            </DropdownMenuTrigger>
+
+                            <DropdownMenuContent align="start" className="w-48">
+                                <DropdownMenuLabel style={{ padding: ".5rem .5rem" }}>Resume</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem asChild style={{ padding: ".5rem .5rem" }}>
+                                    <NavLink to="/resumes/upload" className="flex items-center gap-2">
+                                        <FileUser className="h-4 w-4" />
+                                        Upload Resume
+                                    </NavLink>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild style={{ padding: ".5rem .5rem" }}>
+                                    {/* If your route differs, change /resumes to what you actually use */}
+                                    <NavLink to="/resumes/manage" className="flex items-center gap-2">
+                                        <ListChecks className="h-4 w-4" />
+                                        Manage Uploaded
+                                    </NavLink>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </li>
+
                 </ul>
-            </div>
+            </div >
 
             {/* Mobile nav (sheet/drawer) from shared MobileNav component */}
-            <div className="lg:hidden ml-auto">
+            < div className="lg:hidden ml-auto" >
                 <MobileNav links={NavLinks} />
-            </div>
-        </nav>
+            </div >
+        </nav >
     );
 };
 

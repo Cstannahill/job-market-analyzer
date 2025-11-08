@@ -1,5 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { CompareResult } from "@/shared-types";
+import axios from "axios";
+import type { GetUserResumesResponse } from "@/shared-types/src/resume-query";
 
 const API_URL =
   (import.meta.env.VITE_RESUME_API_URL as string | undefined) || "";
@@ -136,4 +138,19 @@ export async function uploadResume(opts: {
     setError(e.message || "Upload failed");
     setStatus("failed");
   }
+}
+
+export interface UserResumesGetProps {
+  userId: string;
+}
+export async function getUserResumes(userId: string) {
+  const config = {
+    method: "GET",
+    url: `${API_URL}/resumes/${encodeURIComponent(userId)}`,
+    headers: { "Content-Type": "application/json", "x-api-key": API_KEY },
+  };
+  const response = await axios<GetUserResumesResponse>(config);
+  const data = response?.data;
+
+  return data;
 }

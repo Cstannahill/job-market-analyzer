@@ -10,6 +10,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss(), svgr()],
   publicDir: "public",
   root: ".",
+  base: "/", // important for correct asset URLs on Amplify
+  build: { outDir: "dist" },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

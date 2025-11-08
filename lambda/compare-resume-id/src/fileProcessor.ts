@@ -18,6 +18,7 @@ import {
 import { getS3Object } from "./s3Service.js";
 import fs from "fs";
 import type { ResumeItem } from "./types.js";
+import { isPdf, normalizeS3PayloadToBuffer } from "./fileHelpers.js";
 
 interface PDFResponse {
   success: boolean;
@@ -35,12 +36,13 @@ export async function processFile(key: string) {
   const fileType = resumeBaseItem.contentType;
   // 1️⃣ Determine file type
   const extension = fileName.split(".").pop()?.toLowerCase() || "";
+  console.log(extension);
   let text = "";
   let experience: any[] = [];
-  if ("filePath" in s3Object) {
+  if (isPdf(extension, fileType)) {
     // Read file and encode to base64
-    const fileBuffer = fs.readFileSync(s3Object.filePath);
-    const base64Content = fileBuffer.toString("base64");
+    const fileBuf = await normalizeS3PayloadToBuffer(s3Object);
+    const base64Content = fileBuf.toString("base64");
 
     const response = await fetch(
       "https://pypdf-production-e4e9.up.railway.app/extract/pdf-buffer",
@@ -77,14 +79,18 @@ export async function processFile(key: string) {
     fileType ===
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
   ) {
-    const fullRes = await mammoth.extractRawText({ buffer: s3Object });
+    const buf = await normalizeS3PayloadToBuffer(s3Object);
+    const fullRes = await mammoth.extractRawText({ buffer: buf });
     text = fullRes.value;
     experience = extractExperience(text);
   } else {
     throw new Error("Unsupported file type");
   }
 
-  if ("filePath" in s3Object) {
+  const isLocalTemp = (x: unknown): x is { filePath: string } =>
+    !!x && typeof x === "object" && "filePath" in x;
+
+  if (isLocalTemp(s3Object)) {
     fs.unlink(s3Object.filePath, () => {});
   }
   const contactInfo = {

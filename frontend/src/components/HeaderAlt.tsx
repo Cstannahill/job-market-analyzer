@@ -56,13 +56,13 @@ export const Header: React.FC = () => {
                         {!isMobile &&
                             !user && (
                                 <Link to="/login" >
-                                    <Button variant="secondary" className='p-2 w-16 h-8' size="lg">Login</Button>
+                                    <Button style={{ padding: "1.1rem 2.5rem" }} variant="secondary" className='p-2 w-16 h-8' size="lg">Login</Button>
                                 </Link>
                             )}
 
                         {!isMobile &&
                             user && (
-                                <Button variant="secondary" type="button" onClick={handleLogout} className='p-2 w-16 h-8' size="lg">Logout</Button>
+                                <Button style={{ padding: "0rem 2.5rem" }} variant="secondary" type="button" onClick={handleLogout} className='w-16 h-8' size="lg">Logout</Button>
                             )}
                         {/* Theme Toggle */}
                         <button

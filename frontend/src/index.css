@@ -18,7 +18,7 @@
 @import "./styles/resume.css";
 @import "./styles/auth.css";
 @import "./styles/App.css";
-
+@import "./styles/typography.css";
 * {
   box-sizing: border-box;
   margin: 0;
