@@ -45,7 +45,7 @@ function normalizeLookup(name: string) {
     if (lower.includes('cloud platform')) return 'cloud';
     if (lower.includes('react')) return 'react';
     if (lower.includes('google cloud')) return 'gcp';
-    if (lower === 'go' || lower === 'golang' || lower.includes('golang') || (lower.includes("go lang"))) return 'go';
+    if (lower === 'go' || lower === 'golang' || lower.includes('golang') || (lower.includes("go lang"))) return 'golang';
     if (lower.includes('java/')) return 'java';
     if (lower.includes('postgre') || lower.includes('sql')) return 'postgresql';
     if (lower.includes('rag') && lower.includes('pipeline')) return 'rag';
