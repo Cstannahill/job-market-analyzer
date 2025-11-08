@@ -14,12 +14,12 @@ import { Briefcase, ChartBarDecreasing, FileQuestionMark, FileUser, Home, Trendi
 import { MobileNav } from '@/components/MobileNav';
 
 const NavLinks: { to: string; label: string; icon: React.ReactNode }[] = [
-    { to: '/', label: 'Home', icon: <Home /> },
-    { to: '/top-tech', label: 'Top Tech', icon: <ChartBarDecreasing /> },
-    { to: '/postings', label: 'Job Postings', icon: <Briefcase /> },
-    { to: '/trends', label: 'Trends', icon: <TrendingUpDown /> },
+    { to: '/', label: 'Home', icon: <Home className="h-4 w-4" /> },
+    { to: '/top-tech', label: 'Top Tech', icon: <ChartBarDecreasing className="h-4 w-4" /> },
+    { to: '/postings', label: 'Job Postings', icon: <Briefcase className="h-4 w-4" /> },
+    { to: '/trends', label: 'Trends', icon: <TrendingUpDown className="h-4 w-4" /> },
     // { to: '/resume', label: 'Upload Resume', icon: <FileUser /> },
-    { to: '/about', label: 'About', icon: <FileQuestionMark /> },
+    { to: '/about', label: 'About', icon: <FileQuestionMark className="h-4 w-4" /> },
 ];
 
 
