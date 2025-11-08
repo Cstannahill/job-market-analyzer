@@ -51,7 +51,7 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
                     {posting.technologies.length > 0 && (
                         <>
                             <h4>Technologies and Skills</h4>
-                            <div className="tag-container">
+                            <div className="tag-container flex flex-wrap items-start">
                                 {posting.technologies.slice(0, 5).map((tech, index) => (
                                     <TechBadgeSvgr key={index} name={tech} size={26} roundStyle='full' />
 
