@@ -35,7 +35,7 @@ function normalizeLookup(name: string) {
     if (specialCases[lower]) return specialCases[lower];
 
     // Pattern-based special cases
-    if (lower.includes("cloudflare")) return "cloudfare";
+    if (lower === "cloudflare" || lower.includes("cloudflare")) return "cloudflare";
     if (lower.includes("next.js") || lower.includes("nextjs")) return "next";
     if (lower.includes('html')) return 'html5';
     if (lower.includes('css')) return 'css3';
@@ -133,9 +133,13 @@ export default function TechBadgeSvgr({
         '2xl': 'rounded-3xl',
         'full': 'rounded-full'
     };
+    const label = (name ?? key ?? "").trim();
+    const parts = label.split(/[-\s]+/).filter(Boolean);
 
+    const shouldColumnize = label.length > 14 && parts.length > 1;
     return (
         <div
+            style={{ alignSelf: "start" }}
             className={`inline-flex flex-col items-center gap-2 px-2 py-1 text-xs font-medium ${className}`}
             title={name}
             aria-label={name}
@@ -164,7 +168,7 @@ export default function TechBadgeSvgr({
                 // Fallback: letter circle
                 <div
                     style={sizeStyle}
-                    className={`${roundClasses[roundStyle]} flex items-center justify-center bg-gray-200 text-sm`}
+                    className={`${roundClasses[roundStyle]} flex items-center justify-center bg-gray-500 text-sm`}
                     aria-hidden
                 >
                     {name.charAt(0).toUpperCase()}
@@ -172,14 +176,12 @@ export default function TechBadgeSvgr({
             )}
 
             {!hideLabel && (
-                <small className="text-black tech-icon-svg-label truncate">
-                    {name.length < 4
-                        ? name.toUpperCase()
-                        : name.length <= 14
-                            ? toProperCase(name)
-                            : key.length > 15 && key.includes("-")
-                                ? <div className="flex flex-col">{key.split("-").map(mapNameColumnRows)}</div>
-                                : toProperCase(name)
+                <small className="text-black tech-icon-svg-label">
+                    {label.length < 4
+                        ? label.toUpperCase()
+                        : shouldColumnize
+                            ? <div className="flex flex-col">{parts.map(mapNameColumnRows)}</div>
+                            : toProperCase(label)
                     }
                 </small>
             )}
