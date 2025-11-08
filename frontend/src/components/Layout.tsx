@@ -1,6 +1,6 @@
 import React from 'react';
 import { Header } from './HeaderAlt';
-import { Footer } from './Footer';
+// import { Footer } from './Footer';
 
 type Props = {
     children: React.ReactNode;
@@ -15,7 +15,7 @@ export const Layout: React.FC<Props> = ({ children }) => {
 
                     {children}
                 </main>
-                <Footer />
+                {/* <Footer /> */}
             </div>
         </div>
     );

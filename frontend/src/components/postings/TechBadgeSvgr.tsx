@@ -4,7 +4,7 @@ import React, { type JSX, useState, useEffect } from "react";
 export type ModuleShape = { default?: string; ReactComponent?: React.ComponentType<React.SVGProps<SVGSVGElement>> };
 
 // Lazy load modules
-const moduleLoaders = import.meta.glob('/src/assets/icons/*.svg', {
+const moduleLoaders = import.meta.glob('/src/assets/icons/*.{svg,SVG}', {
     eager: false,
     import: 'default'
 }) as Record<string, () => Promise<string>>;
@@ -35,6 +35,7 @@ function normalizeLookup(name: string) {
     if (specialCases[lower]) return specialCases[lower];
 
     // Pattern-based special cases
+    if (lower.includes("next.js") || lower.includes("nextjs")) return "next"
     if (lower.includes('html')) return 'html5';
     if (lower.includes('css')) return 'css3';
     if (lower.includes('node') || lower.includes('node.js')) return 'node';
@@ -44,7 +45,7 @@ function normalizeLookup(name: string) {
     if (lower.includes('cloud platform')) return 'cloud';
     if (lower.includes('react')) return 'react';
     if (lower.includes('google cloud')) return 'gcp';
-    if (lower === 'go' || lower === 'golang' || lower.includes('golang')) return 'go';
+    if (lower === 'go' || lower === 'golang' || lower.includes('golang') || (lower.includes("go lang"))) return 'go';
     if (lower.includes('java/')) return 'java';
     if (lower.includes('postgre') || lower.includes('sql')) return 'postgresql';
     if (lower.includes('rag') && lower.includes('pipeline')) return 'rag';
@@ -53,7 +54,7 @@ function normalizeLookup(name: string) {
     if (lower === 'rest') return 'rest';
     if (lower.includes('web services')) return 'aws';
     if (lower.includes('juniper')) return 'juniper';
-    if (lower.includes('spring') || lower === 'next') return 'spring';
+    if (lower.includes('spring') || lower === 'springboot') return 'spring';
 
     // Default normalization
     return name

@@ -18,10 +18,14 @@ Parameters:
   CompareFnArn:
     Type: String
     Description: Full ARN of the Lambda function that handles compare/poll by key (compare-resume-id)
+  GetUserResumesFnArn:
+    Type: String
+    Description: Full ARN of get-user-resumes Lambda
 
 Conditions:
   HasPresign: !Not [!Equals [!Ref PresignFnArn, ""]]
   HasCompare: !Not [!Equals [!Ref CompareFnArn, ""]]
+  HasGetUserResumes: !Not [!Equals [!Ref GetUserResumesFnArn, ""]]
 
 Resources:
   RestApi:
@@ -122,6 +126,53 @@ Resources:
                 uri:
                   Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CompareFnArn}/invocations
 
+          /resumes/{userId}:
+            options:
+              summary: CORS preflight
+              parameters:
+                - name: userId
+                  in: path
+                  required: true
+                  schema: { type: string }
+              responses:
+                "200":
+                  description: OK
+                  headers:
+                    Access-Control-Allow-Headers:
+                      schema: { type: string }
+                    Access-Control-Allow-Methods:
+                      schema: { type: string }
+                    Access-Control-Allow-Origin:
+                      schema: { type: string }
+              x-amazon-apigateway-integration:
+                type: mock
+                requestTemplates:
+                  application/json: '{"statusCode": 200}'
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Headers: "'*'"
+                      method.response.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
+            get:
+              security:
+                - api_key: []
+              parameters:
+                - name: userId
+                  in: path
+                  required: true
+                  schema: { type: string }
+              responses:
+                "200":
+                  description: OK
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                payloadFormatVersion: "1.0"
+                uri:
+                  Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetUserResumesFnArn}/invocations
+
         components:
           securitySchemes:
             api_key:
@@ -188,6 +239,16 @@ Resources:
       FunctionName: !Ref CompareFnArn
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/resumes/upload/*
+
+  PermGetUserResumes:
+    Type: AWS::Lambda::Permission
+    Condition: HasGetUserResumes
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GetUserResumesFnArn
+      Principal: apigateway.amazonaws.com
+      # Allow any method (*) on /resumes/* from this API/stage
+      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/resumes/*
 
 Outputs:
   ApiId:

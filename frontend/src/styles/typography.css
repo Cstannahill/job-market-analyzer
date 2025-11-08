@@ -1,0 +1,17 @@
+.text-shadow-blue {
+  -webkit-background-clip: text;
+  /* -webkit-text-fill-color: transparent; */
+  filter: drop-shadow(0 2px 4px rgba(0, 166, 255, 0.653));
+}
+
+.text-shadow-black {
+  -webkit-background-clip: text;
+  /* -webkit-text-fill-color: transparent; */
+  filter: drop-shadow(0 2px 4px rgba(2, 17, 26, 0.653));
+}
+
+.text-shadow-white {
+  -webkit-background-clip: text;
+  /* -webkit-text-fill-color: transparent; */
+  filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.653));
+}

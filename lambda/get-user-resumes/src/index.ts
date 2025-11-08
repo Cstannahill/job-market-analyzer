@@ -7,6 +7,7 @@ import {
   QueryCommandInput,
 } from "@aws-sdk/lib-dynamodb";
 import { buildCorsHeaders } from "./cors.js"; // your helper (ESM path) ← uses allowed origins
+import { coerceInsights } from "./utils.js";
 
 // ----------------------
 // Config (adjust as needed)
@@ -45,16 +46,19 @@ function parseJson<T>(raw: string | null | undefined): T | null {
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
+  const method = event.httpMethod || event.requestContext.httpMethod;
   const origin = event.headers.Origin || event.headers.origin;
-  const headers = buildCorsHeaders(origin); // CORS via your helper  ← :contentReference[oaicite:2]{index=2}
+  const headers = buildCorsHeaders(origin);
+  if (method === "OPTIONS") return { statusCode: 204, headers, body: "" };
 
-  // Fast path for preflight (you can instead delegate to your handlePreflight helper)
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers, body: "" };
-  }
+  let userId: string | undefined;
 
-  // Only allow POST for this resource
-  if (event.httpMethod !== "POST") {
+  if (method === "GET") {
+    userId = event.pathParameters?.userId?.trim();
+  } else if (method === "POST") {
+    const body = event.body ? JSON.parse(event.body) : {};
+    userId = body.userId?.trim();
+  } else {
     return {
       statusCode: 405,
       headers,
@@ -62,52 +66,45 @@ export const handler = async (
     };
   }
 
-  // Parse and validate body
-  const body = parseJson<GetUserResumesRequestBody>(event.body);
-  const userId = body?.userId?.trim();
-
   if (!userId) {
     return {
       statusCode: 400,
       headers,
-      body: JSON.stringify({ error: "Missing or empty 'userId' in body" }),
+      body: JSON.stringify({ error: "Missing 'userId'" }),
     };
   }
 
-  const limit =
-    typeof body?.limit === "number" && body.limit > 0 && body.limit <= 200
-      ? body.limit
-      : CONFIG.DEFAULT_LIMIT;
-
-  // Optional pagination
-  let exclusiveStartKey: Record<string, unknown> | undefined;
-  if (body?.nextToken) {
-    try {
-      exclusiveStartKey = JSON.parse(
-        Buffer.from(body.nextToken, "base64").toString("utf-8")
-      );
-    } catch {
-      // ignore bad token; start from beginning
-    }
-  }
+  // CORS via your helper  ← :contentReference[oaicite:2]{index=2}
 
   // Build query against the userId GSI
+  const pk = `USER#${userId}`;
+
   const queryInput: QueryCommandInput = {
     TableName: CONFIG.TABLE_NAME,
-    IndexName: CONFIG.USERID_GSI_NAME,
-    KeyConditionExpression: "#pk = :v",
-    ExpressionAttributeNames: { "#pk": CONFIG.USERID_GSI_PK },
-    ExpressionAttributeValues: { ":v": userId },
-    Limit: limit,
-    ExclusiveStartKey: exclusiveStartKey,
-    // Uncomment if you want newest first and you use a sort key (e.g., createdAt)
-    // ScanIndexForward: false,
+    KeyConditionExpression: "#pk = :pk AND begins_with(#sk, :sk)",
+    ExpressionAttributeNames: {
+      "#pk": "PK",
+      "#sk": "SK",
+    },
+    ExpressionAttributeValues: {
+      ":pk": pk,
+      ":sk": "RESUME#",
+    },
+    // ScanIndexForward: false, // newest first if SK encodes time
   };
-
+  console.log(queryInput);
   try {
     const resp = await doc.send(new QueryCommand(queryInput));
 
-    const items = (resp.Items ?? []) as ResumeItem[];
+    const items = (resp.Items ?? []).map((it: Record<string, any>) => {
+      const parsed = coerceInsights(it.insightsText);
+      // Prefer normalized field; drop the raw string if parsed
+      if (parsed !== undefined) {
+        const { insightsText, ...rest } = it;
+        return { ...rest, insights: parsed };
+      }
+      return it; // leave as-is if we couldn't parse
+    });
     const nextToken = resp.LastEvaluatedKey
       ? Buffer.from(JSON.stringify(resp.LastEvaluatedKey), "utf-8").toString(
           "base64"

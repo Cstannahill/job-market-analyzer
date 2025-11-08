@@ -1,6 +1,6 @@
 import React from 'react'
 import { Layout } from '@/components/Layout'
-import ResumeUploader from '@/components/resume/ResumeUploader'
+import ResumeUploader from '@/components/resumes/ResumeUploader'
 import Seo from '@/components/Seo'
 
 const UploadResume: React.FC = () => {

@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { useAuthInitialization } from '@/hooks/useAuthInitialization';
 import { useAuthInitialized } from '@/stores/authStore';
 import { ProtectedRoute } from '@/components/shared/ProtectedRoute';
@@ -14,6 +14,7 @@ import Trends from '@/pages/Trends';
 import Postings from '@/pages/Postings';
 import TopTech from '@/pages/TopTech';
 import UploadResume from '@/pages/UploadResume';
+import { ManageResumesPage } from '@/pages/ManageResumes';
 
 /**
  * Application Root Component
@@ -116,14 +117,20 @@ function App() {
           - Analysis saved to user profile
           - Results accessible only to owner
         */}
+                {/* protected layout route */}
                 <Route
-                    path="/resume"
+                    path="/resumes"
                     element={
                         <ProtectedRoute>
-                            <UploadResume />
+                            <Outlet /> {/* renders <Outlet/> inside */}
                         </ProtectedRoute>
                     }
-                />
+                >
+                    {/* default child: redirect to upload */}
+                    <Route index element={<Navigate to="upload" replace />} />
+                    <Route path="upload" element={<UploadResume />} />
+                    <Route path="manage" element={<ManageResumesPage />} />
+                </Route>
 
                 {/* Future Protected Routes:
           - /dashboard (user-specific analytics)
