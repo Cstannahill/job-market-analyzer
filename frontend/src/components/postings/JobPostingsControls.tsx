@@ -1,7 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import type { TechnologyStatItem } from '@/shared-types';
 import {
     Select,
@@ -10,6 +8,7 @@ import {
     SelectContent,
     SelectItem,
 } from '@/components/ui/select';
+import { TechSearchCombobox, type TechSearchValue } from '@/components/postings/TechSearchCombobox';
 
 export interface JobPostingsControlsProps {
     // Search state
@@ -42,14 +41,11 @@ export interface JobPostingsControlsProps {
     // Clear filters
     onClearFilters: () => void;
     showClearFilters: boolean;
+    onFiltersCommit: (next: TechSearchValue) => void;
 }
 
 export const JobPostingsControls: React.FC<JobPostingsControlsProps> = ({
-    searchTerm,
-    onSearchChange,
-    searchPlaceholder = "Search by title, skill, or technology...",
-    selectedTech,
-    onTechChange,
+
     techCounts = [],
     pageIndex,
     totalPages,
@@ -58,13 +54,21 @@ export const JobPostingsControls: React.FC<JobPostingsControlsProps> = ({
     onPageSizeChange,
     onPreviousPage,
     onNextPage,
+    onFiltersCommit,
     isPreviousDisabled,
     isNextDisabled,
     // isLoading = false,
     nextButtonLabel = "Next",
-    onClearFilters,
-    showClearFilters,
 }) => {
+    const [filters, setFilters] = useState<TechSearchValue>({ tech: null, query: "" });
+
+    const handleCommit = React.useCallback(
+        (next: TechSearchValue) => {
+            setFilters(next);
+            onFiltersCommit(next);
+        },
+        [onFiltersCommit]
+    );
     const PaginationControls = (
         <div className="flex flex-col sm:flex-row items-center gap-3 py-3 pagination-container justify-center">
             {/* Navigation controls - centered */}
@@ -126,45 +130,15 @@ export const JobPostingsControls: React.FC<JobPostingsControlsProps> = ({
     return (
         <>
             {/* Filters Section */}
-            <div className="filters-section">
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flex: 1 }}>
-                    <Label htmlFor="search-input" className="label-inline">
-                        Search
-                    </Label>
-                    <Input
-                        id="search-input"
-                        placeholder={searchPlaceholder}
-                        value={searchTerm}
-                        onChange={(e) => onSearchChange(e.target.value)}
-                        className="search-input"
-                    />
-                </div>
 
-                <Select value={selectedTech} onValueChange={onTechChange}>
-                    <SelectTrigger className="tech-filter">
-                        <SelectValue placeholder="All Technologies" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="__all__">All Technologies</SelectItem>
-                        {techCounts?.sort((a, b) => b.count - a.count).map((tech) => (
 
-                            <SelectItem key={tech.name} value={tech.name || tech.id || ''}>
-                                {tech.name} ({tech.count})
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-
-                {showClearFilters && (
-                    <Button
-                        variant="outline"
-
-                        onClick={onClearFilters}
-                    >
-                        Clear Filters
-                    </Button>
-                )}
-            </div>
+            <TechSearchCombobox
+                value={filters}
+                onChange={setFilters}
+                onCommit={handleCommit}
+                options={techCounts.map(t => ({ value: t.name ?? t.id, label: t.name ?? t.id, count: t.count }))}
+                widthClass="w-[360px]"
+            />
 
             {/* Top Pagination */}
             {PaginationControls}
