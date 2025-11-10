@@ -275,7 +275,10 @@ code {
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
-
+.newestclassever {
+  background: #d8d4d9eb;
+  color: #941eb8;
+}
 /* Print Styles */
 @media print {
   body {

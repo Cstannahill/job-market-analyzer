@@ -10,7 +10,7 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 const ENRICHED_TABLE = process.env.ENRICHED_TABLE || "job-postings-enhanced";
 const TRENDS_TABLE = process.env.TRENDS_TABLE || "skill-trends";
-const LOOKBACK_HOURS = parseInt(process.env.LOOKBACK_HOURS || "24");
+const LOOKBACK_HOURS = parseInt(process.env.LOOKBACK_HOURS || "720");
 
 interface EnrichedJob {
   jobId: string;

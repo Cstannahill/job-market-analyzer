@@ -2,6 +2,7 @@
   "name": "job-market-analyzer",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "scripts": {
     "build": "(cd frontend && npm run build)",
     "dev": "(cd frontend && npm run dev)",
@@ -16,8 +17,9 @@
   ],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "devDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.927.0",
+    "@aws-sdk/lib-dynamodb": "^3.927.0",
     "@types/node": "^24.7.1",
     "archiver": "^7.0.1",
     "tsup": "^8.5.0"

@@ -3,7 +3,11 @@
   /* -webkit-text-fill-color: transparent; */
   filter: drop-shadow(0 2px 4px rgba(0, 166, 255, 0.653));
 }
-
+.text-shadow-green {
+  -webkit-background-clip: text;
+  /* -webkit-text-fill-color: transparent; */
+  filter: drop-shadow(0 2px 2px rgba(55, 255, 0, 0.653));
+}
 .text-shadow-black {
   -webkit-background-clip: text;
   /* -webkit-text-fill-color: transparent; */

@@ -10,11 +10,11 @@ import Login from '@/pages/Login';
 import { RegisterPage } from '@/pages/Register';
 import VerifyEmail from '@/pages/VerifyEmail';
 import About from '@/pages/About';
-import Trends from '@/pages/Trends';
 import Postings from '@/pages/Postings';
 import TopTech from '@/pages/TopTech';
 import UploadResume from '@/pages/UploadResume';
 import { ManageResumesPage } from '@/pages/ManageResumes';
+import TrendsV2Page from '@/pages/TrendsV2';
 
 /**
  * Application Root Component
@@ -101,7 +101,7 @@ function App() {
                 {/* ==================== PUBLIC ROUTES ==================== */}
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
-                <Route path="/trends" element={<Trends />} />
+                <Route path="/trends" element={<TrendsV2Page />} />
                 <Route path="/postings" element={<Postings />} />
                 <Route path="/top-tech" element={<TopTech />} />
 

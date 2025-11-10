@@ -24,13 +24,19 @@
   font-size: var(--text-lg);
   color: var(--text-secondary);
 }
+.collapse-button {
+  padding: 0rem !important;
+}
 
+/* .recharts-tooltip-wrapper.recharts-tooltip-wrapper-right.recharts-tooltip-wrapper-bottom {
+  background-color: #1f2937 !important;
+} */
 .btn {
   display: inline-block;
-  padding: var(--space-md) var(--space-xl);
+  padding: var(--space-xs) var(--space-md);
   font-size: var(--text-base);
   font-weight: var(--font-semibold);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   text-decoration: none;
   transition: all var(--transition-base);
   cursor: pointer;

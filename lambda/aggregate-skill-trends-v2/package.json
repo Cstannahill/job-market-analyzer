@@ -1,0 +1,19 @@
+{
+  "name": "aggregate-skill-trends-v2",
+  "version": "1.0.0",
+  "description": "Lambda function to aggregate skill trends from job postings",
+  "main": "index.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsup"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.927.0",
+    "@aws-sdk/lib-dynamodb": "^3.927.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.157",
+    "@types/node": "^24.6.2",
+    "typescript": "^5.9.3"
+  }
+}
