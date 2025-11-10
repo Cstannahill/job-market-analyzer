@@ -10,7 +10,7 @@ import { ChevronDownCircle, ChevronUpCircle } from 'lucide-react';
 import { H2 } from '@/components/ui/typography';
 
 export default function RisingGrid({ data }: { data: TopTechnologiesItem[] }) {
-    const [isOpen, setIsOpen] = React.useState(false)
+    const [isOpen, setIsOpen] = React.useState(true)
 
     return (
         <Collapsible
