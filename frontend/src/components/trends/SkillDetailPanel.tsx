@@ -122,7 +122,7 @@ export default function SkillDetailPanel({ skill, history = [] }: Props) {
                 {/* HEADER */}
                 <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3">
-                        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-500 flex items-center justify-center shadow-lg">
+                        <div className="w-12 h-12 rounded-lg bg-linear-to-br from-purple-600 to-indigo-500 flex items-center justify-center shadow-lg">
                             <span className="text-white font-extrabold uppercase select-none">{(skill.skill || '').slice(0, 2)}</span>
                         </div>
                         <div>

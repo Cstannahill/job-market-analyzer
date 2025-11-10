@@ -15,13 +15,14 @@ export function H1(props: H1Props) {
 export interface H2Props {
     text: string;
     className?: string;
-    underline?: boolean
+    underline?: boolean;
+    style?: object;
 }
 export function H2(props: H2Props) {
-    const { text, className, underline } = props
-    const classNames = underline ? `${className} scroll-m-20 border-b text-3xl font-semibold tracking-tight` : `${className} scroll-m-20 text-3xl font-semibold tracking-tight`
+    const { text, className, underline, style } = props
+    const classNames = underline ? `${className} scroll-m-20 border-b text-xl font-semibold tracking-tight` : `${className} scroll-m-20 text-xl font-semibold tracking-tight`
     return (
-        <h2 className={classNames}>
+        <h2 style={style} className={classNames}>
             {text}
         </h2>
     )

@@ -12,9 +12,9 @@
  The goal is to avoid having to install archiver inside each lambda function.
 */
 
-const fs = require("fs");
-const path = require("path");
-const archiver = require("archiver");
+import fs from "fs";
+import path from "path";
+import archiver from "archiver";
 
 function usageAndExit(msg) {
   if (msg) console.error(msg);

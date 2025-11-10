@@ -731,3 +731,12 @@ npx tree-node-cli -I ".github|.vscode|node_modules|assets|icons|public|dist|pack
 │   └── status.py
 └── zip.js
 ```
+
+Total Postings
+5,455
+↑ Updated daily
+Technologies Tracked
+4,009
+↑ Tracked Live
+Unique Skills
+7,226

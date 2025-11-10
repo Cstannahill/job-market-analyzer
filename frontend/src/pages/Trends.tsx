@@ -84,9 +84,9 @@ export default function Trends() {
                     {/* LEFT: single-column list/navigation */}
                     <div className="trends-main md:col-span-1">
                         <div className="sticky top-20">
-                            <Card className="rounded-xl overflow-hidden bg-gradient-to-b from-slate-900/70 to-slate-900/50 border border-white/6 shadow-2xl">
+                            <Card className="rounded-xl overflow-hidden bg-linear-to-b from-slate-900/70 to-slate-900/50 border border-white/6 shadow-2xl">
                                 <CardContent className="p-3">  {/* reduced padding */}
-                                    <CardHeader className="px-0 pt-1 pb-2 text-lg text-center nf-mono border-b-1">
+                                    <CardHeader className="px-0 pt-1 pb-2 text-lg text-center nf-mono border-b">
                                         Top Skills
                                     </CardHeader>
 
@@ -110,9 +110,9 @@ export default function Trends() {
                     {/* RIGHT: Insight panel takes 3/4 of width */}
                     <aside className="trends-side md:col-span-3">
                         <div className="sticky top-20">
-                            <Card className="h-full rounded-xl overflow-hidden border border-white/6 bg-gradient-to-br from-slate-900/60 to-slate-900/40 shadow-2xl">
+                            <Card className="h-full rounded-xl overflow-hidden border border-white/6 bg-linear-to-br from-slate-900/60 to-slate-900/40 shadow-2xl">
                                 <CardContent className="h-full flex flex-col p-5">
-                                    <CardHeader className="px-0 pt-1 pb-1 text-lg text-center nf-mono border-b-1">
+                                    <CardHeader className="px-0 pt-1 pb-1 text-lg text-center nf-mono border-b">
                                         Insights Panel
                                     </CardHeader>
 

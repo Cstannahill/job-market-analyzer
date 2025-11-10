@@ -1,6 +1,6 @@
 // SkillList.tsx
 import { type SkillTrend } from '@/shared-types';
-import SkillCard from './SkillCard';
+import SkillCard from './SkillCardAlt';
 
 type Props = {
     skills: SkillTrend[];

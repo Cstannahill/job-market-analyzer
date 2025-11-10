@@ -22,7 +22,7 @@ export const Header: React.FC = () => {
 
     };
     return (
-        <header className="w-full sticky top-0 z-50 border-b rounded-lg border-white/5" >
+        <header className="w-full md:w-fit sticky top-0 z-50 border-b rounded-lg border-white/5" >
             <a
                 href="#main-content"
                 className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:bg-indigo-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:z-50"
@@ -31,7 +31,7 @@ export const Header: React.FC = () => {
             </a>
 
             {/* Glassmorphism backdrop with gradient overlay */}
-            <div className="absolute rounded-lg  border-1 border-white/5 inset-0 bg-gradient-to-r from-slate-900/98 via-slate-900/95 to-slate-900/98 dark:from-slate-900/98 dark:via-slate-900/95 dark:to-slate-900/98 backdrop-blur-xl" />
+            <div className="absolute rounded-lg  border border-white/5 inset-0 bg-linear-to-r from-slate-900/98 via-slate-900/95 to-slate-900/98 dark:from-slate-900/98 dark:via-slate-900/95 dark:to-slate-900/98 backdrop-blur-xl" />
 
             <div className="relative rounded-lg container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className={navClassName}>
@@ -70,7 +70,7 @@ export const Header: React.FC = () => {
                             className="relative inline-flex items-center justify-center h-10 w-10 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 border border-white/10 hover:border-indigo-500/30 shadow-lg hover:shadow-indigo-500/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900 transition-all duration-300 group"
                             aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
                         >
-                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/0 to-purple-500/0 group-hover:from-indigo-500/10 group-hover:to-purple-500/10 rounded-xl transition-all duration-300" />
+                            <div className="absolute inset-0 bg-liner-to-br from-indigo-500/0 to-purple-500/0 group-hover:from-indigo-500/10 group-hover:to-purple-500/10 rounded-xl transition-all duration-300" />
                             {theme === 'light' ? (
                                 <Moon className="w-5 h-5 text-slate-300 group-hover:text-indigo-400 transition-colors relative z-10" />
                             ) : (
@@ -86,8 +86,8 @@ export const Header: React.FC = () => {
                 </div>
             </div>
 
-            {/* Gradient accent line */}
-            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
+            {/* gradient accent line */}
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-liner-to-r from-transparent via-indigo-500/50 to-transparent" />
         </header>
     );
 };
