@@ -19,7 +19,9 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
-
+.fake {
+  background-color: #6e55d3;
+}
 .section-subtitle {
   font-size: var(--text-lg);
   color: var(--text-secondary);

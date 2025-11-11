@@ -366,7 +366,7 @@ EXTRACTION RULES:
 11. INDUSTRY:
     - Single broad category: "technology", "healthcare", "finance", "education", etc.
     - Use lowercase
-    - If unclear or multiple: null
+    - If unclear or multiple: use most prominent
 
 12. JOB_TITLE and JOB_DESCRIPTION:
     - JOB_TITLE: Extract the exact job title as stated in the posting.

@@ -5,11 +5,11 @@ export default defineConfig({
   bundle: true, // bundle everything into single files
   format: ["esm"], // Node 20 prefers ESM
   platform: "node",
-  target: "node20", // matches Lambda runtime
-  minify: true, // smaller zip size
+  target: "node22", // matches Lambda runtime
+  minify: false, // smaller zip size
   sourcemap: false,
   clean: true, // clears dist/ before build
-  dts: true, // optional: generates .d.ts
+  dts: false, // optional: generates .d.ts
   splitting: false, // avoid code splitting for Lambda single-file output
   external: [], // leave empty to bundle all dependencies
 });

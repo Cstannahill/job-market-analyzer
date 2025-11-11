@@ -5,13 +5,16 @@ import FiltersBar from '@/components/trends-v2/FiltersBar';
 import TopList from '@/components/trends-v2/TopList';
 import RisingGrid from '@/components/trends-v2/RisingGrid';
 import TechDetailPanel from '@/components/trends-v2/TechDetailPanel';
-import type { Region, Period, TopTechnologiesItem, TechnologyDetailResponse } from '@/shared-types/src/trendsv2';
+import type { Region, Period, TopTechnologiesItem, TechnologyDetailResponse, WeekPeriod } from '@/shared-types/src/trendsv2';
 import { Spinner } from '@/components/ui/spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TrendsLayout } from '@/components/TrendsLayout';
-
+import { toWeek } from '@/lib/utils/dateUtils';
+const today = new Date();
+const thisWeek: WeekPeriod = toWeek(today);
 const DEFAULT_REGION: Region = "GLOBAL";
-const DEFAULT_PERIOD: Period = "2025-W44";
+const DEFAULT_PERIOD: Period = thisWeek;
+console.log(thisWeek)
 
 export default function TrendsV2Page() {
     const [region, setRegion] = useState<Region>(DEFAULT_REGION);

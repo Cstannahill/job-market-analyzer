@@ -1,17 +1,4 @@
 #!/usr/bin/env node
-/*
- Root-level zip script (CommonJS)
- Usage: node zip.js <path-to-lambda-dir>
- Example: node zip.js lambda/get-job-postings
-
- This script will create <target>/lambda.zip containing:
-  - dist/ (if present)
-  - node_modules/ (if present)
-  - package.json (if present)
-
- The goal is to avoid having to install archiver inside each lambda function.
-*/
-
 import fs from "fs";
 import path from "path";
 import archiver from "archiver";
@@ -22,6 +9,23 @@ function usageAndExit(msg) {
   process.exit(msg ? 1 : 0);
 }
 
+export function getFormattedDateTime() {
+  const now = new Date();
+  const day = now.getDate();
+  const month = now.getMonth() + 1;
+  const year = now.getFullYear().toString().slice(-2);
+  const hours = now.getHours();
+  const minutes = now.getMinutes();
+  const pad = (num) => num.toString().padStart(2, "0");
+  const DD = pad(day);
+  const MM = pad(month);
+  const YY = year;
+  const HR = pad(hours);
+  const MN = pad(minutes);
+
+  return `${MM}-${DD}-${YY}_${HR}-${MN}`;
+}
+
 const arg = process.argv[2];
 if (!arg) usageAndExit("Missing target lambda directory argument.");
 
@@ -29,8 +33,9 @@ const targetDir = path.isAbsolute(arg) ? arg : path.join(process.cwd(), arg);
 if (!fs.existsSync(targetDir) || !fs.statSync(targetDir).isDirectory()) {
   usageAndExit(`Target directory not found or not a directory: ${targetDir}`);
 }
-
-const outputZip = path.join(targetDir, "lambda.zip");
+const dirParts = targetDir.split("\\");
+const lastDir = dirParts[dirParts.length - 1];
+const outputZip = path.join(targetDir, `${lastDir}.zip`);
 
 function createZip() {
   return new Promise((resolve, reject) => {
@@ -84,6 +89,10 @@ function createZip() {
 
     // Add dist contents at the root of the zip (so files like index.js, package.json,
     // and node_modules/* from inside dist end up at the zip root rather than under a dist/ folder)
+    if (targetDir === "ingest-jobs") {
+      const companySlugsPath = path.join(targetDir, "company-slugs.json");
+      addIfExists(companySlugsPath, "company-slugs.json", false);
+    }
     addIfExists(distPath, false, true);
     addIfExists(nodeModulesPath, "node_modules", true);
     addIfExists(packageJsonPath, "package.json", false);

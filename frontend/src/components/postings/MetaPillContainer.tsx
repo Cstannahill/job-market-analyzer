@@ -10,7 +10,7 @@ type MetaPillContainerProps = {
 };
 
 export function MetaPillContainer({ posting, date }: MetaPillContainerProps) {
-    const industry = posting?.industry && typeof posting.industry === 'string' ? posting.industry : Array.isArray(posting.industry) && posting.industry.length > 0 && typeof posting.industry[0] === 'string' ? posting.industry[0] : "Unknown";
+    const industry = posting?.industry && typeof posting.industry === 'string' ? posting.industry : Array.isArray(posting.industry) && posting.industry.length > 0 && typeof posting.industry[0] === 'string' ? posting.industry[0].split(",")[0] : "Unknown";
     return (
         <div className="meta-pill justify-around">
             <div className='company-name'>
@@ -23,7 +23,7 @@ export function MetaPillContainer({ posting, date }: MetaPillContainerProps) {
                     color: '#FFFFFF',
                 }}
             >
-                {toProperCase(industry)}
+                {toProperCase(industry).split(",")[0]}
             </span>
             <span className="job-date">{date}</span>
 

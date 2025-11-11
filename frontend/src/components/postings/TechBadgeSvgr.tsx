@@ -21,6 +21,7 @@ function normalizeLookup(name: string) {
         'rails': 'rails',
         'ruby on rails': 'rails',
         'aws': 'aws',
+        "c/c++": "cpp",
         'c++': 'cpp',
         'c ++': 'cpp',
         'c + +': 'cpp',
@@ -35,6 +36,8 @@ function normalizeLookup(name: string) {
     if (specialCases[lower]) return specialCases[lower];
 
     // Pattern-based special cases
+    if (lower.includes("gitlab")) return "gitlab";
+    if (lower.includes("kotlin")) return "kotlin";
     if (lower === "cloudflare" || lower.includes("cloudflare")) return "cloudflare";
     if (lower.includes("next.js") || lower.includes("nextjs")) return "next";
     if (lower.includes('html')) return 'html5';
