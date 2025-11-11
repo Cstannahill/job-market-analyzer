@@ -1,6 +1,7 @@
 // src/pages/Login.tsx
 import { LoginForm } from '@/components/login/LoginForm';
-import Star from "@/assets/star2.avif";
+// import Star from "@/assets/star2.avif";
+import DataRiver from "@/assets/dr3.avif"
 import Seo from '@/components/Seo';
 import { Layout } from '@/components/Layout';
 import { Card } from '@/components/ui/card';
@@ -26,9 +27,10 @@ export default function Login() {
                     </div>
                     <div className="bg-muted relative hidden lg:block rounded-xl register-image-div">
                         <img
-                            src={Star}
+                            src={DataRiver}
                             alt="Trend Dev Visualization"
-                            className="absolute inset-0 h-full w-full object-cover rounded-lg border-1 border-stone-700"
+                            style={{ objectFit: "cover" }}
+                            className="absolute inset-0 h-full w-full object-cover rounded-lg border border-stone-700"
                         />
                     </div>
                 </div>

@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import Star from "@/assets/star.avif";
+import TechCity from "@/assets/techcity.avif";
 import { useAuthLoading } from '@/stores/authStore';
 import { authService } from '@/services/authService';
 
@@ -216,7 +216,7 @@ export function RegisterForm() {
 
     // Registration form UI
     return (
-        <div className="grid min-h-svh lg:grid-cols-2">
+        <div className="grid min-h-svh lg:grid-cols-3">
             <div className="flex flex-col gap-4 p-6 md:p-10">
                 <div className="flex flex-1 items-center justify-center">
                     <div className="w-full max-w-xs">
@@ -322,9 +322,9 @@ export function RegisterForm() {
                     </div>
                 </div>
             </div>
-            <div className="bg-muted relative hidden lg:block">
+            <div className="bg-muted relative hidden lg:block lg:col-span-2">
                 <img
-                    src={Star}
+                    src={TechCity}
                     alt="Trend Dev Visualization"
                     className="absolute inset-0 h-full w-full object-cover rounded-lg border-1 border-stone-700"
                 />

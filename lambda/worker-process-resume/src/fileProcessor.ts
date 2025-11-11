@@ -20,6 +20,10 @@ import fs from "fs";
 import type { ResumeItem } from "./types.js";
 import { isPdf, normalizeS3PayloadToBuffer } from "./fileHelpers.js";
 import { enrichExperienceDurations, totalMonthsMerged } from "./dateHelpers.js";
+import { getTechnologyDetail } from "./techTrendsDbService.js";
+import { ok, toWeek } from "./techTrendsHelpers.js";
+import { log, Ctx } from "./logging.js";
+import { canonicalizeTech } from "./techNormalizer.js";
 
 interface PDFResponse {
   success: boolean;
@@ -136,6 +140,41 @@ export async function processFile(key: string) {
   const updatedResumeItem = await updateResume(resumeItem);
   console.log("Resume item updated in database:", updatedResumeItem);
   console.log("Generating insights for resume ID:", resumeId);
+
+  // New Section
+  const coTech = [];
+  let canonTech: string[] = [];
+  try {
+    canonTech = canonicalizeTech(normalizedSkills?.technologies);
+  } catch (err) {
+    console.error(err);
+  }
+
+  try {
+    for (let i = 0; i < 5; i++) {
+      const data = await getTechnologyDetail({
+        tech: canonTech[i],
+        region: "GLOBAL",
+        period: toWeek(new Date()),
+        // ctx: ctx,
+      });
+      log(undefined, "info", "detail.done", {
+        tech: canonTech[i],
+        slices: {
+          work_mode: data.by_work_mode?.length ?? 0,
+          seniority: data.by_seniority?.length ?? 0,
+        },
+      });
+      const techData = { technology: canonTech[i], ...data };
+      console.log(techData);
+      coTech.push(techData);
+    }
+  } catch {
+    console.error("For Loop Failed");
+  }
+  console.log(coTech);
+  // END NEW SECTION
+
   const { parsed, insightsItem } = await genInsightsWithBedrock(text, resumeId);
   const insights = parsed;
   console.log("Insights generated:", insights);
