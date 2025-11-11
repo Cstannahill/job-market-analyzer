@@ -30,7 +30,7 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
                         {posting.company_name && posting.company_name.toProperCase()}
                     </Badge>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <p className="job-title">{posting.job_title}</p>
+                        <p className="job-title">{posting.job_title.toProperCase()}</p>
                     </div>
                 </div>
 
