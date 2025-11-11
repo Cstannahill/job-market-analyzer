@@ -4,7 +4,7 @@ import { GalleryVerticalEnd } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import Star from '@/assets/star1.avif';
+import Nexus from '@/assets/dr3.avif';
 import Seo from '@/components/Seo';
 import { Layout } from '@/components/Layout';
 
@@ -336,7 +336,7 @@ export default function VerifyEmail() {
                 {/* Right Column: Visual Background */}
                 <div className="bg-muted relative hidden lg:block">
                     <img
-                        src={Star}
+                        src={Nexus}
                         alt="Job Market Visualization"
                         className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
                     />

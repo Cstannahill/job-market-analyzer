@@ -308,7 +308,7 @@ export async function normalizeSkillsWithBedrock(
 ) {
   const MODEL = SKILL_NORMALIZATION_MODEL;
   console.log("Using skill normalization model:", MODEL);
-
+  console.log(JSON.stringify(extractedSkills));
   const prompt = `
 You are a resume analyst. Given these technologies and skills extracted from a resume, 
 normalize and deduplicate them. Remove duplicates and combine related items.
