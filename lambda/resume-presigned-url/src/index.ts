@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { countUserResumes, insertResume } from "./dynamoService.js";
 const s3 = new S3Client({ region: process.env.AWS_REGION_NAME || "us-east-1" });
 const MAX_RESUMES_PER_USER = Number(process.env.MAX_RESUMES_PER_USER ?? 10);
+const ALLOWED_USER_BYPASS_ID = process.env.ALLOWED_USER_BYPASS_ID;
 const ALLOWED_ORIGINS = [
   "http://localhost:5173",
   "https://main.d2qk81z2cubp0y.amplifyapp.com",
@@ -54,17 +55,19 @@ export const handler = async (event: any) => {
         body: JSON.stringify({ error: "Unsupported content type" }),
       };
     }
-    const currentCount = await countUserResumes(userId);
-    if (currentCount >= MAX_RESUMES_PER_USER) {
-      return {
-        statusCode: 409, // Conflict (quota reached)
-        headers,
-        body: JSON.stringify({
-          error:
-            `You’ve reached the limit of ${MAX_RESUMES_PER_USER} resumes. ` +
-            "Please delete one before uploading another.",
-        }),
-      };
+    if (userId !== ALLOWED_USER_BYPASS_ID) {
+      const currentCount = await countUserResumes(userId);
+      if (currentCount >= MAX_RESUMES_PER_USER) {
+        return {
+          statusCode: 409, // Conflict (quota reached)
+          headers,
+          body: JSON.stringify({
+            error:
+              `You’ve reached the limit of ${MAX_RESUMES_PER_USER} resumes. ` +
+              "Please delete one before uploading another.",
+          }),
+        };
+      }
     }
     const resumeId = uuidv4();
     const key = `resumes/${userId}/${resumeId}-${Date.now()}`;

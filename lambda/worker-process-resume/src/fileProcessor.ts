@@ -151,7 +151,7 @@ export async function processFile(key: string) {
   }
 
   try {
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < canonTech.length; i++) {
       const data = await getTechnologyDetail({
         tech: canonTech[i],
         region: "GLOBAL",
@@ -172,7 +172,9 @@ export async function processFile(key: string) {
   } catch {
     console.error("For Loop Failed");
   }
-  console.log(coTech);
+  console.log(`Co-occuring Tech Array Length: ${coTech.length} \n
+    Co-occuring Tech Array Items: ${coTech}
+    `);
   // END NEW SECTION
 
   const { parsed, insightsItem } = await genInsightsWithBedrock(text, resumeId);
