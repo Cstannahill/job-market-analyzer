@@ -55,5 +55,11 @@ export interface Extractor {
   }>;
 }
 
+export type TechRow = {
+  Id?: string;
+  postingCount?: number;
+};
+export type SkillCount = { technology: string; demand: number };
+
 // wiring
 // env.EXTRACTOR_KIND = "ocr-fastapi" | "textract"

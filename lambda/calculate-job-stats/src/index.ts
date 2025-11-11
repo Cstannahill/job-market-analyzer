@@ -18,7 +18,7 @@ const REQUIREMENTS_TABLE =
 const INDUSTRIES_TABLE =
   process.env.INDUSTRIES_TABLE ?? "job-postings-industries";
 const BENEFITS_TABLE = process.env.BENEFITS_TABLE ?? "job-postings-benefits";
-
+const TOP_N = Number(process.env.STATS_TOP_N ?? 500);
 const client = new DynamoDBClient({});
 const ddb = DynamoDBDocumentClient.from(client);
 
@@ -49,8 +49,8 @@ export const handler = async (): Promise<any> => {
       totalPostings,
       totalSkills,
       totalTechnologies,
-      skills, // Array of { name, count }
-      technologies, // Array of { name, count }
+      skills: skills.slice(0, TOP_N), // Array of { name, count }
+      technologies,
       requirementsCounts,
       industriesCounts,
       benefitCounts,
@@ -159,7 +159,7 @@ async function getTechnologyStats(): Promise<{
     const resp = await ddb.send(
       new ScanCommand({
         TableName: TECHNOLOGIES_TABLE,
-        ProjectionExpression: "#Id, postingsCount", // Fetch ID and count
+        ProjectionExpression: "#Id, postingCount", // Fetch ID and count
         ExpressionAttributeNames: { "#Id": "Id" }, // Id is a reserved word
         ExclusiveStartKey,
       })

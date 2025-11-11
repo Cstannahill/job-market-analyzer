@@ -6,7 +6,7 @@ export default defineConfig({
   format: ["esm"], // Node 20 prefers ESM
   platform: "node",
   target: "node20", // matches Lambda runtime
-  minify: true, // smaller zip size
+  minify: false, // smaller zip size
   sourcemap: false,
   clean: true, // clears dist/ before build
   dts: true, // optional: generates .d.ts

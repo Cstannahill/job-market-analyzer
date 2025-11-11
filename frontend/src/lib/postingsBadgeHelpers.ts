@@ -101,6 +101,7 @@ export const INDUSTRY_COLORS: Record<string, string> = {
   gaming: "#A855F7",
   "real estate technology": "#06B6D4",
   cryptocurrency: "#F59E0B",
+  "ai/audio": "#6e55d3",
   "cryptocurrency/fintech": "#FBBF24",
   "Blockchain/DeFi": "#F59E0B",
   "advertising technology": "#F97316",
@@ -144,7 +145,8 @@ export function getCompanySizeBadgeColor(size: string | null): string {
  * Get the badge color for an industry
  */
 export function getIndustryBadgeColor(industry: string): string {
-  return INDUSTRY_COLORS[industry] || "#9CA3AF"; // Gray fallback
+  const normIndustry = industry.split(",")[0].toLowerCase();
+  return INDUSTRY_COLORS[normIndustry] || "#9CA3AF"; // Gray fallback
 }
 
 /**

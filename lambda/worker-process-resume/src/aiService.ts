@@ -2,7 +2,7 @@ import {
   BedrockRuntimeClient,
   ConverseCommand,
 } from "@aws-sdk/client-bedrock-runtime";
-import { updateInsights } from "./dbService.js";
+import { getTopTechnologies, updateInsights } from "./dbService.js";
 import { InsightsItem } from "./types.js";
 import {
   extractFirstBalancedJson,
@@ -83,14 +83,15 @@ export async function genInsightsWithBedrock(
   resumeId: string
 ) {
   const MODEL = SELECTED_MODEL;
-  console.log("Using Insights model:", MODEL);
   const insightId = uuidv4();
+  const techJson = await getTopTechnologies();
 
   const llmPrompt = `
 You are an expert hiring manager and resume coach with 10+ years of experience recruiting software engineers across startups and scaleups. Analyze the RESUME_TEXT below and produce a concise, actionable, and machine-friendly JSON report. Do NOT produce any freeform text outside the JSON object.
 
 OVERVIEW:
 - Read the resume carefully and base answers only on the content provided.
+- Compare resume skills against current market demand data to identify alignment and gaps.
 - Prioritize high-impact, concrete advice that increases hireability for mid-to-senior software engineering roles.
 - When making assumptions, mark them explicitly and keep them minimal.
 
@@ -98,6 +99,18 @@ INPUT:
 RESUME_TEXT_START
 ${resumeText.substring(0, 15000)}
 RESUME_TEXT_END
+
+CURRENT_MARKET_DATA:
+${JSON.stringify(techJson, null, 2)}
+
+This data represents the top ${
+    techJson.topSkills.length
+  } most in-demand technologies from real job postings. Use this to:
+1. Identify which resume skills match high-demand technologies
+2. Find high-value skills missing from the resume
+3. Prioritize gaps based on market demand (higher demand = higher priority)
+4. Provide specific, data-driven recommendations
+
 
 OUTPUT FORMAT (required JSON):
 Return compact JSON (no pretty-printing or extra whitespace) object with these keys exactly:
@@ -116,6 +129,12 @@ Return compact JSON (no pretty-printing or extra whitespace) object with these k
     "titleAndSummary": { "headline": string, "professionalSummary": string },
     "improvedBullets": [ { "old": string | null, "new": string } ]  // produce up to 5 rewritten bullets that use metrics
   },
+  "marketAlignment": {
+    "matchedSkills": [ { "skill": string, "demand": number, "onResume": true, "percentile": number } ],
+    "missingHighDemandSkills": [ { "skill": string, "demand": number, "priority": "high" | "medium" | "low", "reason": string, "learningPath": string } ],
+    "demandScore": number,
+    "demandScoreExplanation": string
+  },
   "atsAndFormat": { "isATSFriendly": boolean, "recommendations": [string] },
   "confidence": "high" | "medium" | "low",
   "assumptions": [string]
@@ -132,13 +151,53 @@ INSTRUCTIONS:
 8. If the input was truncated (you received only part of the resume), add an entry to "assumptions" describing what may be missing.
 9. The overallImpression property within summary should be based on all information, discerning what you can based on the skills and experience of the developer from your point of view as the hiring manager; this should be the hiring manager's overall impression of the developer.
 
+CRITICAL: GAPS VS MARKET ALIGNMENT DISTINCTION:
+10. The "gaps" array is for NON-TECHNICAL career/professional gaps ONLY. Examples include:
+    - "Formal education in computer science" 
+    - "Quantifiable metrics in achievements"
+    - "Team leadership experience"
+    - "Open-source contributions"
+    - "Mobile development experience" (only if they claim full-stack but have zero mobile)
+    - "Production system design at scale"
+    - "Public speaking or conference talks"
+    - "Technical writing or blogging"
+    
+    DO NOT include specific technical skills/frameworks in "gaps" - those belong in "marketAlignment.missingHighDemandSkills"
+
+11. For "marketAlignment.matchedSkills": 
+    - List skills from the resume that appear in the top 50 market demand data
+    - Include the exact demand number from the market data
+    - Calculate percentile (e.g., top 5% = 95th percentile)
+    - Only include skills with demand > 100
+
+12. For "marketAlignment.missingHighDemandSkills":
+    - Identify top 10 high-demand TECHNICAL skills (demand > 200) NOT present on the resume
+    - This is where you list: Kubernetes, Docker, Terraform, Go, Ruby, etc.
+    - Prioritize based on: demand count + relevance to candidate's existing skill set
+    - Set priority as:
+      * "high" if demand > 600 AND complements existing skills
+      * "medium" if demand 300-600 OR moderately relevant
+      * "low" if demand 200-300 OR low relevance
+    - Provide specific "reason" explaining why this skill matters for their career path
+    - Give actionable "learningPath" (e.g., "Start with AWS EKS, then standalone Kubernetes")
+
+13. For "marketAlignment.demandScore":
+    - Calculate: (number of resume skills in top 20 demand / 20) × 100
+    - Round to integer
+    - Provide clear explanation in "demandScoreExplanation"
+
 DO NOT:
 - Do not return any markdown, headings, or commentary — only the JSON object.
 - Do not invent long stories or external facts not supported by the resume; minimal, labeled assumptions are allowed.
+- Do not include technical skills/frameworks in "gaps" - those belong in "marketAlignment.missingHighDemandSkills"
+- Do not include skills in "missingHighDemandSkills" if they are already on the resume.
+- Do not recommend skills with demand < 130 unless highly relevant to their career trajectory.
+- Do not duplicate information between "gaps" and "marketAlignment.missingHighDemandSkills"
 
 End of instructions.
 `;
 
+  console.log(llmPrompt.length, " - Prompt Character count");
   try {
     const command = new ConverseCommand({
       modelId: MODEL,
@@ -148,11 +207,11 @@ End of instructions.
           text: "You are an expert resume analyst. Provide detailed, constructive feedback.",
         },
       ],
-      inferenceConfig: { temperature: 0.7, maxTokens: 8000 } as any,
+      inferenceConfig: { temperature: 0.7, maxTokens: 9800 } as any,
     });
 
     const response = await bedrock.send(command);
-
+    console.log(String(response).length, "  -- RESPONSE Length");
     const rawText = extractTextFromBedrockResponse(response).trim();
 
     if (!rawText) {

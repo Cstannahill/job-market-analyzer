@@ -158,7 +158,9 @@ export const handler = async () => {
     const ind = topN(industries.get(key), 8);
     const ttl = topN(titles.get(key), 5);
     const co = topN(coMap.get(key), 10);
-
+    const cleanCo = pruneEmptyKeys(co);
+    const cleanInd = pruneEmptyKeys(ind);
+    const cleanTtl = pruneEmptyKeys(ttl);
     const period_skill = `${periodStr}#${skill}`;
     const job_count_desc = `${zeroPad(job_count)}#${skill}#${region}`;
 
@@ -207,9 +209,9 @@ export const handler = async () => {
         : {}),
       ...(regional_share != null ? { regional_share } : {}),
       ...(global_share != null ? { global_share } : {}),
-      ...(co ? { cooccurring_skills: co } : {}),
-      ...(ind ? { industry_distribution: ind } : {}),
-      ...(ttl ? { top_titles: ttl } : {}),
+      ...(cleanCo ? { cooccurring_skills: cleanCo } : {}),
+      ...(cleanInd ? { industry_distribution: cleanInd } : {}),
+      ...(cleanTtl ? { top_titles: cleanTtl } : {}),
       ...(job_count_change_pct != null ? { job_count_change_pct } : {}),
       ...(median_salary_change_pct != null ? { median_salary_change_pct } : {}),
       ...(job_count_change_pct != null
@@ -369,4 +371,12 @@ function title(s: string) {
     /\w\S*/g,
     (w) => w[0].toUpperCase() + w.slice(1).toLowerCase()
   );
+}
+function pruneEmptyKeys<T extends Record<string, any>>(m?: T): T | undefined {
+  if (!m) return m;
+  for (const k of Object.keys(m)) {
+    const nk = k?.trim?.() ?? k;
+    if (!nk) delete (m as any)[k];
+  }
+  return m;
 }

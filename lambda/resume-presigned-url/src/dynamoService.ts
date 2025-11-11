@@ -1,4 +1,8 @@
-import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBClient,
+  PutItemCommand,
+  QueryCommand,
+} from "@aws-sdk/client-dynamodb";
 import { marshall } from "@aws-sdk/util-dynamodb";
 
 const RESUME_TABLE = process.env.RESUME_TABLE || "resumes-base";
@@ -23,4 +27,20 @@ export const insertResume = async (resumeItem: ResumeItem) => {
       Item: marshall(resumeItem, { removeUndefinedValues: true }),
     })
   );
+};
+
+export const countUserResumes = async (userId: string): Promise<number> => {
+  const resp = await dynamo.send(
+    new QueryCommand({
+      TableName: RESUME_TABLE,
+      KeyConditionExpression: "PK = :pk AND begins_with(SK, :skPrefix)",
+      ExpressionAttributeValues: {
+        ":pk": { S: `USER#${userId}` },
+        ":skPrefix": { S: "RESUME#" },
+      },
+      Select: "COUNT",
+      ConsistentRead: true, // helps right after prior writes
+    })
+  );
+  return resp.Count ?? 0;
 };

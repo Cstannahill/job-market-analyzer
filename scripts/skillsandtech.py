@@ -243,9 +243,9 @@ def migrate_postings():
         # Process each posting
         for posting in items_to_normalize:
             # Skip if already normalized
-            # if posting.get("normalized") == True:
-            #     skipped_normalized += 1
-            #     continue
+            if posting.get("normalized") == True:
+                skipped_normalized += 1
+                continue
 
             postings_processed += 1
             posting_id = posting.get("Id") or posting.get("jobId")
@@ -276,56 +276,56 @@ def migrate_postings():
             else:
                 posting.pop("skills", None)
 
-            # Process benefits
-            if "benefits" in posting and posting["benefits"]:
-                normalized_benefits, benefits_data = normalize_and_collect(
-                    posting["benefits"]
-                )
-                posting["benefits"] = (
-                    normalized_benefits if normalized_benefits else None
-                )
+            # # Process benefits
+            # if "benefits" in posting and posting["benefits"]:
+            #     normalized_benefits, benefits_data = normalize_and_collect(
+            #         posting["benefits"]
+            #     )
+            #     posting["benefits"] = (
+            #         normalized_benefits if normalized_benefits else None
+            #     )
 
-                for benefit, data in benefits_data.items():
-                    if benefit not in benefits_index:
-                        benefits_index[benefit] = data
-                    benefits_index[benefit]["count"] += 1
-            else:
-                posting.pop("benefits", None)
+            #     for benefit, data in benefits_data.items():
+            #         if benefit not in benefits_index:
+            #             benefits_index[benefit] = data
+            #         benefits_index[benefit]["count"] += 1
+            # else:
+            #     posting.pop("benefits", None)
 
-            # Process requirements
-            if "requirements" in posting and posting["requirements"]:
-                normalized_requirements, requirements_data = normalize_and_collect(
-                    posting["requirements"]
-                )
-                posting["requirements"] = (
-                    normalized_requirements if normalized_requirements else None
-                )
+            # # Process requirements
+            # if "requirements" in posting and posting["requirements"]:
+            #     normalized_requirements, requirements_data = normalize_and_collect(
+            #         posting["requirements"]
+            #     )
+            #     posting["requirements"] = (
+            #         normalized_requirements if normalized_requirements else None
+            #     )
 
-                for requirement, data in requirements_data.items():
-                    if requirement not in requirements_index:
-                        requirements_index[requirement] = data
-                    requirements_index[requirement]["count"] += 1
-            else:
-                posting.pop("requirements", None)
+            #     for requirement, data in requirements_data.items():
+            #         if requirement not in requirements_index:
+            #             requirements_index[requirement] = data
+            #         requirements_index[requirement]["count"] += 1
+            # else:
+            #     posting.pop("requirements", None)
 
-            # Process industry (can have multiple industries from one field)
-            if "industry" in posting and posting["industry"]:
-                industries_list = normalize_industry(posting["industry"])
-                if industries_list:
-                    posting["industry"] = industries_list
+            # # Process industry (can have multiple industries from one field)
+            # if "industry" in posting and posting["industry"]:
+            #     industries_list = normalize_industry(posting["industry"])
+            #     if industries_list:
+            #         posting["industry"] = industries_list
 
-                    for industry in industries_list:
-                        if industry not in industries_index:
-                            industries_index[industry] = {
-                                "Id": get_id_from_name(industry),
-                                "name": industry,
-                                "count": 0,
-                            }
-                        industries_index[industry]["count"] += 1
-                else:
-                    posting.pop("industry", None)
-            else:
-                posting.pop("industry", None)
+            #         for industry in industries_list:
+            #             if industry not in industries_index:
+            #                 industries_index[industry] = {
+            #                     "Id": get_id_from_name(industry),
+            #                     "name": industry,
+            #                     "count": 0,
+            #                 }
+            #             industries_index[industry]["count"] += 1
+            #     else:
+            #         posting.pop("industry", None)
+            # else:
+            #     posting.pop("industry", None)
 
             if postings_processed % 100 == 0:
                 print(f"✓ Processed {postings_processed} postings")
@@ -372,54 +372,54 @@ def migrate_postings():
         print(f"✓ Wrote {len(skill_index)} skills")
 
         # Write benefits lookup table
-        print("\nWriting benefits lookup table...")
-        with benefits_table.batch_writer(overwrite_by_pkeys=["Id", "Name"]) as batch:
-            for canonical, data in sorted(benefits_index.items()):
-                batch.put_item(
-                    Item={
-                        "Id": data["Id"],
-                        "Name": data["name"],
-                        "postingCount": data["count"],
-                        "createdAt": str(
-                            __import__("datetime").datetime.now().isoformat()
-                        ),
-                    }
-                )
-        print(f"✓ Wrote {len(benefits_index)} benefits")
+        # print("\nWriting benefits lookup table...")
+        # with benefits_table.batch_writer(overwrite_by_pkeys=["Id", "Name"]) as batch:
+        #     for canonical, data in sorted(benefits_index.items()):
+        #         batch.put_item(
+        #             Item={
+        #                 "Id": data["Id"],
+        #                 "Name": data["name"],
+        #                 "postingCount": data["count"],
+        #                 "createdAt": str(
+        #                     __import__("datetime").datetime.now().isoformat()
+        #                 ),
+        #             }
+        #         )
+        # print(f"✓ Wrote {len(benefits_index)} benefits")
 
-        # Write requirements lookup table
-        print("\nWriting requirements lookup table...")
-        with requirements_table.batch_writer(
-            overwrite_by_pkeys=["Id", "Name"]
-        ) as batch:
-            for canonical, data in sorted(requirements_index.items()):
-                batch.put_item(
-                    Item={
-                        "Id": data["Id"],
-                        "Name": data["name"],
-                        "postingCount": data["count"],
-                        "createdAt": str(
-                            __import__("datetime").datetime.now().isoformat()
-                        ),
-                    }
-                )
-        print(f"✓ Wrote {len(requirements_index)} requirements")
+        # # Write requirements lookup table
+        # print("\nWriting requirements lookup table...")
+        # with requirements_table.batch_writer(
+        #     overwrite_by_pkeys=["Id", "Name"]
+        # ) as batch:
+        #     for canonical, data in sorted(requirements_index.items()):
+        #         batch.put_item(
+        #             Item={
+        #                 "Id": data["Id"],
+        #                 "Name": data["name"],
+        #                 "postingCount": data["count"],
+        #                 "createdAt": str(
+        #                     __import__("datetime").datetime.now().isoformat()
+        #                 ),
+        #             }
+        #         )
+        # print(f"✓ Wrote {len(requirements_index)} requirements")
 
         # Write industries lookup table
-        print("\nWriting industries lookup table...")
-        with industries_table.batch_writer(overwrite_by_pkeys=["Id", "Name"]) as batch:
-            for canonical, data in sorted(industries_index.items()):
-                batch.put_item(
-                    Item={
-                        "Id": data["Id"],
-                        "Name": data["name"],
-                        "postingCount": data["count"],
-                        "createdAt": str(
-                            __import__("datetime").datetime.now().isoformat()
-                        ),
-                    }
-                )
-        print(f"✓ Wrote {len(industries_index)} industries")
+        # print("\nWriting industries lookup table...")
+        # with industries_table.batch_writer(overwrite_by_pkeys=["Id", "Name"]) as batch:
+        #     for canonical, data in sorted(industries_index.items()):
+        #         batch.put_item(
+        #             Item={
+        #                 "Id": data["Id"],
+        #                 "Name": data["name"],
+        #                 "postingCount": data["count"],
+        #                 "createdAt": str(
+        #                     __import__("datetime").datetime.now().isoformat()
+        #                 ),
+        #             }
+        #         )
+        # print(f"✓ Wrote {len(industries_index)} industries")
 
         # Write normalized postings
         print("\nWriting normalized postings...")

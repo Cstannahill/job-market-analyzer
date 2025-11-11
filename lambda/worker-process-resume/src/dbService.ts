@@ -4,13 +4,19 @@ import {
   PutItemCommand,
   UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
-import { QueryCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  QueryCommand,
+  ScanCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { unmarshall, marshall } from "@aws-sdk/util-dynamodb";
 import { InsightsItem } from "./types.js";
 import type {
   ResumeBaseItem,
   ResumeItem,
   ResumeWithInsights,
+  TechRow,
+  SkillCount,
 } from "./types.js";
 import { v4 as uuidv4 } from "uuid";
 import { removeUndefinedDeep } from "./sanitizers.js";
@@ -19,6 +25,7 @@ const RESUME_TABLE = process.env.RESUME_TABLE || "resumes-base";
 const INSIGHTS_TABLE = process.env.INSIGHTS_TABLE || "resume-insights";
 const QUERY_TABLE = process.env.QUERY_TABLE || "resumes-with-insights-query";
 const dynamo = new DynamoDBClient({ region: "us-east-1" });
+const docClient = DynamoDBDocumentClient.from(dynamo);
 
 export async function updateInsights(insightsItem: InsightsItem) {
   const item = {
@@ -158,4 +165,44 @@ export const getResumeByS3Key = async (s3Key: string) => {
   if (!Items?.length) throw new Error("Resume not found");
 
   return Items[0] as ResumeBaseItem;
+};
+
+export const getTopTechnologies = async () => {
+  const limit = 50;
+  const technologies: SkillCount[] = [];
+  let ExclusiveStartKey: Record<string, any> | undefined;
+  do {
+    const resp = await docClient.send(
+      new ScanCommand({
+        TableName: "job-postings-technologies",
+        // We only need Id and postingCount for this endpoint
+        ProjectionExpression: "#Id, postingCount",
+        ExpressionAttributeNames: { "#Id": "Id" },
+        ExclusiveStartKey,
+      })
+    );
+
+    const items = (resp.Items as TechRow[] | undefined) ?? [];
+
+    for (const item of items) {
+      const id = (item.Id ?? "").trim();
+      // coerce to number; ignore falsy/NaN/<=0
+      const count = Number(item.postingCount ?? 0);
+      if (id && Number.isFinite(count) && count > 0) {
+        technologies.push({ technology: id, demand: count });
+      }
+    }
+
+    ExclusiveStartKey = resp.LastEvaluatedKey;
+  } while (ExclusiveStartKey);
+
+  // Sort desc by count and take top N
+  technologies.sort((a, b) => b.demand - a.demand);
+  const topSkills = technologies.slice(0, limit);
+
+  // Return a compact JSON object (LLM-friendly)
+  const body = {
+    topSkills, // [{ skill: "javascript", count: 1655 }, ...]
+  };
+  return body;
 };
