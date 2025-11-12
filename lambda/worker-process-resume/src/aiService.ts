@@ -282,6 +282,25 @@ SKILL STACKS SECTION
     - Calculate projected fit score
     - Show salary range for roles requiring that complete stack
 
+19. For "salaryInsights.potentialGrowth":
+    - Be realistic about timeframes: learning 4 major technologies takes 18-24 months, not 12-18
+    - Prioritize skills by ROI and learning difficulty
+    - Show a clear sequence: "Learn Kubernetes first (3 months), then Docker (2 months), gain leadership experience concurrently (6-12 months)"
+    - Don't overwhelm with too many required skills
+
+20. For "skillStacks.recommendedStacks":
+    - Include learning time estimate for each skill
+    - Show total learning time for complete stack
+    - List common job titles that require this stack
+    - Include job count for roles requiring this stack
+    - Order skills by priority (highest ROI first)
+
+21. For "topRoles":
+    - Include salary range for each role based on candidate's level
+    - Show job count for this role with their skills
+    - Clearly distinguish "Required" vs "Nice to have" skills
+    - Be specific about seniority level (Junior/Mid/Senior/Lead)
+    
 DO NOT:
 - Do not return any markdown, headings, or commentary — only the JSON object.
 - Do not invent long stories or external facts not supported by the resume; minimal, labeled assumptions are allowed.

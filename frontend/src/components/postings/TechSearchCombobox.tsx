@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, ChevronsUpDown, X } from "lucide-react";
+import { Check, ChevronDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -151,6 +151,7 @@ export function TechSearchCombobox({
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
+                    style={{ padding: "0rem 1rem" }}
                     className={cn("justify-between", widthClass, className)}
                 >
                     <span className="truncate">
@@ -164,7 +165,7 @@ export function TechSearchCombobox({
                                 aria-label="Clear"
                             />
                         )}
-                        <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                        <ChevronDown className="h-4 w-4 opacity-50" />
                     </div>
                 </Button>
             </PopoverTrigger>
@@ -202,7 +203,7 @@ export function TechSearchCombobox({
                         )}
 
                         <CommandGroup heading="Technologies">
-                            <CommandItem value="__all__" onSelect={onPickAll}>
+                            <CommandItem style={{ padding: "0 1rem" }} value="__all__" onSelect={onPickAll}>
                                 All Technologies
                                 <Check
                                     className={cn(
@@ -216,6 +217,7 @@ export function TechSearchCombobox({
                                 <CommandItem
                                     key={t.value}
                                     value={t.value}
+                                    style={{ padding: "0 1rem" }}
                                     keywords={[t.label]}
                                     onSelect={() => onPickTech(t)}
                                 >
