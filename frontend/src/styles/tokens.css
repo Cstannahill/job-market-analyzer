@@ -20,7 +20,7 @@
   --color-info: #3b82f6; /* Blue - info */
 
   /* Backgrounds - Dark Mode Primary */
-  --bg-base: #0f172a; /* Slate 900 */
+  --bg-base: oklch(21% 0.006 285.885); /* Slate 900 */
   --bg-elevated: #1e293b; /* Slate 800 */
   --bg-card: #1e293b;
   --bg-card-hover: #334155; /* Slate 700 */
