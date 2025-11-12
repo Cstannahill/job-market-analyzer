@@ -6,6 +6,7 @@ import {
 } from "./extractors.js";
 import { extractExperience } from "./docx.js";
 import { v4 as uuidv4 } from "uuid";
+import { setTimeout as sleep } from "timers/promises";
 import {
   getResumeByS3Key,
   insertResumeWithInsights,
@@ -24,6 +25,7 @@ import { getTechnologyDetail } from "./techTrendsDbService.js";
 import { ok, toWeek } from "./techTrendsHelpers.js";
 import { log, Ctx } from "./logging.js";
 import { canonicalizeTech } from "./techNormalizer.js";
+import { topByJobCount } from "./arrayHelpers.js";
 
 interface PDFResponse {
   success: boolean;
@@ -48,7 +50,14 @@ export async function processFile(key: string) {
     // Read file and encode to base64
     const fileBuf = await normalizeS3PayloadToBuffer(s3Object);
     const base64Content = fileBuf.toString("base64");
-
+    try {
+      const health = await fetch(
+        "https://pypdf-production-e4e9.up.railway.app/health"
+      );
+    } catch (error) {
+      console.warn(error);
+    }
+    sleep(2000);
     const response = await fetch(
       "https://pypdf-production-e4e9.up.railway.app/extract/pdf-buffer",
       {
@@ -186,10 +195,13 @@ export async function processFile(key: string) {
     console.error("For Loop Failed");
   }
   console.log(`Tech details Tech Array Length: ${techDetails.length} \n
-    Tech Details Array Items: ${techDetails}
+    Tech Details Array Items: ${JSON.stringify(techDetails)}
     `);
   // END NEW SECTION
-
+  const userTopTech = topByJobCount(techDetails, 10);
+  console.log(`User Top Tech Array Length: ${userTopTech.length} \n
+    User Top Tech Items: ${JSON.stringify(userTopTech)}
+    `);
   const { parsed, insightsItem } = await genInsightsWithBedrock(text, resumeId);
   const insights = parsed;
   console.log("Insights generated:", insights);
