@@ -63,16 +63,16 @@
 
 /* Company Badge - Enhanced */
 .company-badge {
-  width: 56px;
-  height: 56px;
+  width: 5rem;
+  height: 5rem;
   border-radius: 12px;
   background: linear-gradient(135deg, #3b82f6, #1e40af);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
+  font-weight: 600;
   color: #ffffff;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   flex: 0 0 auto;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
   letter-spacing: 0.5px;
@@ -412,11 +412,11 @@
     font-size: 1rem;
   }
 
-  .company-badge {
+  /* .company-badge {
     width: 48px;
     height: 48px;
     font-size: 1rem;
-  }
+  } */
 
   .tag {
     padding: 6px 10px;
@@ -458,11 +458,11 @@
     font-size: 1.125rem;
   }
 
-  .company-badge {
+  /* .company-badge {
     width: 44px;
     height: 44px;
     font-size: 0.95rem;
-  }
+  } */
 
   .job-header-left {
     gap: 10px;
@@ -537,12 +537,12 @@
   .job-title {
     font-size: 1rem;
   }
-
+  /* 
   .company-badge {
     width: 40px;
     height: 40px;
     font-size: 0.9rem;
-  }
+  } */
 
   .job-meta {
     gap: 6px;

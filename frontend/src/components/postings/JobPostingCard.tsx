@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/
 import { toProperCase } from '@/lib/stringHelpers';
 import { MetaPillContainer } from '@/components/postings/MetaPillContainer';
 import TechBadgeSvgr from '@/components/postings/TechBadgeSvgr';
+import CompanyBadgeSvgr from '@/components/postings/CompanyBadgeSvgr';
 interface JobPostingCardProps {
     posting: BaseJobListing;
 }
@@ -19,16 +20,33 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
         });
         return monthDay;
     };
-
+    const formatCompanyName = (name: string) => {
+        const formatted = name.split(" ")
+        return (
+            formatted.length === 1 ?
+                (<div className='flex-col text-center'>
+                    {name}
+                </div>)
+                :
+                (<div className='flex-col'>
+                    {formatted.map((np, i) => (
+                        <div key={`${i}-${np}`}>
+                            {np}
+                        </div>
+                    ))}
+                </div>)
+        )
+    }
 
     return (
         <Card className="job-card">
             <MetaPillContainer posting={posting} date={formatDate(posting.processed_date)} />
             <CardHeader className="job-card-header">
                 <div className="flex flex-row justify-around">
-                    <Badge className="company-badge col-6" aria-hidden>
-                        {posting.company_name && posting.company_name.toProperCase()}
-                    </Badge>
+                    {/* <Badge className="company-badge col-6" aria-hidden> */}
+                    <CompanyBadgeSvgr name={posting.company_name.toLowerCase()} roundStyle="md" size={50} />
+                    {posting.company_name && formatCompanyName(posting.company_name)}
+                    {/* </Badge> */}
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <p className="job-title">{posting.job_title.toProperCase()}</p>
                     </div>
@@ -53,7 +71,7 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
                             <h4>Technologies and Skills</h4>
                             <div className="tag-container flex flex-wrap items-start">
                                 {posting.technologies.slice(0, 5).map((tech, index) => (
-                                    <TechBadgeSvgr key={index} name={tech} size={26} roundStyle='full' />
+                                    <TechBadgeSvgr key={`${tech}-${posting.jobId}-${index}`} name={tech} size={26} roundStyle='full' />
 
                                 ))}
                             </div>

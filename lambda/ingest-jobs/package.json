@@ -7,6 +7,7 @@
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
+    "zip": "tsup && rm -rf package-lock.json node_modules && npm install --omit=dev && node ../../zip.js . && npm install",
     "test:watch": "vitest",
     "smoke": "node -r dotenv/config --enable-source-maps --no-warnings --import tsx ./src/scripts/smoke.ts"
   },
