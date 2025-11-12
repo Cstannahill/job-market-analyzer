@@ -1,3 +1,11 @@
+import type {
+  ContactInfo,
+  FlatSkills,
+  IsoDateString,
+  ResumeEducationItem,
+  ResumeExperienceItem,
+} from "@/shared-types/src/resume-query";
+
 export type InsightAchievement = {
   headline: string;
   metric?: string | null;
@@ -72,9 +80,25 @@ export type AnalysisPayload = {
 export type CompareResult = {
   analysis?: AnalysisPayload;
   // Backwards compatibility (if your backend sometimes returns top-level fields)
-  skills?: { technologies?: string[]; softSkills?: string[] } | undefined;
-  experience?: ExperienceItem[] | undefined;
+  experience?: ResumeExperienceItem[];
+  insightId?: string; // e.g. "INSIGHT#uuid"
   insights?: Insights | undefined;
   status?: "processing" | "complete" | "failed";
   error?: string | undefined;
+  insightsText?: string;
+  insightsMetadata?: {
+    generatedAt: IsoDateString;
+    generatedBy: string; // e.g. "amazon.nova-pro-v1:0"
+  };
+  uploadInitiatedAt?: IsoDateString;
+  uploadedAt?: IsoDateString;
+  updatedAt?: IsoDateString;
+  contentType?: string; // e.g. "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  originalFileName?: string;
+  contactInfo?: ContactInfo;
+  education?: ResumeEducationItem[];
+  PK?: string; // e.g. "USER#<uuid>"
+  SK?: string; // e.g. "RESUME#<uuid>"
+  s3Key?: string;
+  skills?: FlatSkills;
 };

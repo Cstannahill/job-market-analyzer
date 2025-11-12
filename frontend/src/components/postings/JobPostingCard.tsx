@@ -6,6 +6,7 @@ import { toProperCase } from '@/lib/stringHelpers';
 import { MetaPillContainer } from '@/components/postings/MetaPillContainer';
 import TechBadgeSvgr from '@/components/postings/TechBadgeSvgr';
 import CompanyBadgeSvgr from '@/components/postings/CompanyBadgeSvgr';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 interface JobPostingCardProps {
     posting: BaseJobListing;
 }
@@ -43,10 +44,21 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
                     <span className="salary">{posting.salary_range ? `$${posting.salary_range}` : null}</span>
                 </div>
             </CardHeader>
-            <CardDescription style={{ padding: "0.1rem" }} className="job-card-description">
-                {(posting.job_description ? posting.job_description.slice(0, 200) + (posting.job_description.length > 200 ? '...' : '') : 'No description available')}
+            <TooltipProvider delayDuration={100}>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <CardDescription style={{ padding: "0.1rem" }} className="job-card-description">
+                            {(posting.job_description ? posting.job_description.slice(0, 200) + (posting.job_description.length > 200 ? '...' : '') : 'No description available')}
 
-            </CardDescription>
+                        </CardDescription>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs bg-stone-200">
+                        <p style={{ padding: ".1rem .5rem", color: "black" }} className="text-sm">
+                            {posting.job_description}
+                        </p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
             <CardContent >
                 <div className="job-section">
                     {posting.technologies.length > 0 && (

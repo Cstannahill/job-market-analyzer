@@ -87,7 +87,8 @@ export async function processFile(key: string) {
     }
 
     text = data.text;
-    experience = extractExperiencePdf(text);
+    console.log(text);
+    experience = extractExperience(text);
   } else if (
     extension === "docx" ||
     fileType ===
@@ -198,7 +199,7 @@ export async function processFile(key: string) {
     Tech Details Array Items: ${JSON.stringify(techDetails)}
     `);
   // END NEW SECTION
-  const userTopTech = topByJobCount(techDetails, 10);
+  const userTopTech = topByJobCount(techDetails, techDetails.length);
   console.log(`User Top Tech Array Length: ${userTopTech.length} \n
     User Top Tech Items: ${JSON.stringify(userTopTech)}
     `);

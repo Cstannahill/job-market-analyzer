@@ -17,33 +17,19 @@ export interface ResumeRecord {
   experience: ResumeExperienceItem[];
   insightId: string; // e.g. "INSIGHT#uuid"
   status: ProcessingStatus;
-
   uploadInitiatedAt: IsoDateString;
   uploadedAt: IsoDateString;
   updatedAt: IsoDateString;
-
   contentType: string; // e.g. "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
   originalFileName: string;
-
   contactInfo: ContactInfo;
   education: ResumeEducationItem[];
-
-  // Dynamo keys
   PK: string; // e.g. "USER#<uuid>"
   SK: string; // e.g. "RESUME#<uuid>"
-
   s3Key: string;
-
-  // Skill normalization snapshot (flat lists from earlier pipeline step)
   skills: FlatSkills;
-
-  // Final, structured insights (parsed object)
   insights: ResumeInsights;
-
-  // If some items still carry the raw JSON text version, allow it (optional)
   insightsText?: string;
-
-  // Metadata about the insights generation
   insightsMetadata: {
     generatedAt: IsoDateString;
     generatedBy: string; // e.g. "amazon.nova-pro-v1:0"

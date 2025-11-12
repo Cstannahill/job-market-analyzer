@@ -6,6 +6,7 @@ const TECH_ALIASES: Record<string, string> = {
   nodejs: "Node.js",
   "node.js": "Node.js",
   ts: "TypeScript",
+  golang: "Go",
   javascript: "JavaScript",
   js: "JavaScript",
   py: "Python",

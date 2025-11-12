@@ -1,14 +1,13 @@
 // ResumeUploaderModern.tsx
 import React, { useEffect, useRef, useState } from "react";
 import { uploadResume, type UploadStatus } from "@/services/resumeService";
-import type { CompareResult, ExperienceItem } from "@/shared-types";
+import type { CompareResult, ResumeRecord } from "@/shared-types";
 
 // shadcn/ui imports — change paths if your project places them elsewhere
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useAuthUser } from "@/stores/authStore";
-
+import { ResumeCard } from "@/components/resumes/manageResumes/ResumeCard";
 const ACCEPTED_TYPES = [
     "application/pdf",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -121,7 +120,7 @@ export default function ResumeUploader() {
 
     const handleDownloadJson = () => {
         if (!result) return;
-        const blob = new Blob([JSON.stringify(result.analysis ?? result, null, 2)], {
+        const blob = new Blob([JSON.stringify(result ?? result, null, 2)], {
             type: "application/json",
         });
         const url = URL.createObjectURL(blob);
@@ -135,7 +134,7 @@ export default function ResumeUploader() {
     const handleCopyJson = async () => {
         if (!result) return;
         try {
-            await navigator.clipboard.writeText(JSON.stringify(result.analysis ?? result, null, 2));
+            await navigator.clipboard.writeText(JSON.stringify(result ?? result, null, 2));
             setError("Copied JSON to clipboard");
             setTimeout(() => setError(null), 1600);
         } catch {
@@ -293,106 +292,7 @@ export default function ResumeUploader() {
 
 
                         {/* Summary */}
-                        <div className="mb-3">
-                            <div className="bg-surface-2 rounded-lg p-4 shadow-sm border border-surface-3">
-                                <div className="flex items-start justify-between gap-4">
-                                    <div>
-                                        <p style={{ padding: ".25rem 1rem" }} className="text-lg font-bold wrap-break-word max-w-[60ch]">
-                                            {result?.insights?.summary?.oneLine ?? "Resume Summary"}</p>
-
-
-                                        <p style={{ padding: ".25rem 1rem" }} className="text-sm text-muted mt-2">{result?.insights?.summary?.threeLine}</p>
-                                        <div style={{ padding: ".25rem 1rem" }} className="mt-3 flex gap-2 flex-wrap">
-                                            {(result?.insights?.topRoles ?? []).slice(0, 3).map((r) => (
-                                                <Badge key={r.title} className="px-2 py-1">{r.title} ({r.fitScore ?? 0})</Badge>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <div className="text-sm text-muted text-right">
-                                        <div style={{ padding: ".25rem 1rem" }} className="font-medium">Confidence</div>
-                                        <div style={{ padding: ".25rem 1rem" }} className="mt-1">{result?.insights?.confidence ?? "medium"}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Technologies */}
-                        <Card className="mb-3 resume-card">
-                            <CardHeader>
-                                <CardTitle>Technologies</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex flex-wrap gap-2">
-                                    {(result.analysis?.skills?.technologies ?? result.skills?.technologies ?? []).map((t) => (
-                                        <span key={t} className="px-2 py-1 text-xs rounded bg-slate-800/30">{t}</span>
-                                    ))}
-                                </div>
-                                <div className="mt-3">
-                                    <div className="text-sm font-medium">Soft skills</div>
-                                    <div className="mt-2 flex gap-2 flex-wrap">
-                                        {(result.analysis?.skills?.softSkills ?? result.skills?.softSkills ?? []).map((s) => (
-                                            <span key={s} className="px-2 py-1 text-xs rounded bg-amber-800/30">{s}</span>
-                                        ))}
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Experience */}
-                        <Card className="mb-3 resume-card">
-                            <CardHeader>
-                                <CardTitle>Experience</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <ol className="list-none space-y-3">
-                                    {(result.analysis?.experience ?? result.experience ?? []).map((e: ExperienceItem, idx: number) => (
-                                        <li key={idx} className="border-b pb-2">
-                                            <div className="font-medium">{e.title}</div>
-                                            <div className="text-xs text-muted">{e.company}{e.location ? ` • ${e.location}` : ""}</div>
-                                            <div className="text-xs text-muted">{e.duration}</div>
-                                        </li>
-                                    ))}
-                                </ol>
-                            </CardContent>
-                        </Card>
-
-                        {/* Insights */}
-                        <Card className="resume-card">
-                            <CardHeader>
-                                <CardTitle>Insights</CardTitle>
-                            </CardHeader>
-                            <CardContent className="overflow-hidden">
-                                <div className="space-y-2">
-                                    <div>
-                                        <div className="font-semibold">Strengths</div>
-                                        <ul className="list-disc list-inside mt-2 text-sm wrap-break-word">
-                                            {(result?.insights?.strengths ?? []).map((s, i) => (
-                                                <li key={i}><strong>{s.text}</strong>: <span className="text-muted">{s.why}</span></li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                    <br />
-                                    <div>
-                                        <div className="font-semibold">Gaps</div>
-                                        <ul className="list-disc list-inside mt-2 text-sm wrap-break-word">
-                                            {(result?.insights?.gaps ?? []).map((g, i) => (
-                                                <li key={i}><strong>{g.missing}</strong>: <span className="text-muted">{g.suggestedLearningOrAction}</span></li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                    <br />
-                                    {/* suggested bullets */}
-                                    <div>
-                                        <div className="font-semibold">Suggested bullets</div>
-                                        <ul className="list-disc list-inside mt-2 text-sm wrap-break-word">
-                                            {(result?.insights?.resumeEdits?.improvedBullets ?? []).map((b, idx) => (
-                                                <li key={idx}>{b.new}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        <ResumeCard resume={result as ResumeRecord} />
                     </>
                 ) : (
                     <Card className="resume-card">
