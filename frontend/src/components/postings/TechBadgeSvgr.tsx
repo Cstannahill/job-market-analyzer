@@ -30,6 +30,7 @@ function normalizeLookup(name: string) {
         'c plus plus': 'cpp',
         'app engine': 'appengine',
         'asp.net': 'aspnet',
+        "vue.js": "vue"
 
     };
 
