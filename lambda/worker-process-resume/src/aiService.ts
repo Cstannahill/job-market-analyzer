@@ -3,12 +3,14 @@ import {
   ConverseCommand,
 } from "@aws-sdk/client-bedrock-runtime";
 import { getTopTechnologies, updateInsights } from "./dbService.js";
-import { InsightsItem } from "./types.js";
+import { InsightsItem, type EnrichedSkillData } from "./types.js";
 import {
   extractFirstBalancedJson,
   sanitizeAndParseJson,
 } from "./sanitizers.js";
 import { v4 as uuidv4 } from "uuid";
+import type { TechStat } from "./arrayHelpers.js";
+import { summarizeSkillData } from "./techTrends.js";
 
 const bedrock = new BedrockRuntimeClient({
   region: "us-east-1",
@@ -80,11 +82,13 @@ function extractTextFromBedrockResponse(response: any): string {
 
 export async function genInsightsWithBedrock(
   resumeText: string,
-  resumeId: string
+  resumeId: string,
+  userTechData: EnrichedSkillData[]
 ) {
   const MODEL = SELECTED_MODEL;
   const insightId = uuidv4();
   const techJson = await getTopTechnologies();
+  const enrichedData = summarizeSkillData(userTechData);
 
   const llmPrompt = `
 You are an expert hiring manager and resume coach with 10+ years of experience recruiting software engineers across startups and scaleups. Analyze the RESUME_TEXT below and produce a concise, actionable, and machine-friendly JSON report. Do NOT produce any freeform text outside the JSON object.
@@ -105,11 +109,27 @@ ${JSON.stringify(techJson, null, 2)}
 
 This data represents the top ${
     techJson.topSkills.length
-  } most in-demand technologies from real job postings. Use this to:
+  } most in-demand technologies from real job postings.
+
+ENRICHED SALARY & SKILL DATA FOR RESUME SKILLS:
+${JSON.stringify(enrichedData, null, 2)}
+
+This data provides deep context on the candidate's EXISTING skills:
+1. Salary ranges by seniority level (Junior/Mid/Senior/Lead)
+2. Skills that commonly appear together (skill stacks)
+3. Common job titles for each skill
+4. Market demand (job count) for each skill
+
+Use this to:
 1. Identify which resume skills match high-demand technologies
 2. Find high-value skills missing from the resume
 3. Prioritize gaps based on market demand (higher demand = higher priority)
 4. Provide specific, data-driven recommendations
+5. Calculate candidate's current market value based on their experience level + skills
+6. Show salary potential at different seniority levels
+7. Recommend complementary skills based on what naturally pairs with their current stack
+8. Identify realistic career paths based on common role progressions
+9. Quantify the value of adding missing skills (salary increase)
 
 
 OUTPUT FORMAT (required JSON):
@@ -134,6 +154,47 @@ Return compact JSON (no pretty-printing or extra whitespace) object with these k
     "missingHighDemandSkills": [ { "skill": string, "demand": number, "priority": "high" | "medium" | "low", "reason": string, "learningPath": string } ],
     "demandScore": number,
     "demandScoreExplanation": string
+  },
+  "salaryInsights": {
+    "currentEstimate": {
+      "range": { "min": number, "median": number, "p75": number, "p95": number },
+      "level": "junior" | "mid" | "senior" | "lead",
+      "reasoning": string
+    },
+    "potentialGrowth": [
+      {
+        "targetLevel": "senior" | "lead",
+        "estimatedSalary": { "median": number, "p75": number },
+        "requiresSkills": [string],
+        "timeframe": string
+      }
+    ],
+    "skillROI": [
+      {
+        "skill": string,
+        "currentAvgSalary": number,
+        "withSkillAvgSalary": number,
+        "increase": number,
+        "increasePercentage": number,
+        "reasoning": string
+      }
+    ]
+  },
+  "skillStacks": {
+    "currentStack": {
+      "skills": [string],
+      "commonPairings": [ { "skill": string, "appearsTogetherPercentage": number } ],
+      "completeness": number
+    },
+    "recommendedStacks": [
+      {
+        "name": string,
+        "description": string,
+        "addSkills": [string],
+        "projectedFit": number,
+        "salaryRange": { "median": number, "p75": number }
+      }
+    ]
   },
   "atsAndFormat": { "isATSFriendly": boolean, "recommendations": [string] },
   "confidence": "high" | "medium" | "low",
@@ -186,13 +247,50 @@ CRITICAL: GAPS VS MARKET ALIGNMENT DISTINCTION:
     - Round to integer
     - Provide clear explanation in "demandScoreExplanation"
 
+SALARY INSIGHTS SECTION
+14. For "salaryInsights.currentEstimate":
+    - Determine candidate's level based on years of experience + skill depth
+    - Use the salary data for their skills at that level
+    - Average across their top 3-5 skills for the estimate
+    - Explain reasoning clearly (e.g., "3 years experience + Python/React/AWS = mid-level")
+
+15. For "salaryInsights.potentialGrowth":
+    - Show 1-2 realistic career progression paths
+    - Calculate salary at next level(s) based on their existing skills
+    - List specific skills/experience needed to reach that level
+    - Provide realistic timeframe (e.g., "12-18 months with leadership experience")
+
+16. For "salaryInsights.skillROI":
+    - For top 3-5 missing high-demand skills, calculate salary impact
+    - Compare: average salary with current skills vs with skill added
+    - Show absolute increase + percentage
+    - Explain WHY (e.g., "Kubernetes skills command 15% premium due to cloud-native demand")
+    - Rank by ROI (highest salary increase first)
+
+SKILL STACKS SECTION
+17. For "skillStacks.currentStack":
+    - List candidate's main technical skills
+    - Show which skills commonly appear together (use co-occurring data)
+    - Calculate "completeness" score: what % of common pairings do they have?
+    - Example: If React devs commonly have TypeScript (80%), Docker (60%), AWS (70%)
+      and candidate has React + TypeScript + AWS, completeness = 66% (2 of 3 common pairings)
+
+18. For "skillStacks.recommendedStacks":
+    - Suggest 2-3 realistic "complete stacks" based on their current skills
+    - Name them meaningfully (e.g., "Cloud-Native Full-Stack", "Modern Data Engineer")
+    - Show which 1-3 skills would complete each stack
+    - Calculate projected fit score
+    - Show salary range for roles requiring that complete stack
+
 DO NOT:
 - Do not return any markdown, headings, or commentary — only the JSON object.
 - Do not invent long stories or external facts not supported by the resume; minimal, labeled assumptions are allowed.
 - Do not include technical skills/frameworks in "gaps" - those belong in "marketAlignment.missingHighDemandSkills"
 - Do not include skills in "missingHighDemandSkills" if they are already on the resume.
-- Do not recommend skills with demand < 130 unless highly relevant to their career trajectory.
+- Do not recommend skills with demand < 200 unless highly relevant to their career trajectory.
 - Do not duplicate information between "gaps" and "marketAlignment.missingHighDemandSkills"
+- Do not make up salary numbers - use the provided salary data or clearly mark estimates as "estimated"
+- Do not suggest unrealistic skill pairings - use the co-occurring skills data
 
 End of instructions.
 `;

@@ -163,7 +163,7 @@ export default function TechBadgeSvgr({
                         <img
                             src={iconUrl}
                             alt={toProperCase(name)}
-                            className="w-full h-full object-contain"
+                            className="w-full h-full object-contain company-icon"
                         />
                     </div>
                 </div>

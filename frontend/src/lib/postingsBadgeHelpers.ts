@@ -8,12 +8,16 @@ export const COMPANY_SIZE_COLORS: Record<string, string> = {
 
 // Color mapping for industries
 export const INDUSTRY_COLORS: Record<string, string> = {
-  Technology: "#6366F1",
+  technology:
+    "linear-gradient(90deg,rgba(42, 123, 155, 1) 0%, rgba(87, 136, 199, 1) 50%, rgba(3, 52, 105, 1) 100%)",
   healthcare: "#EF4444",
-  finance: "#F97316",
+  finance: "oklch(62.7% 0.194 149.214)",
   "financial-services": "#FB923C",
   "financial-trading": "#FBBF24",
+  "financial-technology":
+    "linear-gradient(0deg,rgba(34, 193, 195, 1) 0%, rgba(253, 187, 45, 1) 100%);",
   fintech: "#57E66F",
+  "database-technology": "oklch(37.4% 0.01 67.558)",
   defense: "#7C3AED",
   "defense-technology": "#7C3AED",
   aerospace: "#06B6D4",
@@ -52,6 +56,8 @@ export const INDUSTRY_COLORS: Record<string, string> = {
   "technology-services": "#B45309",
   "it-services": "#D97706",
   "managed-services": "#F59E0B",
+  "marketing-technology":
+    "linear-gradient(90deg,rgba(27, 99, 0, 0.94) 0%, rgba(73, 199, 0, 0.95) 50%, rgba(27, 99, 0, 0.94) 100%)",
   insurance: "#DC2626",
   Insurance: "#DC2626",
   "media/entertainment": "#7C3AED",

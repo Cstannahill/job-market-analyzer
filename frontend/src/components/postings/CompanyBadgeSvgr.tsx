@@ -15,22 +15,14 @@ const iconCache = new Map<string, string>();
 
 function normalizeLookup(name: string) {
     const lower = name.toLowerCase();
+    if (lower === "ci&t") return "cit";
 
     // Special cases - consolidated for readability
     const specialCases: Record<string, string> = {
-        'llms': 'llm',
-        'rails': 'rails',
-        'ruby on rails': 'rails',
-        'aws': 'aws',
-        "c/c++": "cpp",
-        'c++': 'cpp',
-        'c ++': 'cpp',
-        'c + +': 'cpp',
-        'cplusplus': 'cpp',
-        'cpp': 'cpp',
-        'c plus plus': 'cpp',
-        'app engine': 'appengine',
-        'asp.net': 'aspnet',
+        'andurilindustries': 'anduril-industries',
+        "ciandt": "cit",
+        "hubspotjobs": "hubspot"
+
 
     };
 
@@ -38,28 +30,7 @@ function normalizeLookup(name: string) {
 
     // Pattern-based special cases
     if (lower.includes("gitlab")) return "gitlab";
-    if (lower.includes("kotlin")) return "kotlin";
-    if (lower === "cloudflare" || lower.includes("cloudflare")) return "cloudflare";
-    if (lower.includes("next.js") || lower.includes("nextjs")) return "next";
-    if (lower.includes('html')) return 'html5';
-    if (lower.includes('css')) return 'css3';
-    if (lower.includes('node') || lower.includes('node.js')) return 'node';
-    if (lower === 'database' || lower === 'databases') return 'database-management-systems';
-    if (lower.includes('java') && !lower.includes('javascript')) return 'java';
-    if (lower.includes('android')) return 'android';
-    if (lower.includes('cloud platform')) return 'cloud';
-    if (lower.includes('react')) return 'react';
-    if (lower.includes('google cloud')) return 'gcp';
-    if (lower === 'go' || lower === 'golang' || lower.includes('golang') || (lower.includes("go lang"))) return 'golang';
-    if (lower.includes('java/')) return 'java';
-    if (lower.includes('postgre') || lower.includes('sql')) return 'postgresql';
-    if (lower.includes('rag') && lower.includes('pipeline')) return 'rag';
-    if (lower === 'rags') return 'rag';
-    if (lower.includes('rest') && lower.includes('api')) return 'rest';
-    if (lower === 'rest') return 'rest';
-    if (lower.includes('web services')) return 'aws';
-    if (lower.includes('juniper')) return 'juniper';
-    if (lower.includes('spring') || lower === 'springboot') return 'spring';
+
 
     // Default normalization
     return name
@@ -140,12 +111,12 @@ export default function CompanyBadgeSvgr({
     const label = (name ?? key ?? "").trim();
     const parts = label.split(/[-\s]+/).filter(Boolean);
 
-    const shouldColumnize = label.length > 14 && parts.length > 1;
+    const shouldColumnize = parts.length > 1;
     return (
         <div
             style={{ alignSelf: "start" }}
             className={`inline-flex flex-col items-center gap-2 px-2 py-1 text-xs font-medium ${className}`}
-            title={name}
+            title={""}
             aria-label={name}
         >
             {loading ? (
@@ -165,7 +136,7 @@ export default function CompanyBadgeSvgr({
                             src={iconUrl}
                             alt={toProperCase(name)}
                             style={{ objectFit: "contain", backgroundColor: getCompanyIconColor(name) }}
-                            className={`${roundClasses[roundStyle]} w-full h-full object-contain bg-zinc-700/10`}
+                            className={`${roundClasses[roundStyle]} w-full h-full object-contain bg-zinc-100/10 company-icon`}
                         />
                     </div>
                 </div>
@@ -181,7 +152,7 @@ export default function CompanyBadgeSvgr({
             )}
 
             {!hideLabel && (
-                <small className="text-black tech-icon-svg-label">
+                <small style={{ fontWeight: "bold" }} className="text-black company-icon-svg-label">
                     {label.length < 4
                         ? label.toUpperCase()
                         : shouldColumnize

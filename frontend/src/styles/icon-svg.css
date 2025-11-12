@@ -6,3 +6,16 @@
   font-family: monospace;
   font-weight: 700;
 }
+
+.company-icon-svg-label {
+  margin-top: 0.125rem; /* 4px */
+  font-size: 0.85rem; /* 12px */
+  line-height: 0.75rem; /* 8px */
+  text-align: center;
+  font-family: monospace;
+  font-weight: 800;
+}
+
+.company-icon {
+  filter: drop-shadow(0 2px 4px rgba(2, 17, 26, 0.653));
+}

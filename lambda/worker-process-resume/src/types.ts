@@ -61,5 +61,20 @@ export type TechRow = {
 };
 export type SkillCount = { technology: string; demand: number };
 
-// wiring
-// env.EXTRACTOR_KIND = "ocr-fastapi" | "textract"
+export type SeniorityData = Array<{
+  level: string;
+  job_count: number;
+  salary_median: number;
+}>;
+export interface EnrichedSkillData {
+  technology: string;
+  job_count: number;
+  salary_median: number;
+  salary_min: number;
+  salary_p75: number;
+  salary_p95: number;
+  cooccurring_skills: Record<string, number>;
+  industry_distribution: Record<string, number>;
+  top_titles: Record<string, number>;
+  by_seniority: SeniorityData;
+}
