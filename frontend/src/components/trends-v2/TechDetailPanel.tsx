@@ -65,10 +65,10 @@ export default function TechDetailPanel({ data }: { data: TechnologyDetailRespon
     );
 
     return (
-        <div className="space-y-5">
+        <div style={{ padding: ".25rem .25rem" }} className="space-y-5">
             <H2 text="Insights Panel" style={{ fontSize: "1.5rem", margin: ".25rem" }} className="text-shadow-blue text-center col-start-2" />
             {/* Headline Stats - Now 4 columns with more stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div style={{ margin: ".5rem" }} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <Stat title="Demand" value={s?.job_count ?? 0} />
                 <Stat title="p50 Salary" value={s?.salary_median} money />
                 <Stat title="p75 Salary" value={s?.salary_p75} money />
@@ -121,7 +121,7 @@ export default function TechDetailPanel({ data }: { data: TechnologyDetailRespon
                 {/* Right: Co-occurring Technologies */}
                 <div className="rounded-lg p-5 bg-slate-800/30 border border-slate-700/30">
                     <h5 className="text-sm font-medium text-slate-200 mb-4 text-center">Top Co-occurring</h5>
-                    <div className="h-[500px]">
+                    <div className="h-[500px] lg:h-[90%]">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart
                                 data={displayCo.slice(0, 10)}
