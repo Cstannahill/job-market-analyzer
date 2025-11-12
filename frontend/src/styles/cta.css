@@ -5,11 +5,11 @@
 
 .cta-card {
   text-align: center;
-  padding: var(--space-3xl);
+  padding: var(--space-xl);
   border-radius: var(--radius-xl);
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  margin-top: 0.5rem;
+  margin-top: 3rem;
   margin-bottom: 0.5rem;
   box-shadow: 0 10px 20px 1px rgba(101, 18, 146, 0.55);
   max-height: 30vh !important;

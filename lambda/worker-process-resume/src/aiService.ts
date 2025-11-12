@@ -9,7 +9,6 @@ import {
   sanitizeAndParseJson,
 } from "./sanitizers.js";
 import { v4 as uuidv4 } from "uuid";
-import type { TechStat } from "./arrayHelpers.js";
 import { summarizeSkillData } from "./techTrends.js";
 
 const bedrock = new BedrockRuntimeClient({
@@ -243,7 +242,7 @@ CRITICAL: GAPS VS MARKET ALIGNMENT DISTINCTION:
     - Give actionable "learningPath" (e.g., "Start with AWS EKS, then standalone Kubernetes")
 
 13. For "marketAlignment.demandScore":
-    - Calculate: (number of resume skills in top 20 demand / 20) × 100
+    - Calculate: (number of resume skills in top 20 demand / 20) * 100
     - Round to integer
     - Provide clear explanation in "demandScoreExplanation"
 

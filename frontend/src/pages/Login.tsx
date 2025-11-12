@@ -11,9 +11,9 @@ export default function Login() {
     return (
         <Layout>
             <Seo
-                title="Register — Job Market Analyzer"
-                description="Register for an account on Job Market Analyzer to access personalized features and take full advantage of AI-powered job market insights."
-                path="/register"
+                title="Login — Job Market Analyzer"
+                description="Login to your account on Job Market Analyzer to access personalized features and take full advantage of AI-powered job market insights."
+                path="/login"
                 image="/public/og/register.avif"
             />
             <Card className="auth-card overflow-hidden">

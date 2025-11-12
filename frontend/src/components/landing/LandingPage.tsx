@@ -87,10 +87,12 @@ function LandingPage() {
                 /></>)}
             {/* Add more StatsCard components as needed */}
           </div>
+          <div> <LandingCTA /></div>
         </div>
+
       </section>
       {/* Call to Action Section */}
-      <LandingCTA />
+
 
     </div>
   );

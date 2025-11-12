@@ -5,6 +5,7 @@ export const COMPANY_ICON_COLORS: Record<string, string> = {
   reddit: "#ff4700",
   rubrik: "#262930",
   chime: "#1dc879",
+  ensono: "#6758ab",
   //   mongodb: "#ffffff",
   //   spacex: "#ffffff",
   //       "abnormalsecurity",

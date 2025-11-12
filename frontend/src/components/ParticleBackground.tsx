@@ -37,7 +37,7 @@ export const ParticleBackground: React.FC = () => {
             y: Math.random() * canvas.height,
             vx: (Math.random() - 0.5) * 0.5,
             vy: (Math.random() - 0.5) * 0.5,
-            size: Math.random() * 2 + 1,
+            size: Math.random() * 6 + 1,
             opacity: Math.random() * 0.5 + 0.3,
         }));
 
