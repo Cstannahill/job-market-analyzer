@@ -18,7 +18,7 @@ import {
 } from "./aiService.js";
 import { getS3Object } from "./s3Service.js";
 import fs from "fs";
-import type { ResumeItem } from "./types.js";
+import type { EnrichedSkillData, ResumeItem, SeniorityData } from "./types.js";
 import { isPdf, normalizeS3PayloadToBuffer } from "./fileHelpers.js";
 import { enrichExperienceDurations, totalMonthsMerged } from "./dateHelpers.js";
 import { getTechnologyDetail } from "./techTrendsDbService.js";
@@ -174,7 +174,7 @@ export async function processFile(key: string) {
           seniority: data.by_seniority?.length ?? 0,
         },
       });
-      const techData = {
+      const techData: EnrichedSkillData = {
         technology: canonTech[i],
         job_count: data?.summary?.job_count,
         salary_median: data?.summary?.salary_median,
@@ -186,7 +186,7 @@ export async function processFile(key: string) {
         industry_distribution:
           data?.industry_distribution ?? data?.summary?.industry_distribution,
         top_titles: data?.top_titles ?? data?.summary?.top_titles,
-        by_seniority: data?.by_seniority,
+        by_seniority: data?.by_seniority as SeniorityData,
       };
       log(undefined, "info", "TechData Item", { techData });
       techDetails.push(techData);
@@ -202,7 +202,11 @@ export async function processFile(key: string) {
   console.log(`User Top Tech Array Length: ${userTopTech.length} \n
     User Top Tech Items: ${JSON.stringify(userTopTech)}
     `);
-  const { parsed, insightsItem } = await genInsightsWithBedrock(text, resumeId);
+  const { parsed, insightsItem } = await genInsightsWithBedrock(
+    text,
+    resumeId,
+    userTopTech
+  );
   const insights = parsed;
   console.log("Insights generated:", insights);
   const fullResumeItem: ResumeItem = {

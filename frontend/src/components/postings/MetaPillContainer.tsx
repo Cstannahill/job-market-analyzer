@@ -13,19 +13,18 @@ export function MetaPillContainer({ posting, date }: MetaPillContainerProps) {
     const industry = posting?.industry && typeof posting.industry === 'string' ? posting.industry : Array.isArray(posting.industry) && posting.industry.length > 0 && typeof posting.industry[0] === 'string' ? posting.industry[0].split(",")[0] : "Unknown";
     return (
         <div className="meta-pill justify-around">
-            <div className='company-name'>
-                {posting.company_name && posting.company_name.toProperCase()}
-            </div>
+            <span className="job-date">{date}</span>
             <span
-                className="meta-pill"
+                className="meta-pill industry-badge"
                 style={{
+                    background: getIndustryBadgeColor(industry),
                     backgroundColor: getIndustryBadgeColor(industry),
                     color: '#FFFFFF',
                 }}
             >
                 {toProperCase(industry).split(",")[0]}
             </span>
-            <span className="job-date">{date}</span>
+
 
 
 

@@ -20,32 +20,15 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
         });
         return monthDay;
     };
-    const formatCompanyName = (name: string) => {
-        const formatted = name.split(" ")
-        return (
-            formatted.length === 1 ?
-                (<div className='flex-col text-center'>
-                    {name}
-                </div>)
-                :
-                (<div className='flex-col'>
-                    {formatted.map((np, i) => (
-                        <div key={`${i}-${np}`}>
-                            {np}
-                        </div>
-                    ))}
-                </div>)
-        )
-    }
+
 
     return (
         <Card className="job-card">
             <MetaPillContainer posting={posting} date={formatDate(posting.processed_date)} />
-            <CardHeader className="job-card-header">
+            <CardHeader style={{ padding: "0.25rem", margin: "0rem .25rem" }} className="job-card-header">
                 <div className="flex flex-row justify-around">
                     {/* <Badge className="company-badge col-6" aria-hidden> */}
                     <CompanyBadgeSvgr name={posting.company_name.toLowerCase()} roundStyle="md" size={50} />
-                    {posting.company_name && formatCompanyName(posting.company_name)}
                     {/* </Badge> */}
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <p className="job-title">{posting.job_title.toProperCase()}</p>
@@ -60,7 +43,7 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
                     <span className="salary">{posting.salary_range ? `$${posting.salary_range}` : null}</span>
                 </div>
             </CardHeader>
-            <CardDescription className="job-card-description">
+            <CardDescription style={{ padding: "0.1rem" }} className="job-card-description">
                 {(posting.job_description ? posting.job_description.slice(0, 200) + (posting.job_description.length > 200 ? '...' : '') : 'No description available')}
 
             </CardDescription>

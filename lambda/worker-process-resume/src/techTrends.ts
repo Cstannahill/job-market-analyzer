@@ -1,4 +1,5 @@
 import { mostCommon, sum, weightedMedian } from "./techTrendsHelpers.js";
+import type { EnrichedSkillData } from "./types.js";
 
 export function synthesizeSummary(rows: any) {
   const job_count = sum(rows, "job_count");
@@ -67,5 +68,49 @@ export function synthesizeSummary(rows: any) {
     cooccurring_skills,
     industry_distribution,
     top_titles,
+  };
+}
+
+export function summarizeSkillData(skills: EnrichedSkillData[]) {
+  return {
+    // Core salary context
+    salaryRanges: skills.map((s) => ({
+      skill: s.technology,
+      junior:
+        s.by_seniority.find((sen) => sen.level === "Junior")?.salary_median ||
+        null,
+      mid:
+        s.by_seniority.find((sen) => sen.level === "Mid")?.salary_median ||
+        null,
+      senior:
+        s.by_seniority.find((sen) => sen.level === "Senior")?.salary_median ||
+        null,
+      lead:
+        s.by_seniority.find((sen) => sen.level === "Lead")?.salary_median ||
+        null,
+      marketDemand: s.job_count,
+    })),
+
+    // Skill stacks (co-occurring skills)
+    skillStacks: skills.map((s) => ({
+      skill: s.technology,
+      commonlyPairedWith: Object.entries(s.cooccurring_skills)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([skill, count]) => ({
+          skill,
+          frequency: count,
+          percentage: Math.round((count / s.job_count) * 100),
+        })),
+    })),
+
+    // Role insights
+    commonRoles: skills.map((s) => ({
+      skill: s.technology,
+      topRoles: Object.entries(s.top_titles)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([title, count]) => ({ title, count })),
+    })),
   };
 }

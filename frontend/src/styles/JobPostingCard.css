@@ -126,16 +126,24 @@
   margin-top: 2px;
   margin-left: 2px;
   margin-right: 2px;
+  margin-bottom: 2px;
   padding: 0.1rem 0.5rem;
   background: rgba(0, 0, 0, 0.03);
   color: #334155;
   border-radius: 0.44rem;
   font-weight: 600;
   font-size: 0.8rem;
+  text-align: center;
   border: 2px solid rgba(0, 0, 0, 0.204);
   white-space: nowrap;
   transition: all 0.2s ease;
   backdrop-filter: blur(4px);
+  /* filter: drop-shadow(0 1px 1px rgba(2, 17, 26, 0.653)); */
+}
+
+.industry-badge {
+  margin-bottom: 4px;
+  filter: drop-shadow(0 1px 1px rgba(2, 17, 26, 0.653));
 }
 
 .meta-pill:hover {
