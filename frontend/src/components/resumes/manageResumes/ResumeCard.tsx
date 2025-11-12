@@ -71,6 +71,7 @@ export function ResumeCard({
 
     const oneLine = insights?.summary?.oneLine;
     const threeLine = insights?.summary?.threeLine;
+    const overallImpression = insights?.summary?.overallImpression;
 
     const techs = skills?.technologies ?? [];
     const softs = skills?.softSkills ?? [];
@@ -134,10 +135,12 @@ export function ResumeCard({
                 {/* Tabs: Overview / Experience / Insights */}
                 <Tabs defaultValue="overview" className="w-full">
                     <div className="px-5 sm:px-6 pt-4">
-                        <TabsList className="grid w-full grid-cols-3">
-                            <TabsTrigger value="overview">Overview</TabsTrigger>
-                            <TabsTrigger value="experience">Experience</TabsTrigger>
-                            <TabsTrigger value="insights">Insights</TabsTrigger>
+                        <TabsList className="grid w-full grid-cols-5 lg:grid-cols-5">
+                            <TabsTrigger className="text-sm lg:text-lg" value="overview">Overview</TabsTrigger>
+                            <TabsTrigger className="text-sm lg:text-lg" value="experience">Experience</TabsTrigger>
+                            <TabsTrigger className="text-sm lg:text-lg" value="insights">Insights</TabsTrigger>
+                            <TabsTrigger className="text-sm lg:text-lg" value="salary">Salary</TabsTrigger>
+                            <TabsTrigger className="text-sm lg:text-lg" value="career">Career Path</TabsTrigger>
                         </TabsList>
                     </div>
 
@@ -147,11 +150,16 @@ export function ResumeCard({
                             {/* Summary */}
                             {(oneLine || threeLine) && (
                                 <section>
-                                    <h3 className="text-sm font-medium text-muted-foreground mb-2">Summary</h3>
+                                    <h3 style={{ margin: "0.5rem 0" }} className="text-sm font-medium text-muted-foreground mb-2">Summary</h3>
                                     {oneLine && <p className="text-base leading-relaxed">{oneLine}</p>}
                                     {threeLine && (
                                         <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
                                             {threeLine}
+                                        </p>
+                                    )}
+                                    {overallImpression && (
+                                        <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                                            {overallImpression}
                                         </p>
                                     )}
                                 </section>
@@ -160,9 +168,9 @@ export function ResumeCard({
                             {/* Contact */}
                             {(contactInfo?.email || contactInfo?.phone) && (
                                 <>
-                                    <Separator />
+                                    <Separator style={{ margin: "0.5rem 0" }} />
                                     <section className="grid gap-2">
-                                        <h3 className="text-sm font-medium text-muted-foreground">Contact</h3>
+                                        <h3 style={{ margin: "0.5rem 0" }} className="text-sm font-medium text-muted-foreground">Contact</h3>
                                         <div className="flex flex-wrap items-center gap-2 text-sm">
                                             {contactInfo?.email && (
                                                 <a
@@ -187,9 +195,9 @@ export function ResumeCard({
                             {/* Education */}
                             {education && education.length > 0 && (
                                 <>
-                                    <Separator />
+                                    <Separator style={{ margin: "0.5rem 0" }} />
                                     <section className="space-y-2">
-                                        <h3 className="text-sm font-medium text-muted-foreground">Education</h3>
+                                        <h3 style={{ margin: "0.5rem 0" }} className="text-sm font-medium text-muted-foreground">Education</h3>
                                         <ul className="space-y-2">
                                             {education.map((e, i) => (
                                                 <li key={`${e.name}-${i}`} className="text-sm">
@@ -207,9 +215,9 @@ export function ResumeCard({
                             {/* Skills */}
                             {(techs.length > 0 || softs.length > 0) && (
                                 <>
-                                    <Separator />
+                                    <Separator style={{ margin: "0.5rem 0" }} />
                                     <section className="space-y-3">
-                                        <h3 className="text-sm font-medium text-muted-foreground">Skills</h3>
+                                        <h3 style={{ margin: "0.5rem 0" }} className="text-sm font-medium text-muted-foreground">Skills</h3>
                                         {techs.length > 0 && (
                                             <div className="flex flex-wrap gap-2">
                                                 {techBadges.map((t, i) => (
@@ -226,7 +234,7 @@ export function ResumeCard({
                                                                 </Badge>
                                                             </TooltipTrigger>
                                                             <TooltipContent className="max-w-xs">
-                                                                <p className="text-xs">
+                                                                <p style={{ padding: ".1rem .5rem", color: "black" }} className="text-xs">
                                                                     {techs.slice(techBadges.length).map(titleCase).join(", ")}
                                                                 </p>
                                                             </TooltipContent>
@@ -256,13 +264,13 @@ export function ResumeCard({
                             {experience && experience.length > 0 ? (
                                 <Accordion type="single" collapsible className="w-full">
                                     {experience.map((job, idx) => (
-                                        <AccordionItem key={`${job.company}-${idx}`} value={`exp-${idx}`}>
+                                        <AccordionItem style={{ padding: ".25rem .5rem", margin: "1rem " }} key={`${job.company}-${idx}`} value={`exp-${idx}`}>
                                             <AccordionTrigger className="text-left">
                                                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-1">
                                                     <div className="flex flex-col">
                                                         <span className="font-semibold">{job.title}</span>
                                                         <span className="text-sm text-muted-foreground">
-                                                            {job.company}
+                                                            {`${job.company} `}
                                                             {job.location ? (
                                                                 <span className="inline-flex items-center gap-1 ml-1">
                                                                     <MapPin className="size-3" /> {job.location}
@@ -270,13 +278,14 @@ export function ResumeCard({
                                                             ) : null}
                                                         </span>
                                                     </div>
-                                                    <span className="text-xs text-muted-foreground">{job.duration}</span>
+                                                    <span className="text-xs text-muted-foreground">{`${job.duration} - (${job.durationMonths} months)`}</span>
+
                                                 </div>
                                             </AccordionTrigger>
                                             <AccordionContent>
                                                 <ul className="list-disc pl-5 space-y-2 text-sm leading-relaxed">
                                                     {(job.description ?? []).map((d, i) => (
-                                                        <li key={i}>{d}</li>
+                                                        <li style={{ margin: "1rem .25rem" }} key={i}>{d}</li>
                                                     ))}
                                                 </ul>
                                             </AccordionContent>
@@ -299,9 +308,9 @@ export function ResumeCard({
                                         <h3 className="text-sm font-medium text-muted-foreground mb-2">Strengths</h3>
                                         <div className="space-y-3">
                                             {(insights?.strengths ?? []).map((s, i) => (
-                                                <div style={{ padding: "0 .5rem" }} key={i} className="rounded-lg border p-3">
+                                                <div style={{ padding: "0 .5rem", margin: ".5rem 0rem" }} key={i} className="rounded-lg border p-3">
                                                     <div className="flex items-center gap-2 mb-1">
-                                                        <Badge style={{ padding: ".25rem .5rem", margin: "0.5rem" }} className="rounded-full" variant="secondary">
+                                                        <Badge style={{ padding: ".25rem .5rem", margin: "0.5rem" }} className="rounded-lg" variant="secondary">
                                                             {s.confidence ?? "—"}
                                                         </Badge>
                                                         <span style={{ padding: ".25rem .5rem", margin: "0 .5rem" }} className="font-medium">{s.text}</span>
@@ -315,9 +324,9 @@ export function ResumeCard({
                                         <h3 className="text-sm font-medium text-muted-foreground mb-2">Gaps</h3>
                                         <div className="space-y-3">
                                             {(insights?.gaps ?? []).map((g, i) => (
-                                                <div style={{ padding: "0 .5rem" }} key={i} className="rounded-lg border p-3">
+                                                <div style={{ padding: "0 .5rem", margin: ".5rem 0rem" }} key={i} className="rounded-lg border p-3">
                                                     <div className="flex items-center gap-2 mb-1">
-                                                        <Badge style={{ padding: ".25rem .5rem", margin: "0.5rem" }} variant="destructive" className="rounded-full">
+                                                        <Badge style={{ padding: ".25rem .5rem", margin: "0.5rem" }} variant="destructive" className="rounded-lg">
                                                             {g.priority ?? "—"}
                                                         </Badge>
                                                         <span className="font-medium">{g.missing}</span>
@@ -338,7 +347,7 @@ export function ResumeCard({
                                 <>
                                     <Separator />
                                     <section className="space-y-3">
-                                        <h3 className="text-sm font-medium text-muted-foreground">Technical Skills</h3>
+                                        <h3 style={{ margin: "0.5rem 0" }} className="text-sm font-medium text-muted-foreground">Technical Skills</h3>
                                         <div className="grid gap-3 sm:grid-cols-2">
                                             {insights.skills.technical.map((t, i) => (
                                                 <div
@@ -346,13 +355,13 @@ export function ResumeCard({
                                                     key={`${t.name}-${i}`}
                                                     className="rounded-lg border p-3 space-y-2"
                                                 >
-                                                    <div className="flex items-center justify-between">
+                                                    <div style={{ margin: ".5rem 0rem" }} className="flex items-center justify-between">
                                                         <span className="font-medium">{t.name}</span>
-                                                        <Badge variant="outline" className="rounded-full">
+                                                        <Badge style={{ padding: ".25rem .5rem" }} variant="outline" className="rounded-lg">
                                                             {t.level ?? "—"}
                                                         </Badge>
                                                     </div>
-                                                    <Progress value={levelToPct(t.level)} />
+                                                    <Progress style={{ margin: ".5rem 0rem" }} value={levelToPct(t.level)} />
                                                     {t.evidenceLine && (
                                                         <p className="text-xs text-muted-foreground">{t.evidenceLine}</p>
                                                     )}
@@ -368,11 +377,11 @@ export function ResumeCard({
                                 <>
                                     <Separator />
                                     <section className="space-y-3">
-                                        <h3 className="text-sm font-medium text-muted-foreground">Top Roles</h3>
+                                        <h3 style={{ margin: "0.5rem 0" }} className="text-sm font-medium text-muted-foreground">Top Roles</h3>
                                         <div className="grid gap-3 sm:grid-cols-2">
                                             {insights.topRoles.map((r, i) => (
                                                 <div style={{ padding: "0 .5rem" }} key={`${r.title}-${i}`} className="rounded-lg border p-3 space-y-2">
-                                                    <div className="flex items-center gap-2">
+                                                    <div style={{ margin: ".5rem 0rem" }} className="flex items-center gap-2">
                                                         <Award className="size-4 text-amber-600" />
                                                         <span className="font-medium">{r.title}</span>
                                                     </div>
@@ -392,11 +401,11 @@ export function ResumeCard({
                                 <>
                                     <Separator />
                                     <section className="space-y-3">
-                                        <h3 className="text-sm font-medium text-muted-foreground">Achievements</h3>
+                                        <h3 style={{ margin: "0.5rem 0" }} className="text-sm font-medium text-muted-foreground">Achievements</h3>
                                         <ul className="space-y-2">
                                             {insights.achievements.map((a, i) => (
-                                                <li style={{ padding: "0 .5rem" }} key={`${a.headline}-${i}`} className="rounded-lg border p-3">
-                                                    <div className="font-medium">{a.headline}</div>
+                                                <li style={{ padding: "0 .5rem", margin: ".5rem 0rem" }} key={`${a.headline}-${i}`} className="rounded-lg border p-3">
+                                                    <div style={{ margin: ".5rem 0rem" }} className="font-medium">{a.headline}</div>
                                                     {a.suggestedBullet && (
                                                         <p className="text-sm text-muted-foreground mt-1">{a.suggestedBullet}</p>
                                                     )}
@@ -412,7 +421,7 @@ export function ResumeCard({
                                 <>
                                     <Separator />
                                     <section className="space-y-3">
-                                        <h3 className="text-sm font-medium text-muted-foreground">ATS & Format</h3>
+                                        <h3 style={{ margin: "0.5rem 0" }} className="text-sm font-medium text-muted-foreground">ATS & Format</h3>
                                         <div className="flex items-center gap-2">
                                             <Badge style={{ margin: ".5rem 0", padding: "0 .25rem" }} variant={insights.atsAndFormat.isATSFriendly ? "secondary" : "destructive"} className="rounded-full">
                                                 {insights.atsAndFormat.isATSFriendly ? "ATS Friendly" : "Needs Work"}
@@ -429,6 +438,314 @@ export function ResumeCard({
                                 </>
                             )}
                         </div>
+                    </TabsContent>
+
+                    {/* SALARY */}
+                    <TabsContent value="salary" className="mt-0">
+                        <ScrollArea className="px-5 sm:px-6 py-4 h-[60vh]">
+                            {insights?.salaryInsights ? (
+                                <div className="space-y-6">
+                                    {/* Current Estimate */}
+                                    <section>
+                                        <h3 style={{ margin: "0.5rem 0" }} className="text-sm font-medium text-muted-foreground mb-3">
+                                            Your Current Market Value
+                                        </h3>
+                                        <div style={{ padding: ".25rem .5rem" }} className="rounded-lg border p-4 bg-linear-to-br from-purple-50/50 to-blue-50/50 dark:from-purple-950/20 dark:to-blue-950/20">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div>
+                                                    <div className="text-3xl font-bold">
+                                                        ${(insights.salaryInsights.currentEstimate.range.median / 1000).toFixed(0)}K
+                                                    </div>
+                                                    <div className="text-sm text-muted-foreground">
+                                                        Median • {insights.salaryInsights.currentEstimate.level} level
+                                                    </div>
+                                                </div>
+                                                <Badge style={{ padding: "0rem .75rem" }} variant="secondary" className="text-md px-3 py-1">
+                                                    {insights.salaryInsights.currentEstimate.level}
+                                                </Badge>
+                                            </div>
+
+                                            <div style={{ padding: ".25rem .5rem" }} className="grid grid-cols-3 gap-3 text-sm">
+                                                <div>
+                                                    <div className="text-muted-foreground">Min</div>
+                                                    <div className="font-semibold">
+                                                        ${(insights.salaryInsights.currentEstimate.range.min / 1000).toFixed(0)}K
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-muted-foreground text-center">p75</div>
+                                                    <div className="font-semibold text-center">
+                                                        ${(insights.salaryInsights.currentEstimate.range.p75 / 1000).toFixed(0)}K
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-muted-foreground text-end">p95</div>
+                                                    <div className="font-semibold text-end">
+                                                        ${(insights.salaryInsights.currentEstimate.range.p95 / 1000).toFixed(0)}K
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <p style={{ padding: ".25rem .5rem" }} className="text-sm text-muted-foreground mt-3 pt-3 border-t">
+                                                {insights.salaryInsights.currentEstimate.reasoning}
+                                            </p>
+                                        </div>
+                                    </section>
+
+                                    <Separator style={{ margin: "0.5rem 0" }} />
+
+                                    {/* Skill ROI */}
+                                    {insights.salaryInsights.skillROI?.length > 0 && (
+                                        <section >
+                                            <h3 style={{ margin: "0.5rem 0" }} className="text-sm font-medium text-muted-foreground mb-3">
+                                                What Skills Should You Learn Next?
+                                            </h3>
+                                            <div className="space-y-3">
+                                                {insights.salaryInsights.skillROI.map((roi, i) => (
+                                                    <div style={{ padding: ".25rem .5rem" }} key={i} className="rounded-lg border p-4 hover:border-purple-500/50 transition-colors">
+                                                        <div className="flex items-start justify-between mb-2">
+                                                            <div>
+                                                                <div className="font-semibold capitalize">{roi.skill}</div>
+                                                                <div className="text-sm text-muted-foreground">{roi.reasoning}</div>
+                                                            </div>
+                                                            <Badge style={{ padding: ".15rem .25rem", margin: ".5rem" }} variant="default" className="ml-2 rounded-lg whitespace-nowrap">
+                                                                +${(roi.increase / 1000).toFixed(0)}K
+                                                            </Badge>
+                                                        </div>
+
+                                                        <div className="flex items-center gap-4 text-sm">
+                                                            <div>
+                                                                <span className="text-muted-foreground">Current: </span>
+                                                                <span className="font-medium">
+                                                                    ${(roi.currentAvgSalary / 1000).toFixed(0)}K
+                                                                </span>
+                                                            </div>
+                                                            <div className="text-muted-foreground">→</div>
+                                                            <div>
+                                                                <span className="text-muted-foreground">With skill: </span>
+                                                                <span className="font-medium text-green-600 dark:text-green-400">
+                                                                    ${(roi.withSkillAvgSalary / 1000).toFixed(0)}K
+                                                                </span>
+                                                            </div>
+                                                            <div className="ml-auto">
+                                                                <Badge style={{ padding: ".15rem .25rem" }} variant="outline" className="text-green-600 dark:text-green-400">
+                                                                    +{roi.increasePercentage}%
+                                                                </Badge>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </section>
+                                    )}
+
+                                    {/* Potential Growth */}
+                                    {insights.salaryInsights.potentialGrowth?.length > 0 && (
+                                        <>
+                                            <Separator style={{ margin: ".5rem 0" }} />
+                                            <section>
+                                                <h3 style={{ margin: ".5rem 0" }} className="text-sm font-medium text-muted-foreground mb-3">
+                                                    Your Growth Potential
+                                                </h3>
+                                                {insights.salaryInsights.potentialGrowth.map((growth, i) => (
+                                                    <div style={{ padding: ".25rem .5rem" }} key={i} className="rounded-lg border p-4 bg-linear-to-br from-green-50/50 to-emerald-50/50 dark:from-green-950/20 dark:to-emerald-950/20">
+                                                        <div className="flex items-center justify-between mb-3">
+                                                            <div>
+                                                                <div className="text-xl font-bold capitalize">
+                                                                    {growth.targetLevel} Level
+                                                                </div>
+                                                                <div className="text-sm text-muted-foreground">
+                                                                    {growth.timeframe}
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                                                                    ${(growth.estimatedSalary.median / 1000).toFixed(0)}K
+                                                                </div>
+                                                                <div className="text-xs text-muted-foreground">
+                                                                    median (p75: ${(growth.estimatedSalary.p75 / 1000).toFixed(0)}K)
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            <div className="text-sm font-medium">Skills to add:</div>
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {growth.requiresSkills.map((skill, idx) => (
+                                                                    <Badge style={{ padding: ".25rem .5rem" }} key={idx} variant="secondary">
+                                                                        {skill}
+                                                                    </Badge>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </section>
+                                        </>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="text-sm text-muted-foreground">No salary insights available.</div>
+                            )}
+                        </ScrollArea>
+                    </TabsContent>
+
+                    {/* CAREER PATH */}
+                    <TabsContent value="career" className="mt-0">
+                        <ScrollArea className="px-5 sm:px-6 py-4 h-[60vh]">
+                            {insights?.skillStacks ? (
+                                <div className="space-y-6">
+                                    {/* Current Stack */}
+                                    <section>
+                                        <h3 className="text-sm font-medium text-muted-foreground mb-3">
+                                            Your Current Stack
+                                        </h3>
+                                        <div style={{ padding: ".25rem .5rem" }} className="rounded-lg border p-4">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <div className="text-lg font-semibold">Stack Completeness</div>
+                                                <Badge style={{ padding: ".15rem .5rem", margin: ".5rem 0" }} variant="secondary" className="text-lg">
+                                                    {insights.skillStacks.currentStack.completeness}%
+                                                </Badge>
+                                            </div>
+
+                                            <Progress value={insights.skillStacks.currentStack.completeness} className="mb-4" />
+
+                                            <div style={{ margin: "0.5rem 0" }} className="space-y-3">
+                                                <div>
+                                                    <div className="text-sm font-medium mb-2">Your Skills:</div>
+                                                    <div style={{ margin: "0.5rem 0" }} className="flex flex-wrap gap-2">
+                                                        {insights.skillStacks.currentStack.skills.map((skill, i) => (
+                                                            <Badge style={{ padding: ".25rem .5rem" }} key={i} variant="default">
+                                                                {skill}
+                                                            </Badge>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                {insights.skillStacks.currentStack.commonPairings?.length > 0 && (
+                                                    <div>
+                                                        <div className="text-sm font-medium mb-2">
+                                                            Skills that commonly appear together:
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            {insights.skillStacks.currentStack.commonPairings.map((pair, i) => (
+                                                                <div key={i} className="flex items-center justify-between text-sm">
+                                                                    <span className="capitalize">{pair.skill}</span>
+                                                                    <Badge style={{ padding: ".25rem .5rem" }} variant="outline">
+                                                                        {pair.appearsTogetherPercentage}% of jobs
+                                                                    </Badge>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </section>
+
+                                    {/* Recommended Stacks */}
+                                    {insights.skillStacks.recommendedStacks?.length > 0 && (
+                                        <>
+                                            <Separator style={{ margin: "0.5rem 0" }} />
+                                            <section>
+                                                <h3 style={{ margin: "0.5rem 0" }} className="text-sm font-medium text-muted-foreground mb-3">
+                                                    Recommended Career Paths
+                                                </h3>
+                                                <div className="space-y-4">
+                                                    {insights.skillStacks.recommendedStacks.map((stack, i) => (
+                                                        <div style={{ padding: ".25rem .5rem", margin: ".5rem 0" }} key={i} className="rounded-lg border p-4 hover:border-purple-500/50 transition-colors">
+                                                            <div className="flex items-start justify-between mb-2">
+                                                                <div>
+                                                                    <div className="text-lg font-semibold">{stack.name}</div>
+                                                                    <div className="text-sm text-muted-foreground">{stack.description}</div>
+                                                                </div>
+                                                                <Badge style={{ padding: "0rem .5rem" }} variant="default" className="text-md px-3 py-1 whitespace-nowrap">
+                                                                    {stack.projectedFit}% fit
+                                                                </Badge>
+                                                            </div>
+
+                                                            <div className="space-y-3 mt-4">
+                                                                <div>
+                                                                    <div className="text-sm font-medium mb-2">Add these skills:</div>
+                                                                    <div className="flex flex-wrap gap-2">
+                                                                        {stack.addSkills.map((skill, idx) => (
+                                                                            <Badge style={{ padding: ".25rem .5rem" }} key={idx} variant="secondary" className="capitalize">
+                                                                                {skill}
+                                                                            </Badge>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="flex items-center justify-between pt-3 border-t">
+                                                                    <div className="text-sm">
+                                                                        <span className="text-muted-foreground">Salary range: </span>
+                                                                        <span className="font-semibold">
+                                                                            ${(stack.salaryRange.median / 1000).toFixed(0)}K - $
+                                                                            {(stack.salaryRange.p75 / 1000).toFixed(0)}K
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </section>
+                                        </>
+                                    )}
+
+                                    {/* Market Alignment */}
+                                    {insights?.marketAlignment && (
+                                        <>
+                                            <Separator style={{ margin: "0.5rem 0" }} />
+                                            <section>
+                                                <h3 style={{ margin: "0.5rem 0" }} className="text-sm font-medium text-muted-foreground mb-3">
+                                                    Market Demand for Your Skills
+                                                </h3>
+                                                <div style={{ padding: ".25rem .5rem" }} className="rounded-lg border p-4 mb-4">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <div style={{ margin: "0.5rem 0" }} className="text-lg font-semibold">Demand Score</div>
+                                                        <Badge style={{ padding: "0 .5rem" }} variant="secondary" className="text-md">
+                                                            {insights.marketAlignment.demandScore}%
+                                                        </Badge>
+                                                    </div>
+                                                    <Progress style={{ margin: "0.5rem 0" }} value={insights.marketAlignment.demandScore} className="mb-2" />
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {insights.marketAlignment.demandScoreExplanation}
+                                                    </p>
+                                                </div>
+
+                                                {insights.marketAlignment.missingHighDemandSkills?.length > 0 && (
+                                                    <div style={{ margin: "0.5rem 0" }} className="space-y-2">
+                                                        <div className="text-sm font-medium">High-demand skills you're missing:</div>
+                                                        {insights.marketAlignment.missingHighDemandSkills.slice(0, 5).map((skill, i) => (
+                                                            <div style={{ padding: ".25rem .5rem", margin: "0.5rem 0" }} key={i} className="rounded-lg border p-3">
+                                                                <div className="flex items-start justify-between mb-1">
+                                                                    <span className="font-medium capitalize">{skill.skill}</span>
+                                                                    <Badge style={{ padding: ".25rem .5rem" }} variant={
+                                                                        skill.priority === 'high' ? 'destructive' :
+                                                                            skill.priority === 'medium' ? 'default' : 'outline'
+                                                                    }>
+                                                                        {skill.priority}
+                                                                    </Badge>
+                                                                </div>
+                                                                <div className="text-sm text-muted-foreground mb-1">
+                                                                    {skill.demand} jobs • {skill.reason}
+                                                                </div>
+                                                                <div className="text-sm text-purple-600 dark:text-purple-400">
+                                                                    💡 {skill.learningPath}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </section>
+                                        </>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="text-sm text-muted-foreground">No career path insights available.</div>
+                            )}
+                        </ScrollArea>
                     </TabsContent>
                 </Tabs>
             </CardContent>

@@ -70,9 +70,9 @@ export const JobPostingsControls: React.FC<JobPostingsControlsProps> = ({
         [onFiltersCommit]
     );
     const PaginationControls = (
-        <div className="flex flex-col sm:flex-row items-center gap-3 py-3 pagination-container justify-center">
+        <div className="lg:grid lg:grid-cols-3 sm:flex-row items-center gap-3 py-3 pagination-container justify-center">
             {/* Navigation controls - centered */}
-            <div className="flex items-center gap-3 justify-center">
+            <div className="flex items-center gap-3 justify-center lg:col-start-2">
                 <Button
                     onClick={onPreviousPage}
                     disabled={isPreviousDisabled}
@@ -102,7 +102,7 @@ export const JobPostingsControls: React.FC<JobPostingsControlsProps> = ({
             </div>
 
             {/* Page size controls - centered below on mobile, beside on desktop */}
-            <div className="flex items-center justify-center gap-3">
+            <div className="flex items-center gap-3 lg:col-start-3">
                 <div className="text-sm text-white/60 whitespace-nowrap">Results per page</div>
 
                 <Select
@@ -131,15 +131,16 @@ export const JobPostingsControls: React.FC<JobPostingsControlsProps> = ({
         <>
             {/* Filters Section */}
 
-
-            <TechSearchCombobox
-                value={filters}
-                onChange={setFilters}
-                onCommit={handleCommit}
-                options={techCounts.map(t => ({ value: t.name ?? t.id, label: t.name ?? t.id, count: t.count }))}
-                widthClass="w-[360px]"
-            />
-
+            <div className="lg:grid grid-cols-3" >
+                <TechSearchCombobox
+                    value={filters}
+                    className='col-start-3'
+                    onChange={setFilters}
+                    onCommit={handleCommit}
+                    options={techCounts.map(t => ({ value: t.name ?? t.id, label: t.name ?? t.id, count: t.count }))}
+                    widthClass="w-[360px]"
+                />
+            </div >
             {/* Top Pagination */}
             {PaginationControls}
         </>
