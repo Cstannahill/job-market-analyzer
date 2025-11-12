@@ -142,7 +142,7 @@ export async function processFile(key: string) {
   console.log("Generating insights for resume ID:", resumeId);
 
   // New Section
-  const coTech = [];
+  const techDetails = [];
   let canonTech: string[] = [];
   try {
     canonTech = canonicalizeTech(normalizedSkills?.technologies);
@@ -165,15 +165,28 @@ export async function processFile(key: string) {
           seniority: data.by_seniority?.length ?? 0,
         },
       });
-      const techData = { technology: canonTech[i], ...data };
-      console.log(techData);
-      coTech.push(techData);
+      const techData = {
+        technology: canonTech[i],
+        job_count: data?.summary?.job_count,
+        salary_median: data?.summary?.salary_median,
+        salary_min: data?.summary?.salary_min,
+        salary_p75: data?.summary?.salary_p75,
+        salary_p95: data?.summary?.salary_p95,
+        cooccurring_skills:
+          data?.cooccurring_skills ?? data?.summary?.cooccurring_skills,
+        industry_distribution:
+          data?.industry_distribution ?? data?.summary?.industry_distribution,
+        top_titles: data?.top_titles ?? data?.summary?.top_titles,
+        by_seniority: data?.by_seniority,
+      };
+      log(undefined, "info", "TechData Item", { techData });
+      techDetails.push(techData);
     }
   } catch {
     console.error("For Loop Failed");
   }
-  console.log(`Co-occuring Tech Array Length: ${coTech.length} \n
-    Co-occuring Tech Array Items: ${coTech}
+  console.log(`Tech details Tech Array Length: ${techDetails.length} \n
+    Tech Details Array Items: ${techDetails}
     `);
   // END NEW SECTION
 
