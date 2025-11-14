@@ -33,14 +33,22 @@ function normalizeLookup(name: string) {
         ".net core": "dot-net-core",
         "vercel platform": "vercel",
         "redux toolkit": "redux",
-        "asp.net": "asp"
-
-
+        "asp.net": "asp",
+        "aws lambda": "lambda",
+        "aws-lambda": "lambda",
+        "api gateway": "api-gateway",
+        "event bridge": "eventbridge",
+        "event-bridge": "eventbridge",
     };
 
     if (specialCases[lower]) return specialCases[lower];
 
     // Pattern-based special cases
+    if (lower.includes("dynamo")) return "dynamodb"
+    if (lower.includes("linux")) return "linux"
+    if (lower.includes("kafka")) return "kafka"
+    if (lower.includes("new") && lower.includes("relic")) return "new-relic"
+    if (lower.includes("cloudwatch") || (lower.includes("cloud") && lower.includes("watch"))) return "cloudwatch"
     if ((lower.includes(".net") || lower.includes("dot") && lower.includes("net")) && lower.includes("core")) return "dot-net-core"
     if (lower.includes("gitlab")) return "gitlab";
     if (lower.includes("kotlin")) return "kotlin";

@@ -6,10 +6,10 @@ export const ManageResumesPage = () => {
     return (
         <Layout>
             <Seo
-                title="Register — Job Market Analyzer"
-                description="Register for an account on Job Market Analyzer to access personalized features and take full advantage of AI-powered job market insights."
-                path="/register"
-                image="/public/og/register.avif"
+                title="Manage Resume — Job Market Analyzer"
+                description="Manage your resume to adjust skills as compared to market trends."
+                path="/manage-resume"
+                image="/public/og/td.svg"
             />
             <div className="flex justify-center mt-5">
                 <ManageResumes />

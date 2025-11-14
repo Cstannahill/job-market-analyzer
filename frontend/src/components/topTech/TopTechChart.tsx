@@ -39,7 +39,7 @@ const TopTechChart: React.FC = () => {
 
             <div className="loading">
                 <Spinner className="size-8" />
-                <p>Loading job postings...</p>
+                <p>Loading Top Technologies...</p>
             </div>
         );
     }

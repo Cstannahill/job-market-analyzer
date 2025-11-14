@@ -71,9 +71,9 @@ export default function TrendsV2Page() {
             <TrendsLayout>
                 <div className="flex flex-col items-center justify-center h-screen gap-4">
                     <Spinner className="size-8" />
-                    <p className="text-slate-400">Loading job postings...</p>
+                    <p className="text-slate-400">Loading Technology Trends...</p>
                     <div className="w-full max-w-6xl px-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-4">
                             <Skeleton className="h-56" />
                             <Skeleton className="h-56" />
                             <Skeleton className="h-56" />
