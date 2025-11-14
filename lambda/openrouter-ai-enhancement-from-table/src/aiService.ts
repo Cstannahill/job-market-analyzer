@@ -364,7 +364,7 @@ export async function processBatches(
         f = 0;
       for (const data of enriched) {
         try {
-          await saveEnrichedData(data);
+          await saveEnrichedData(data, run);
           s++;
         } catch (err) {
           f++;
