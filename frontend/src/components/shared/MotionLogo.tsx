@@ -1,4 +1,4 @@
-import { AWS_LOGO, CPP_LOGO, GCP_LOGO, GO_LOGO, JAVASCRIPT_LOGO, KUBERNETES_LOGO, POSTGRES_LOGO, PYTHON_LOGO, REACT_LOGO, TYPESCRIPT_LOGO, type LogoSpec } from "@/components/shared/logos";
+import { AWS_LOGO, CPP_LOGO, GCP_LOGO, GO_LOGO, JAVASCRIPT_LOGO, KUBERNETES_LOGO, POSTGRES_LOGO, PYTHON_LOGO, REACT_LOGO, TD_LOGO, TYPESCRIPT_LOGO, type LogoSpec } from "@/components/shared/logos";
 import { motion, type Variants } from "motion/react"
 const OUTLINE_DURATION = 2.0;       // how long the stroke draw takes
 const OUTLINE_DELAY_STEP = 0.5;     // spacing between shapes
@@ -109,6 +109,18 @@ export function TechGrid2() {
 
 export function TechRow() {
     const LOGOS = [PYTHON_LOGO, JAVASCRIPT_LOGO, AWS_LOGO, KUBERNETES_LOGO, TYPESCRIPT_LOGO, REACT_LOGO, POSTGRES_LOGO, GCP_LOGO, GO_LOGO, CPP_LOGO];
+
+    return (
+        <div className="grid grid-cols-10 gap-20">
+            {LOGOS.map((logo, i) => (
+                <MotionLogo key={i} logo={logo} logoIndex={i + 1} />
+            ))}
+        </div>
+    );
+}
+
+export function DrawSingleIcon() {
+    const LOGOS = [TD_LOGO];
 
     return (
         <div className="grid grid-cols-10 gap-20">

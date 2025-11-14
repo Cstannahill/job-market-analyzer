@@ -12,6 +12,7 @@ const Home: React.FC = () => {
                 path=""
                 image="/public/og/home.avif"
             />
+            {/* <DrawSingleIcon /> */}
             {/* <div style={{ left: "20rem" }} className="fixed inset-y-0 xl:flex-row items-center z-20"
             >
                 <TechGrid />

@@ -28,7 +28,7 @@ function LandingPage() {
   const totalPostings = stats?.totalPostings || 0;
   // const totalTechnologies = stats?.totalTechnologies || 0;
   const totalSkills = stats?.totalSkills || 0;
-  const technologyCounts = stats?.technologies || {};
+  const technologyCounts = stats?.totalTechnologies || 0;
 
 
 
@@ -74,7 +74,7 @@ function LandingPage() {
                   <StatsCard
                     icon={Code2}
                     label="Technologies Tracked"
-                    value={Object.keys(technologyCounts).length}
+                    value={technologyCounts}
                     duration={2000}
                     changeText="↑ Tracked Live"
                     changeType="positive"

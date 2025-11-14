@@ -2,9 +2,10 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
-  QueryCommand,
   BatchGetCommand,
 } from "@aws-sdk/lib-dynamodb";
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import ws from "ws";
 import { TrendItem, Seniority, WorkMode, Period, Event } from "./types.js";
 import { toWeek, toDay, weekDates } from "./compute/buckets.js";
 import {
@@ -26,54 +27,69 @@ import { batchWriteAll } from "./ddb.js";
 const AGG_DIM = (process.env.AGG_DIM as AggDim) ?? "technology";
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
-const SRC_TABLE = process.env.SRC_TABLE!;
-const SRC_GSI = process.env.SRC_GSI!; // e.g. JobsByDayIndex
-const SRC_PK_ATTR = process.env.SRC_PK_ATTR ?? "processed_day"; // PK name for that GSI
 const TRENDS_TABLE = process.env.TRENDS_TABLE!;
 const TOTALS_TABLE = process.env.TOTALS_TABLE!;
 const GRANULARITY = (process.env.GRANULARITY ?? "weekly") as "weekly" | "daily";
 const PERIOD = process.env.FORCE_PERIOD as string | undefined;
+const CONNECTION_STRING =
+  process.env.NEON_DATABASE_URL ?? process.env.DATABASE_URL;
+
+if (!CONNECTION_STRING) {
+  throw new Error(
+    "DATABASE_URL (or NEON_DATABASE_URL) environment variable must be set"
+  );
+}
+
+neonConfig.webSocketConstructor = ws;
+
+const TABLES = {
+  jobs: buildIdentifier(process.env.NEON_JOBS_TABLE ?? "jobs"),
+  jobsTechnologies: buildIdentifier(
+    process.env.NEON_JOBS_TECHNOLOGIES_TABLE ?? "jobs_technologies"
+  ),
+  technologies: buildIdentifier(
+    process.env.NEON_TECHNOLOGIES_TABLE ?? "technologies"
+  ),
+};
+
+const pool = new Pool({ connectionString: CONNECTION_STRING });
 
 type AggKey = `${string}|${string}|${Seniority}|${WorkMode}|${string}`;
 //             region | skill  | seniority   | mode    | period
+type DbJobRow = {
+  id: string;
+  dynamo_id: string | null;
+  job_title: string | null;
+  location: string | null;
+  remote_status: string | null;
+  seniority_level: string | null;
+  salary_mentioned: boolean | null;
+  minimum_salary: number | null;
+  maximum_salary: number | null;
+};
+
+type SourcePosting = {
+  jobId: string;
+  job_title: string | null;
+  location: string | null;
+  remote_status: string | null;
+  seniority_level: string | null;
+  salary_mentioned: boolean;
+  salary_range: string | null;
+  industry?: string | null;
+  technologies: string[];
+  skills: string[];
+};
 
 export const handler = async () => {
   const now = new Date();
   const period: Period =
     (PERIOD as Period) ?? (GRANULARITY === "weekly" ? toWeek(now) : toDay(now));
 
-  // 1) Load source rows for the period (no scans)
+  // 1) Load source rows for the period from Neon
   const days =
     GRANULARITY === "weekly" ? weekDates(period as any) : [period as string];
-  const postings: any[] = [];
-  for (const day of days) {
-    const page = await ddb.send(
-      new QueryCommand({
-        TableName: SRC_TABLE,
-        IndexName: SRC_GSI,
-        KeyConditionExpression: "#k = :v",
-        ExpressionAttributeNames: {
-          "#k": SRC_PK_ATTR, // e.g. processed_day
-          "#loc": "location", // alias reserved word
-        },
-        ExpressionAttributeValues: { ":v": day },
-        ProjectionExpression: [
-          "jobId",
-          "job_title",
-          "#loc", // ← use alias here
-          "remote_status",
-          "seniority_level",
-          "industry",
-          "salary_mentioned",
-          "salary_range",
-          "skills",
-          "technologies",
-        ].join(", "),
-      })
-    );
-    postings.push(...(page.Items ?? []));
-  }
-
+  const postings = await fetchPostings(days);
   // 2) Aggregate
   const totalsByRegion = new Map<string, Set<string>>(); // distinct jobIds
   const salaryBuckets = new Map<string, number[]>(); // AggKey -> salaries
@@ -380,3 +396,107 @@ function pruneEmptyKeys<T extends Record<string, any>>(m?: T): T | undefined {
   }
   return m;
 }
+
+async function fetchPostings(days: string[]): Promise<SourcePosting[]> {
+  if (days.length === 0) return [];
+  const base = await pool.query<DbJobRow>(
+    `
+      SELECT
+        id,
+        dynamo_id,
+        job_title,
+        location,
+        remote_status,
+        seniority_level,
+        salary_mentioned,
+        minimum_salary,
+        maximum_salary
+      FROM ${TABLES.jobs}
+      WHERE DATE(processed_date) = ANY($1::date[])
+    `,
+    [days]
+  );
+
+  const rows = base.rows ?? [];
+  if (rows.length === 0) return [];
+
+  const jobUuidList = rows.map((row) => row.id);
+  const techMap = new Map<string, string[]>();
+
+  if (jobUuidList.length > 0) {
+    const techRes = await pool.query<{ job_id: string; name: string | null }>(
+      `
+        SELECT jt.job_id, t.name
+        FROM ${TABLES.jobsTechnologies} jt
+        JOIN ${TABLES.technologies} t ON t.id = jt.technology_id
+        WHERE jt.job_id = ANY($1::uuid[])
+      `,
+      [jobUuidList]
+    );
+
+    for (const row of techRes.rows ?? []) {
+      const name = row.name?.trim();
+      if (!name) continue;
+      const next = techMap.get(row.job_id) ?? [];
+      next.push(name);
+      techMap.set(row.job_id, next);
+    }
+  }
+
+  return rows.map((row) => ({
+    jobId: (row.dynamo_id ?? row.id) as string,
+    job_title: row.job_title,
+    location: row.location,
+    remote_status: row.remote_status,
+    seniority_level: row.seniority_level,
+    salary_mentioned: Boolean(row.salary_mentioned),
+    salary_range: buildSalaryRange(row.minimum_salary, row.maximum_salary),
+    industry: "Unknown",
+    technologies: dedupeStrings(techMap.get(row.id) ?? []),
+    skills: [],
+  }));
+}
+
+function buildSalaryRange(
+  min: number | null,
+  max: number | null
+): string | null {
+  const safeMin = typeof min === "number" ? Math.round(min) : null;
+  const safeMax = typeof max === "number" ? Math.round(max) : null;
+  if (safeMin == null && safeMax == null) return null;
+  if (safeMin != null && safeMax != null) return `${safeMin}-${safeMax}`;
+  return `${safeMin ?? safeMax}`;
+}
+
+function dedupeStrings(values: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const value of values) {
+    const trimmed = value.trim();
+    if (!trimmed) continue;
+    const key = trimmed.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(trimmed);
+  }
+  return out;
+}
+
+function buildIdentifier(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    throw new Error("Table identifier cannot be empty");
+  }
+  const segments = trimmed.split(".").map((segment) => segment.trim());
+  for (const segment of segments) {
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(segment)) {
+      throw new Error(
+        `Invalid table identifier segment "${segment}" in value "${value}".`
+      );
+    }
+  }
+  return segments.map((segment) => `"${segment}"`).join(".");
+}
+
+
+
