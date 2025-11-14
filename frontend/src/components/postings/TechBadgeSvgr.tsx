@@ -39,6 +39,7 @@ function normalizeLookup(name: string) {
         "api gateway": "api-gateway",
         "event bridge": "eventbridge",
         "event-bridge": "eventbridge",
+        "ec2": "ec2"
     };
 
     if (specialCases[lower]) return specialCases[lower];
