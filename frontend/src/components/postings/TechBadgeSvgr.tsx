@@ -39,13 +39,14 @@ function normalizeLookup(name: string) {
         "api gateway": "api-gateway",
         "event bridge": "eventbridge",
         "event-bridge": "eventbridge",
-        "ec2": "ec2"
+        "ec2": "ec2",
     };
 
     if (specialCases[lower]) return specialCases[lower];
 
     // Pattern-based special cases
     if (lower.includes("dynamo")) return "dynamodb"
+    if (lower.includes("atlassian")) return "atlassian"
     if (lower.includes("linux")) return "linux"
     if (lower.includes("kafka")) return "kafka"
     if (lower.includes("new") && lower.includes("relic")) return "new-relic"
