@@ -59,7 +59,7 @@ export default function TechDetailPanel({ data }: { data: TechnologyDetailRespon
         return acc;
     }, {} as Record<string, typeof wm>);
 
-    const seniorityOrder = ['Senior', 'Mid', 'Lead', 'Junior', 'Unknown'];
+    const seniorityOrder = ['Junior', 'Mid', 'Senior', 'Lead', 'Unknown'];
     const sortedSeniorities = Object.keys(workModeBySeniority).sort(
         (a, b) => seniorityOrder.indexOf(a) - seniorityOrder.indexOf(b)
     );
