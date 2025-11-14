@@ -271,9 +271,16 @@ const COMPANY_SIZE_KEYWORDS: Array<[RegExp, CompanySize]> = [
 ];
 
 const REMOTE_STATUS_KEYWORDS: Array<[RegExp, RemoteStatus]> = [
-  [/remote[-\s]?first|fully\s*remote|work\s*from\s*home|wfh|distributed/, "remote"],
+  [
+    /\bremote\b|remote[-\s]?first|fully\s*remote|work\s*from\s*home|wfh|distributed/,
+    "remote",
+  ],
   [/hybrid|flex(?:ible)?|partial\s*remote/, "hybrid"],
-  [/on[-\s]?site|onsite|in[-\s]?office|in\s+person|office\s+based/, "on_site"],
+  [
+    /on[-\s]?site|onsite|in[-\s]?office|in\s+person|office\s+based/,
+    "on_site",
+  ],
+  [/not\s*specified|unknown|n\/a/, "not_specified"],
 ];
 
 const SENIORITY_KEYWORDS: Array<[RegExp, SeniorityLevel]> = [

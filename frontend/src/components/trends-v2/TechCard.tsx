@@ -12,9 +12,9 @@ export default function TechCard({ item, onClick, selected }: {
             <div style={{ padding: ".5rem .5rem" }} className="flex items-start justify-between gap-3">
                 <div>
                     <div className="text-sm font-semibold text-white">{title}</div>
-                    <div className="text-xs text-slate-400 mt-1">
+                    {/* <div className="text-xs text-slate-400 mt-1">
                         Remote: <span className="text-slate-200">{Math.round((item as TopTechnologiesItem).remote_share ?? 0 * 100) / 100}%</span>
-                    </div>
+                    </div> */}
                 </div>
                 <div className="text-right">
                     <div className="text-[11px] text-slate-400">Demand</div>

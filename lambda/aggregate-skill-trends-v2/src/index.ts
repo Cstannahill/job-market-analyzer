@@ -24,6 +24,10 @@ import {
 } from "./compute/momentum.js";
 import { zeroPad, topN } from "./compute/stats.js";
 import { batchWriteAll } from "./ddb.js";
+import {
+  applySalaryAnchors,
+  type AnchoredSalarySource,
+} from "./lib/salaryAnchors.js";
 const AGG_DIM = (process.env.AGG_DIM as AggDim) ?? "technology";
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
@@ -31,6 +35,8 @@ const TRENDS_TABLE = process.env.TRENDS_TABLE!;
 const TOTALS_TABLE = process.env.TOTALS_TABLE!;
 const GRANULARITY = (process.env.GRANULARITY ?? "weekly") as "weekly" | "daily";
 const PERIOD = process.env.FORCE_PERIOD as string | undefined;
+const DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const WEEK_PATTERN = /^\d{4}-W\d{1,2}$/;
 const CONNECTION_STRING =
   process.env.NEON_DATABASE_URL ?? process.env.DATABASE_URL;
 
@@ -83,13 +89,19 @@ type SourcePosting = {
 
 export const handler = async () => {
   const now = new Date();
-  const period: Period =
-    (PERIOD as Period) ?? (GRANULARITY === "weekly" ? toWeek(now) : toDay(now));
+  const period = resolvePeriod(now);
 
   // 1) Load source rows for the period from Neon
   const days =
     GRANULARITY === "weekly" ? weekDates(period as any) : [period as string];
-  const postings = await fetchPostings(days);
+  const validDays = days.filter((day) => {
+    const ok = DAY_PATTERN.test(day);
+    if (!ok) {
+      console.warn(`Skipping invalid day string "${day}" when querying Neon.`);
+    }
+    return ok;
+  });
+  const postings = await fetchPostings(validDays);
   // 2) Aggregate
   const totalsByRegion = new Map<string, Set<string>>(); // distinct jobIds
   const salaryBuckets = new Map<string, number[]>(); // AggKey -> salaries
@@ -98,6 +110,12 @@ export const handler = async () => {
   const coMap = new Map<string, Record<string, number>>();
   const industries = new Map<string, Record<string, number>>();
   const titles = new Map<string, Record<string, number>>();
+  const anchorUsage: Record<AnchoredSalarySource, number> = {
+    actual: 0,
+    anchor: 0,
+    weighted: 0,
+    clamped: 0,
+  };
 
   for (const j of postings) {
     const jobId = String(j.jobId);
@@ -115,10 +133,19 @@ export const handler = async () => {
     const primary = selectPrimarySet(techs, softSkills, AGG_DIM);
     if (primary.length === 0) continue;
     const regions = uniqueRegions(region, country);
-    const salary = parseSalaryRange(
+    const parsedSalary = parseSalaryRange(
       String(j.salary_range ?? ""),
       Boolean(j.salary_mentioned)
     );
+    const anchoredSalary = applySalaryAnchors({
+      jobTitle: title,
+      annualUSD: parsedSalary?.annualUSD ?? null,
+    });
+    if (anchoredSalary?.source) {
+      anchorUsage[anchoredSalary.source] =
+        (anchorUsage[anchoredSalary.source] ?? 0) + 1;
+    }
+    const salaryAnnual = anchoredSalary?.annualUSD ?? null;
 
     for (const r of regions) {
       if (!totalsByRegion.has(r)) totalsByRegion.set(r, new Set<string>());
@@ -135,9 +162,9 @@ export const handler = async () => {
         inc(counts, kAll);
         if (mode === "Remote") inc(remoteCounts, kAll);
 
-        if (salary?.annualUSD != null) {
-          push(salaryBuckets, kMode, salary.annualUSD);
-          push(salaryBuckets, kAll, salary.annualUSD);
+        if (salaryAnnual != null) {
+          push(salaryBuckets, kMode, salaryAnnual);
+          push(salaryBuckets, kAll, salaryAnnual);
         }
 
         add(industries, kMode, industry);
@@ -327,6 +354,8 @@ export const handler = async () => {
   await batchWriteAll(ddb, TOTALS_TABLE, totalsItems);
   await batchWriteAll(ddb, TRENDS_TABLE, items);
 
+  console.log("Salary anchor usage", anchorUsage);
+
   return { period, postings: postings.length, trendItems: items.length };
 };
 
@@ -496,6 +525,50 @@ function buildIdentifier(value: string): string {
     }
   }
   return segments.map((segment) => `"${segment}"`).join(".");
+}
+
+function resolvePeriod(now: Date): Period {
+  const forced = PERIOD?.trim();
+  if (forced) {
+    if (GRANULARITY === "weekly") {
+      const week = coerceWeekPeriod(forced);
+      if (week) return week;
+    } else {
+      const day = coerceDayPeriod(forced);
+      if (day) return day;
+    }
+    console.warn(
+      `FORCE_PERIOD value "${forced}" could not be parsed for granularity ${GRANULARITY}; falling back to current date.`
+    );
+  }
+  return GRANULARITY === "weekly" ? toWeek(now) : toDay(now);
+}
+
+function coerceWeekPeriod(value: string): Period | null {
+  if (WEEK_PATTERN.test(value)) {
+    const [year, weekPart] = value.split("-W");
+    const weekNum = Number(weekPart);
+    if (Number.isFinite(weekNum) && weekNum > 0) {
+      return `${year}-W${String(weekNum).padStart(2, "0")}` as Period;
+    }
+    return null;
+  }
+  const parsed = parseFlexibleDate(value);
+  return parsed ? toWeek(parsed) : null;
+}
+
+function coerceDayPeriod(value: string): Period | null {
+  if (DAY_PATTERN.test(value)) {
+    return value as Period;
+  }
+  const parsed = parseFlexibleDate(value);
+  return parsed ? toDay(parsed) : null;
+}
+
+function parseFlexibleDate(value: string): Date | null {
+  if (!value) return null;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
 
