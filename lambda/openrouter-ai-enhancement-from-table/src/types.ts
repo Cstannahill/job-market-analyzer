@@ -26,4 +26,5 @@ export interface EnrichedJobData {
   industry?: string;
   processed_date: string;
   status?: string;
+  enrichment_run_id?: string;
 }

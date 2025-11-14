@@ -15,7 +15,9 @@ export default function RisingGrid({ data }: { data: TopTechnologiesItem[] }) {
     return (
         <Collapsible
             open={isOpen}
-            onOpenChange={setIsOpen}>
+            onOpenChange={setIsOpen}
+            style={{ padding: ".5rem .5rem" }}
+        >
             <div style={{ padding: ".5rem .5rem" }} className="nf-mono text-sm mb-2 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                 <H2 text="Rising This Period" style={{ fontSize: "1.45rem" }} className="text-shadow-green text-center col-start-1 md:col-start-2" />
                 <div className='flex justify-end col-start-3'>
@@ -32,16 +34,16 @@ export default function RisingGrid({ data }: { data: TopTechnologiesItem[] }) {
                     {data.map(it => (
                         <div style={{ padding: ".35rem .5rem" }} key={it.skill_canonical} className="rounded-lg p-3 bg-slate-800/40 border border-slate-800">
                             <div className="flex items-center justify-between">
-                                <div className="text-sm font-semibold text-white">{it.skill_canonical.toProperCase()}</div>
+                                <div className="text-sm font-semibold text-white text-center">{it.skill_canonical.toProperCase()}</div>
                                 <div className={`text-xs px-2 py-0.5 rounded ${(it.job_count_change_pct ?? 0) > 0 ? 'bg-emerald-700/40 text-emerald-200' : 'bg-slate-700/40 text-slate-300'
                                     }`}>
                                     {Math.round(((it as TopTechnologiesItem).job_count_change_pct ?? 0) * 100)}%
                                 </div>
                             </div>
-                            <div className="text-xs text-slate-400 mt-1">
-                                p50: <span className="text-slate-200">${(it.salary_median ?? 0).toLocaleString()}</span> ·
-                                p75: <span className="text-slate-200">${(it.salary_p75 ?? 0).toLocaleString()}</span> ·
-                                p95: <span className="text-slate-200">${(it.salary_p95 ?? 0).toLocaleString()}</span>
+                            <div className="text-xs lg:grid lg:grid-cols-3 text-slate-400 mt-1">
+                                <div className="text-slate-200">$ p50: {(it.salary_median ?? 0).toLocaleString()}</div>
+                                <div className="text-slate-200">$ p75: {(it.salary_p75 ?? 0).toLocaleString()}</div>
+                                <div className="text-slate-200">$ p95: {(it.salary_p95 ?? 0).toLocaleString()}</div>
                             </div>
                         </div>
                     ))}

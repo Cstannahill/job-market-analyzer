@@ -112,10 +112,17 @@ export function validateEnrichedData(
   return validated;
 }
 
-export async function saveEnrichedData(data: EnrichedJobData): Promise<void> {
+export async function saveEnrichedData(
+  data: EnrichedJobData,
+  runId: string
+): Promise<void> {
   const t0 = now();
+  const item: EnrichedJobData = {
+    ...data,
+    enrichment_run_id: runId,
+  };
   await docClient.send(
-    new PutCommand({ TableName: ENRICHMENT_TABLE, Item: data })
+    new PutCommand({ TableName: ENRICHMENT_TABLE, Item: item })
   );
   logInfo(`saved jobId=${data.jobId} in ${dtStr(t0)}`);
 }
