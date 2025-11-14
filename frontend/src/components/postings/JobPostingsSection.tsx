@@ -293,8 +293,8 @@ export const JobPostingsSection: React.FC = () => {
             </div>
 
             {/* Bottom Pagination */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 py-3 pagination-container">
-                <div className="flex items-center gap-3 justify-center sm:flex-1 sm:justify-center">
+            <div className="grid grid-cols-3 flex-col sm:flex-row items-center gap-3 py-3 pagination-container">
+                <div className="flex col-start-2 items-center gap-3 justify-center sm:flex-1 sm:justify-center">
                     <Button
                         onClick={() => fetchPage(Math.max(1, pageIndex - 1))}
                         disabled={pageIndex === 1 || rqIsLoading || isFetchingNextPage}
@@ -323,7 +323,7 @@ export const JobPostingsSection: React.FC = () => {
                     </Button>
                 </div>
 
-                <div className="flex items-center justify-center sm:justify-end gap-3 w-full sm:w-auto sm:flex-1">
+                <div className="grid- items-center justify-center sm:justify-end gap-3 w-full sm:w-auto sm:flex-1">
                     <div className="text-sm text-white/60 whitespace-nowrap">Results per page</div>
                     <select
                         value={pageSize}

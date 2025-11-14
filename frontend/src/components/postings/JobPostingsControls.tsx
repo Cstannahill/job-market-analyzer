@@ -110,12 +110,13 @@ export const JobPostingsControls: React.FC<JobPostingsControlsProps> = ({
                     onValueChange={(v) => onPageSizeChange(Number(v))}
                 >
                     <SelectTrigger
+                        style={{ padding: "0 0 0 1rem" }}
                         className="w-20 rounded-md text-sm font-medium bg-transparent border border-white/10 px-3 py-1 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400/20"
                     >
                         <SelectValue />
                     </SelectTrigger>
 
-                    <SelectContent className="bg-slate-800 text-white rounded-md shadow-lg">
+                    <SelectContent style={{ padding: "0 1rem", width: "fit" }} className="bg-slate-800 text-white rounded-md shadow-lg">
                         {pageSizeOptions.map((size) => (
                             <SelectItem key={size} value={String(size)}>
                                 {size}

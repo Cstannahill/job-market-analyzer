@@ -30,6 +30,7 @@ function normalizeLookup(name: string) {
 
     // Pattern-based special cases
     if (lower.includes("gitlab")) return "gitlab";
+    if (lower.includes("housecall")) return "housecall-pro"
 
 
     // Default normalization
@@ -135,7 +136,7 @@ export default function CompanyBadgeSvgr({
                         <img
                             src={iconUrl}
                             alt={toProperCase(name)}
-                            style={{ objectFit: "contain", backgroundColor: getCompanyIconColor(name) }}
+                            style={{ objectFit: "contain", backgroundColor: getCompanyIconColor(name), color: "#0882e7" }}
                             className={`${roundClasses[roundStyle]} w-full h-full object-contain bg-zinc-100/10 company-icon`}
                         />
                     </div>
@@ -144,10 +145,10 @@ export default function CompanyBadgeSvgr({
                 // Fallback: letter circle
                 <div
                     style={sizeStyle}
-                    className={`${roundClasses[roundStyle]} flex items-center justify-center bg-gray-500 text-sm`}
+                    className={`${roundClasses[roundStyle]} flex items-center justify-center bg-stone-300 text-sm`}
                     aria-hidden
                 >
-                    {name.charAt(0).toUpperCase()}
+                    { }
                 </div>
             )}
 

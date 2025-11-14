@@ -5,7 +5,8 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { marshall } from "@aws-sdk/util-dynamodb";
 import type { CanonicalPosting } from "../adapters/types.js";
-
+import { getDayOfYear } from "./dateHelpers.js";
+const today = getDayOfYear();
 export async function upsertMerge(
   ddb: DynamoDBClient,
   table: string,
@@ -21,6 +22,10 @@ export async function upsertMerge(
     description: p.description,
     descriptionSig: p.descriptionSig,
     provenance: { termsUrl: p.termsUrl, robotsOk: p.robotsOk },
+    source: p.source,
+    originalUrl: p.originalUrl,
+    fetchedAt: p.fetchedAt,
+    fetchedDayOfYear: today,
     sources: [
       { source: p.source, originalUrl: p.originalUrl, fetchedAt: p.fetchedAt },
     ],

@@ -19,6 +19,7 @@
 @import "./styles/auth.css";
 @import "./styles/App.css";
 @import "./styles/typography.css";
+@import "./styles/list-bullets.css";
 * {
   box-sizing: border-box;
   margin: 0;

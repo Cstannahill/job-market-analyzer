@@ -1,0 +1,27 @@
+.bullet-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bullet-list li {
+  display: flex;
+  align-items: flex-start; /* aligns icon with first line of text */
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.bullet-list .bullet {
+  flex-shrink: 0;
+  margin-top: 0.35rem; /* nudge up/down to taste */
+}
+
+.bullet-list .bullet {
+  width: 20px;
+  height: 20px;
+}
+
+.bullet-list .text {
+  flex: 1;
+  padding: 0.25rem;
+}

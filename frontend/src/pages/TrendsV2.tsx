@@ -10,6 +10,8 @@ import { Spinner } from '@/components/ui/spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TrendsLayout } from '@/components/TrendsLayout';
 import { toWeek } from '@/lib/utils/dateUtils';
+
+
 const today = new Date();
 const thisWeek: WeekPeriod = toWeek(today);
 const DEFAULT_REGION: Region = "GLOBAL";

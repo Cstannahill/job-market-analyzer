@@ -169,7 +169,7 @@ function AuthInitializationLoader() {
                 />
 
                 {/* Loading Text */}
-                <p className="text-muted-foreground text-sm animate-pulse">
+                <p className="text-muted-foreground text-sm animate-pulse text-center">
                     Initializing application...
                 </p>
             </div>

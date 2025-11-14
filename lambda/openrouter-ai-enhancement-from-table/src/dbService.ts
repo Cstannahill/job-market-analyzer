@@ -4,12 +4,14 @@ import {
   GetCommand,
   PutCommand,
   ScanCommand,
+  QueryCommand,
+  type QueryCommandOutput,
   type NativeAttributeValue,
   type ScanCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
 import { logDebug, logInfo } from "./logging.js";
 import type { EnrichedJobData, JobRecord } from "./types.js";
-import { safeString, dtStr, now } from "./utils.js";
+import { safeString, dtStr, now, yyyymmdd } from "./utils.js";
 
 //#region CONFIG START
 const MAX_ITEMS_PER_RUN = Number(process.env.MAX_ITEMS_PER_RUN || 50);
@@ -120,45 +122,74 @@ export async function saveEnrichedData(data: EnrichedJobData): Promise<void> {
 
 export async function getUnprocessedJobsFromDynamo(): Promise<JobRecord[]> {
   const results: JobRecord[] = [];
-  let lastEvaluatedKey: Record<string, NativeAttributeValue> | undefined;
-  let pageCount = 0;
 
-  do {
-    pageCount++;
-    if (pageCount > MAX_SCAN_PAGES) break;
+  const LOOKBACK_DAYS = Number(process.env.UNPROCESSED_LOOKBACK_DAYS ?? "7");
 
-    const scanResp: ScanCommandOutput = await docClient.send(
-      new ScanCommand({
-        TableName: SOURCE_TABLE,
-        Limit: 200,
-        ExclusiveStartKey: lastEvaluatedKey,
-      })
-    );
+  // Normalize "today" to a pure UTC date
+  const now = new Date();
+  const todayUtc = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+  );
 
-    const items = scanResp.Items ?? [];
-    for (const item of items) {
-      if (!item.PK || typeof item.PK !== "string") continue;
-
-      const jobId = item.PK.replace(/^JOB#/, "");
-      const alreadyProcessed = await isJobProcessed(jobId);
-      if (alreadyProcessed) continue;
-
-      results.push({
-        jobId,
-        company: safeString(item.company),
-        title: safeString(item.title),
-        description: safeString(item.description),
-        postedDate: safeString(item.postedDate),
-        locationRaw: safeString(item.location),
-        sourcesRaw: safeString(item.sources),
-      });
-
-      if (results.length >= MAX_ITEMS_PER_RUN) break;
-    }
-
-    lastEvaluatedKey = scanResp.LastEvaluatedKey;
+  for (let offset = 0; offset < LOOKBACK_DAYS; offset++) {
     if (results.length >= MAX_ITEMS_PER_RUN) break;
-  } while (lastEvaluatedKey);
+
+    // Compute the date we’re querying for
+    const day = new Date(todayUtc);
+    day.setUTCDate(todayUtc.getUTCDate() - offset);
+    const dateStr = yyyymmdd(day);
+
+    let lastEvaluatedKey: Record<string, NativeAttributeValue> | undefined;
+    let pageCount = 0;
+
+    do {
+      pageCount++;
+      if (pageCount > MAX_SCAN_PAGES) break; // keep your safety valve if you want
+
+      const queryResp: QueryCommandOutput = await docClient.send(
+        new QueryCommand({
+          TableName: SOURCE_TABLE,
+          IndexName: "postedDate-PK-index",
+          KeyConditionExpression: "#pd = :pd",
+          ExpressionAttributeNames: {
+            "#pd": "postedDate",
+          },
+          ExpressionAttributeValues: {
+            ":pd": dateStr,
+          },
+          Limit: 200,
+          ExclusiveStartKey: lastEvaluatedKey,
+        })
+      );
+
+      const items = queryResp.Items ?? [];
+
+      for (const item of items) {
+        if (!item.PK || typeof item.PK !== "string") continue;
+
+        const jobId = item.PK.replace(/^JOB#/, "");
+
+        const alreadyProcessed = await isJobProcessed(jobId);
+        if (alreadyProcessed) continue;
+
+        results.push({
+          jobId,
+          company: safeString(item.company),
+          title: safeString(item.title),
+          description: safeString(item.description),
+          postedDate: safeString(item.postedDate),
+          locationRaw: safeString(item.location),
+          sourcesRaw: safeString(item.sources),
+        });
+
+        if (results.length >= MAX_ITEMS_PER_RUN) break;
+      }
+
+      lastEvaluatedKey = queryResp.LastEvaluatedKey as
+        | Record<string, NativeAttributeValue>
+        | undefined;
+    } while (lastEvaluatedKey && results.length < MAX_ITEMS_PER_RUN);
+  }
 
   return results;
 }

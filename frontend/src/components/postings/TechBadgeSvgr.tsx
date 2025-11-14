@@ -29,14 +29,19 @@ function normalizeLookup(name: string) {
         'cpp': 'cpp',
         'c plus plus': 'cpp',
         'app engine': 'appengine',
-        'asp.net': 'aspnet',
-        "vue.js": "vue"
+        "vue.js": "vue",
+        ".net core": "dot-net-core",
+        "vercel platform": "vercel",
+        "redux toolkit": "redux",
+        "asp.net": "asp"
+
 
     };
 
     if (specialCases[lower]) return specialCases[lower];
 
     // Pattern-based special cases
+    if ((lower.includes(".net") || lower.includes("dot") && lower.includes("net")) && lower.includes("core")) return "dot-net-core"
     if (lower.includes("gitlab")) return "gitlab";
     if (lower.includes("kotlin")) return "kotlin";
     if (lower === "cloudflare" || lower.includes("cloudflare")) return "cloudflare";
@@ -165,6 +170,7 @@ export default function TechBadgeSvgr({
                             src={iconUrl}
                             alt={toProperCase(name)}
                             className="w-full h-full object-contain company-icon"
+
                         />
                     </div>
                 </div>
@@ -172,10 +178,10 @@ export default function TechBadgeSvgr({
                 // Fallback: letter circle
                 <div
                     style={sizeStyle}
-                    className={`${roundClasses[roundStyle]} flex items-center justify-center bg-gray-500 text-sm`}
+                    className={`${roundClasses[roundStyle]} flex items-center justify-center bg-stone-300 text-sm`}
                     aria-hidden
                 >
-                    {name.charAt(0).toUpperCase()}
+                    { }
                 </div>
             )}
 

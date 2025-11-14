@@ -44,6 +44,7 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
                     <span className="salary">{posting.salary_range ? `$${posting.salary_range}` : null}</span>
                 </div>
             </CardHeader>
+
             <TooltipProvider delayDuration={100}>
                 <Tooltip>
                     <TooltipTrigger asChild>
@@ -79,20 +80,37 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
 
                         <div className=" flex flex-col justify-center">
                             <div className="flex flex-row items-center mb-1 tag-container-skills-row">
-                                {posting.skills.slice(0, 2).map((skill, index) => (
 
-                                    <Badge key={index} className="tag tag-skill" variant="secondary">
-                                        {toProperCase(skill)}
-                                    </Badge>
+
+                                {posting.skills.slice(0, 2).map((skill, index) => (
+                                    <TooltipProvider delayDuration={100}>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Badge key={index} className="tag tag-skill" variant="secondary">
+                                                    {toProperCase(skill).slice(0, 25)}
+                                                </Badge>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="max-w-xs bg-stone-200">
+                                                <p style={{ padding: ".1rem .5rem", color: "black" }} className="text-sm">{skill.toProperCase()}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
                                 ))}
                             </div>
                             <div className="flex flex-row items-center mb-1 tag-container-skills-row">
                                 {posting.skills.length > 2 && posting.skills.slice(2, 5).map((skill, index) => (
-
-                                    <Badge key={index} className="tag tag-skill" variant="secondary">
-                                        {toProperCase(skill)}
-                                    </Badge>
-
+                                    <TooltipProvider delayDuration={100}>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Badge key={index} className="tag tag-skill" variant="secondary">
+                                                    {toProperCase(skill).slice(0, 20)}
+                                                </Badge>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="max-w-xs bg-stone-200">
+                                                <p style={{ padding: ".1rem .5rem", color: "black" }} className="text-sm">{skill.toProperCase()}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
                                 ))}
                             </div>
                         </div>

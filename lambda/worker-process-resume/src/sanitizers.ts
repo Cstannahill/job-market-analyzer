@@ -165,3 +165,73 @@ export function removeUndefinedDeep(obj: any): any {
   }
   return obj;
 }
+
+export function stripFencesAndBOM(s: string): string {
+  let t = s.replace(/^\uFEFF/, ""); // BOM
+  // strip ```json ... ``` or ``` ... ```
+  t = t.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
+  return t;
+}
+
+/** Find the first balanced top-level JSON object/array; if none, return original string */
+export function extractFirstJson(s: string): string {
+  const start = s.search(/[{\[]/);
+  if (start === -1) return s;
+
+  const open = s[start];
+  const close = open === "{" ? "}" : "]";
+  let depth = 0;
+  let inStr = false;
+  let esc = false;
+
+  for (let i = start; i < s.length; i++) {
+    const ch = s[i];
+    if (inStr) {
+      if (esc) {
+        esc = false;
+      } else if (ch === "\\") {
+        esc = true;
+      } else if (ch === '"') {
+        inStr = false;
+      }
+    } else {
+      if (ch === '"') inStr = true;
+      else if (ch === open) depth++;
+      else if (ch === close) depth--;
+      if (depth === 0) return s.slice(start, i + 1);
+    }
+  }
+  return s; // fallback; let JSON.parse throw
+}
+
+/** Handles plain JSON or a JSON-string that itself contains JSON. */
+export function parsePossiblyDoubleEncodedJson(s: string): any {
+  // 1) direct parse
+  try {
+    const first = JSON.parse(s);
+    if (typeof first === "string") {
+      // 2) second parse if it was a JSON string holding JSON
+      try {
+        return JSON.parse(first);
+      } catch {
+        // sometimes models escape only quotes; try unescape-lite then parse
+        const unescaped = first.replace(/\\"/g, '"');
+        return JSON.parse(unescaped);
+      }
+    }
+    return first;
+  } catch (e1) {
+    // Try balanced extraction then parse
+    const cand = extractFirstJson(s);
+    const second = JSON.parse(cand);
+    if (typeof second === "string") {
+      try {
+        return JSON.parse(second);
+      } catch {
+        const unescaped = second.replace(/\\"/g, '"');
+        return JSON.parse(unescaped);
+      }
+    }
+    return second;
+  }
+}
