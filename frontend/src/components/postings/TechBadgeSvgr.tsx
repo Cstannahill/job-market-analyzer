@@ -41,6 +41,7 @@ function normalizeLookup(name: string) {
         "event-bridge": "eventbridge",
         "ec2": "ec2",
         "s3": "s3"
+
     };
 
     if (specialCases[lower]) return specialCases[lower];
@@ -48,6 +49,7 @@ function normalizeLookup(name: string) {
     // Pattern-based special cases
     if (lower.includes("dynamo")) return "dynamodb"
     if (lower.includes("atlassian")) return "atlassian"
+    if (lower.includes("apache spark") || lower.includes("apache-spark")) return "spark"
     if (lower.includes("linux")) return "linux"
     if (lower.includes("kafka")) return "kafka"
     if (lower.includes("new") && lower.includes("relic")) return "new-relic"
