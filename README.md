@@ -732,11 +732,529 @@ npx tree-node-cli -I ".github|.vscode|node_modules|assets|icons|public|dist|pack
 └── zip.js
 ```
 
-Total Postings
-5,455
-↑ Updated daily
-Technologies Tracked
-4,009
-↑ Tracked Live
-Unique Skills
-7,226
+```json
+{
+  "technologies": [
+    {
+      "canonical": "TypeScript",
+      "aliases": [],
+      "category": "language",
+      "confidence": 1,
+      "evidence": [
+        {
+          "quote": "Full-stack developer with 3 years of experience building applications and APIs in TypeScript",
+          "char_start": 40,
+          "char_end": 51
+        }
+      ],
+      "notes": "Explicitly mentioned in the summary"
+    },
+    {
+      "canonical": "JavaScript",
+      "aliases": [],
+      "category": "language",
+      "confidence": 1,
+      "evidence": [
+        {
+          "quote": "Skilled across React, Next.js, and modern backend frameworks such as FastAPI and .NET Core.",
+          "char_start": 52,
+          "char_end": 67
+        }
+      ],
+      "notes": "Implied by usage in React and Next.js"
+    },
+    {
+      "canonical": "Python",
+      "aliases": [],
+      "category": "language",
+      "confidence": 1,
+      "evidence": [
+        {
+          "quote": "Full-stack developer with 3 years of experience building applications and APIs in TypeScript, C#, and Python.",
+          "char_start": 52,
+          "char_end": 73
+        }
+      ],
+      "notes": "Explicitly mentioned in the summary"
+    },
+    {
+      "canonical": "C#",
+      "aliases": ["CSharp"],
+      "category": "language",
+      "confidence": 1,
+      "evidence": [
+        {
+          "quote": "Skilled across React, Next.js, and modern backend frameworks such as FastAPI and .NET Core.",
+          "char_start": 52,
+          "char_end": 74
+        }
+      ],
+      "notes": "Implied by usage in .NET Core"
+    },
+    {
+      "canonical": "React",
+      "aliases": [],
+      "category": "framework",
+      "confidence": 1,
+      "evidence": [
+        {
+          "quote": "Skilled across React, Next.js, and modern backend frameworks such as FastAPI and .NET Core.",
+          "char_start": 52,
+          "char_end": 58
+        }
+      ],
+      "notes": "Explicitly mentioned in the summary"
+    },
+    {
+      "canonical": "Next.js",
+      "aliases": [],
+      "category": "framework",
+      "confidence": 1,
+      "evidence": [
+        {
+          "quote": "Skilled across React, Next.js, and modern backend frameworks such as FastAPI and .NET Core.",
+          "char_start": 59,
+          "char_end": 66
+        }
+      ],
+      "notes": "Explicitly mentioned in the summary"
+    },
+    {
+      "canonical": "FastAPI",
+      "aliases": [],
+      "category": "framework",
+      "confidence": 1,
+      "evidence": [
+        {
+          "quote": "Skilled across React, Next.js, and modern backend frameworks such as FastAPI and .NET Core.",
+          "char_start": 70,
+          "char_end": 79
+        }
+      ],
+      "notes": "Explicitly mentioned in the summary"
+    },
+    {
+      "canonical": ".NET Core",
+      "aliases": [".NET"],
+      "category": "framework",
+      "confidence": 1,
+      "evidence": [
+        {
+          "quote": "Skilled across React, Next.js, and modern backend frameworks such as FastAPI and .NET Core.",
+          "char_start": 79,
+          "char_end": 90
+        }
+      ],
+      "notes": "Explicitly mentioned in the summary"
+    },
+    {
+      "canonical": "PostgreSQL",
+      "aliases": ["PG", "Postgres"],
+      "category": "database",
+      "confidence": 1,
+      "evidence": [
+        {
+          "quote": "Used PostgreSQL (Prisma ORM) and Inngest for background processing.",
+          "char_start": 188,
+          "char_end": 201
+        }
+      ],
+      "notes": "Explicitly mentioned in the experience section"
+    },
+    {
+      "canonical": "AWS",
+      "aliases": [],
+      "category": "cloud",
+      "confidence": 1,
+      "evidence": [
+        {
+          "quote": "Architected serverless data pipeline processing 1000+ job postings daily using AWS Lambda, EventBridge, DynamoDB, and S3",
+          "char_start": 220,
+          "char_end": 223
+        }
+      ],
+      "notes": "Explicitly mentioned in the experience section"
+    },
+    {
+      "canonical": "Docker",
+      "aliases": [],
+      "category": "devops",
+      "confidence": 1,
+      "evidence": [
+        {
+          "quote": "DevOps & Systems: Linux (Ubuntu, WSL2), Docker, Bash, Zsh, GitHub Actions, IaC (SAM, CDK)",
+          "char_start": 380,
+          "char_end": 386
+        }
+      ],
+      "notes": "Explicitly mentioned in the technical skills section"
+    },
+    {
+      "canonical": "Git",
+      "aliases": [],
+      "category": "tooling",
+      "confidence": 1,
+      "evidence": [
+        {
+          "quote": "Dev Tools: Git, GitHub, GitHub CLI, Postman, Vite, npm, pnpm, pip, VS Code, curl, jq",
+          "char_start": 406,
+          "char_end": 409
+        }
+      ],
+      "notes": "Explicitly mentioned in the technical skills section"
+    },
+    {
+      "canonical": "Linux",
+      "aliases": [],
+      "category": "devops",
+      "confidence": 1,
+      "evidence": [
+        {
+          "quote": "DevOps & Systems: Linux (Ubuntu, WSL2), Docker, Bash, Zsh, GitHub Actions, IaC (SAM, CDK)",
+          "char_start": 387,
+          "char_end": 392
+        }
+      ],
+      "notes": "Explicitly mentioned in the technical skills section"
+    }
+  ],
+  "soft_skills": [
+    {
+      "name": "agile ceremonies",
+      "confidence": 1,
+      "evidence": [
+        {
+          "quote": "daily standups, weekly retrospectives, basic sprint planning",
+          "char_start": 410,
+          "char_end": 424
+        }
+      ],
+      "notes": "Mentioned in the technical skills section"
+    },
+    {
+      "name": "cross-functional collaboration",
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "quote": "Mentored peers and contributed to business-critical projects during the program.",
+          "char_start": 560,
+          "char_end": 580
+        }
+      ],
+      "notes": "Inferred from bootcamp experience"
+    }
+  ],
+  "stack_combinations": [
+    {
+      "name": "React + TypeScript + AWS",
+      "components": ["React", "TypeScript", "AWS"],
+      "primary_use": "full-stack web app",
+      "evidence": [
+        {
+          "quote": "Developed React + TypeScript dashboard with authentication (AWS Cognito)",
+          "char_start": 200,
+          "char_end": 215
+        }
+      ],
+      "rationale": "Explicitly used together in a project",
+      "confidence": 1
+    },
+    {
+      "name": "Next.js + FastAPI + PostgreSQL",
+      "components": ["Next.js", "FastAPI", "PostgreSQL"],
+      "primary_use": "full-stack web app",
+      "evidence": [
+        {
+          "quote": "Built with Next.js 15 (App Router) and FastAPI for structured document parsing.",
+          "char_start": 280,
+          "char_end": 300
+        }
+      ],
+      "rationale": "Explicitly used together in a project",
+      "confidence": 1
+    }
+  ],
+  "inferences": {
+    "probable_roles": ["Full-Stack Engineer"],
+    "seniority_signals": ["led team"],
+    "domains": ["web development"],
+    "evidence": [
+      {
+        "quote": "Full-stack developer with 3 years of experience",
+        "char_start": 30,
+        "char_end": 47
+      }
+    ]
+  },
+  "reasoning": "Based on the combination of technologies and roles mentioned in the resume."
+}
+```
+
+````
+
+
+
+# id name
+
+    8e0f3b84-0112-4c45-9164-50624b36ff73	Docker
+
+1 e743962c-028c-4f6c-87e0-15502f583887 TypeScript
+2 509fa552-b11f-4a2d-ace1-0d41e0f8a382 PostgreSQL
+3 b86de665-7467-4891-95e6-65dd9d112a27 React
+4 43524566-f57d-48dc-bec3-e2cf8d60e74a Node.js
+5 07fc61f4-895d-4675-a4e1-4bec494405a8 Go
+6 ed8bc5cb-95ad-4958-a65f-90b4b35cfe9d Kubernetes
+7 48a77c94-f51b-47e0-b975-a99eb13f42b1 React Native
+8 792689ac-c25c-46b4-9fb5-757f44393d30 MySQL
+1 cafe3ad1-48af-4a5f-a28f-f1bad7ab2263 AWS
+2 2c069c99-8a13-42d4-9d2a-d0a0c2f34e40 GCP
+3 e68a6b14-737b-4d98-929b-80ca17494d7a Azure
+
+
+```json
+const input = { // ConverseRequest
+  modelId: "STRING_VALUE", // required
+  messages: [ // Messages
+    { // Message
+      role: "user" || "assistant", // required
+      content: [ // ContentBlocks // required
+        { // ContentBlock Union: only one key present
+          text: "STRING_VALUE",
+          image: { // ImageBlock
+            format: "png" || "jpeg" || "gif" || "webp", // required
+            source: { // ImageSource Union: only one key present
+              bytes: new Uint8Array(), // e.g. Buffer.from("") or new TextEncoder().encode("")
+              s3Location: { // S3Location
+                uri: "STRING_VALUE", // required
+                bucketOwner: "STRING_VALUE",
+              },
+            },
+          },
+          document: { // DocumentBlock
+            format: "pdf" || "csv" || "doc" || "docx" || "xls" || "xlsx" || "html" || "txt" || "md",
+            name: "STRING_VALUE", // required
+            source: { // DocumentSource Union: only one key present
+              bytes: new Uint8Array(), // e.g. Buffer.from("") or new TextEncoder().encode("")
+              s3Location: {
+                uri: "STRING_VALUE", // required
+                bucketOwner: "STRING_VALUE",
+              },
+              text: "STRING_VALUE",
+              content: [ // DocumentContentBlocks
+                { // DocumentContentBlock Union: only one key present
+                  text: "STRING_VALUE",
+                },
+              ],
+            },
+            context: "STRING_VALUE",
+            citations: { // CitationsConfig
+              enabled: true || false, // required
+            },
+          },
+          video: { // VideoBlock
+            format: "mkv" || "mov" || "mp4" || "webm" || "flv" || "mpeg" || "mpg" || "wmv" || "three_gp", // required
+            source: { // VideoSource Union: only one key present
+              bytes: new Uint8Array(), // e.g. Buffer.from("") or new TextEncoder().encode("")
+              s3Location: {
+                uri: "STRING_VALUE", // required
+                bucketOwner: "STRING_VALUE",
+              },
+            },
+          },
+          toolUse: { // ToolUseBlock
+            toolUseId: "STRING_VALUE", // required
+            name: "STRING_VALUE", // required
+            input: "DOCUMENT_VALUE", // required
+            type: "server_tool_use",
+          },
+          toolResult: { // ToolResultBlock
+            toolUseId: "STRING_VALUE", // required
+            content: [ // ToolResultContentBlocks // required
+              { // ToolResultContentBlock Union: only one key present
+                json: "DOCUMENT_VALUE",
+                text: "STRING_VALUE",
+                image: {
+                  format: "png" || "jpeg" || "gif" || "webp", // required
+                  source: {//  Union: only one key present
+                    bytes: new Uint8Array(), // e.g. Buffer.from("") or new TextEncoder().encode("")
+                    s3Location: {
+                      uri: "STRING_VALUE", // required
+                      bucketOwner: "STRING_VALUE",
+                    },
+                  },
+                },
+                document: {
+                  format: "pdf" || "csv" || "doc" || "docx" || "xls" || "xlsx" || "html" || "txt" || "md",
+                  name: "STRING_VALUE", // required
+                  source: {//  Union: only one key present
+                    bytes: new Uint8Array(), // e.g. Buffer.from("") or new TextEncoder().encode("")
+                    s3Location: {
+                      uri: "STRING_VALUE", // required
+                      bucketOwner: "STRING_VALUE",
+                    },
+                    text: "STRING_VALUE",
+                    content: [
+                      {//  Union: only one key present
+                        text: "STRING_VALUE",
+                      },
+                    ],
+                  },
+                  context: "STRING_VALUE",
+                  citations: {
+                    enabled: true || false, // required
+                  },
+                },
+                video: {
+                  format: "mkv" || "mov" || "mp4" || "webm" || "flv" || "mpeg" || "mpg" || "wmv" || "three_gp", // required
+                  source: {//  Union: only one key present
+                    bytes: new Uint8Array(), // e.g. Buffer.from("") or new TextEncoder().encode("")
+                    s3Location: "<S3Location>",
+                  },
+                },
+              },
+            ],
+            status: "success" || "error",
+            type: "STRING_VALUE",
+          },
+          guardContent: { // GuardrailConverseContentBlock Union: only one key present
+            text: { // GuardrailConverseTextBlock
+              text: "STRING_VALUE", // required
+              qualifiers: [ // GuardrailConverseContentQualifierList
+                "grounding_source" || "query" || "guard_content",
+              ],
+            },
+            image: { // GuardrailConverseImageBlock
+              format: "png" || "jpeg", // required
+              source: { // GuardrailConverseImageSource Union: only one key present
+                bytes: new Uint8Array(), // e.g. Buffer.from("") or new TextEncoder().encode("")
+              },
+            },
+          },
+          cachePoint: { // CachePointBlock
+            type: "default", // required
+          },
+          reasoningContent: { // ReasoningContentBlock Union: only one key present
+            reasoningText: { // ReasoningTextBlock
+              text: "STRING_VALUE", // required
+              signature: "STRING_VALUE",
+            },
+            redactedContent: new Uint8Array(), // e.g. Buffer.from("") or new TextEncoder().encode("")
+          },
+          citationsContent: { // CitationsContentBlock
+            content: [ // CitationGeneratedContentList
+              { // CitationGeneratedContent Union: only one key present
+                text: "STRING_VALUE",
+              },
+            ],
+            citations: [ // Citations
+              { // Citation
+                title: "STRING_VALUE",
+                sourceContent: [ // CitationSourceContentList
+                  { // CitationSourceContent Union: only one key present
+                    text: "STRING_VALUE",
+                  },
+                ],
+                location: { // CitationLocation Union: only one key present
+                  web: { // WebLocation
+                    url: "STRING_VALUE",
+                    domain: "STRING_VALUE",
+                  },
+                  documentChar: { // DocumentCharLocation
+                    documentIndex: Number("int"),
+                    start: Number("int"),
+                    end: Number("int"),
+                  },
+                  documentPage: { // DocumentPageLocation
+                    documentIndex: Number("int"),
+                    start: Number("int"),
+                    end: Number("int"),
+                  },
+                  documentChunk: { // DocumentChunkLocation
+                    documentIndex: Number("int"),
+                    start: Number("int"),
+                    end: Number("int"),
+                  },
+                },
+              },
+            ],
+          },
+        },
+      ],
+    },
+  ],
+  system: [ // SystemContentBlocks
+    { // SystemContentBlock Union: only one key present
+      text: "STRING_VALUE",
+      guardContent: {//  Union: only one key present
+        text: {
+          text: "STRING_VALUE", // required
+          qualifiers: [
+            "grounding_source" || "query" || "guard_content",
+          ],
+        },
+        image: {
+          format: "png" || "jpeg", // required
+          source: {//  Union: only one key present
+            bytes: new Uint8Array(), // e.g. Buffer.from("") or new TextEncoder().encode("")
+          },
+        },
+      },
+      cachePoint: {
+        type: "default", // required
+      },
+    },
+  ],
+  inferenceConfig: { // InferenceConfiguration
+    maxTokens: Number("int"),
+    temperature: Number("float"),
+    topP: Number("float"),
+    stopSequences: [ // NonEmptyStringList
+      "STRING_VALUE",
+    ],
+  },
+  toolConfig: { // ToolConfiguration
+    tools: [ // Tools // required
+      { // Tool Union: only one key present
+        toolSpec: { // ToolSpecification
+          name: "STRING_VALUE", // required
+          description: "STRING_VALUE",
+          inputSchema: { // ToolInputSchema Union: only one key present
+            json: "DOCUMENT_VALUE",
+          },
+        },
+        systemTool: { // SystemTool
+          name: "STRING_VALUE", // required
+        },
+        cachePoint: "<CachePointBlock>",
+      },
+    ],
+    toolChoice: { // ToolChoice Union: only one key present
+      auto: {},
+      any: {},
+      tool: { // SpecificToolChoice
+        name: "STRING_VALUE", // required
+      },
+    },
+  },
+  guardrailConfig: { // GuardrailConfiguration
+    guardrailIdentifier: "STRING_VALUE", // required
+    guardrailVersion: "STRING_VALUE", // required
+    trace: "enabled" || "disabled" || "enabled_full",
+  },
+  additionalModelRequestFields: "DOCUMENT_VALUE",
+  promptVariables: { // PromptVariableMap
+    "<keys>": { // PromptVariableValues Union: only one key present
+      text: "STRING_VALUE",
+    },
+  },
+  additionalModelResponseFieldPaths: [ // AdditionalModelResponseFieldPaths
+    "STRING_VALUE",
+  ],
+  requestMetadata: { // RequestMetadata
+    "<keys>": "STRING_VALUE",
+  },
+  performanceConfig: { // PerformanceConfiguration
+    latency: "standard" || "optimized",
+  },
+};
+````

@@ -51,50 +51,52 @@ function LandingPage() {
   }
 
   return (
-    <div className="max-h-none overflow-hidden">
-      {/* Hero Section with Animated Background */}
-      <section className="hero-section">
-        <ParticleBackground />
-        <div className="hero-content container">
-          <LandingHeroText totalPostings={totalPostings} />
-          {/* Animated Stats Cards */}
-          <div className="stats-grid fade-in">
-            {loading ? <div className="flex justify-center"><Spinner className="size-12 landing-spinner" /></div> : (
-              <>
-                <StatsCard
-                  icon={Briefcase}
-                  label="Total Postings"
-                  value={totalPostings}
-                  duration={2000}
-                  changeText="↑ Updated daily"
-                  changeType="positive"
-                />
-                <StatsCard
-                  icon={Code2}
-                  label="Technologies Tracked"
-                  value={Object.keys(technologyCounts).length}
-                  duration={2000}
-                  changeText="↑ Tracked Live"
-                  changeType="positive"
-                />
-                <StatsCard
-                  icon={Brain}
-                  label="Unique Skills"
-                  value={totalSkills}
-                  duration={2000}
-                  changeText="↑ AI-Powered"
-                  changeType="positive"
-                /></>)}
-            {/* Add more StatsCard components as needed */}
+    <>
+
+      <div className="max-h-none overflow-hidden">
+        {/* Hero Section with Animated Background */}
+        <section className="hero-section">
+          <ParticleBackground />
+          <div className="hero-content container">
+            <LandingHeroText totalPostings={totalPostings} />
+            {/* Animated Stats Cards */}
+            <div className="stats-grid fade-in">
+              {loading ? <div className="flex justify-center"><Spinner className="size-12 landing-spinner" /></div> : (
+                <>
+                  <StatsCard
+                    icon={Briefcase}
+                    label="Total Postings"
+                    value={totalPostings}
+                    duration={2000}
+                    changeText="↑ Updated daily"
+                    changeType="positive"
+                  />
+                  <StatsCard
+                    icon={Code2}
+                    label="Technologies Tracked"
+                    value={Object.keys(technologyCounts).length}
+                    duration={2000}
+                    changeText="↑ Tracked Live"
+                    changeType="positive"
+                  />
+                  <StatsCard
+                    icon={Brain}
+                    label="Unique Skills"
+                    value={totalSkills}
+                    duration={2000}
+                    changeText="↑ AI-Powered"
+                    changeType="positive"
+                  /></>)}
+              {/* Add more StatsCard components as needed */}
+            </div>
+            <div> <LandingCTA /></div>
           </div>
-          <div> <LandingCTA /></div>
-        </div>
 
-      </section>
-      {/* Call to Action Section */}
+        </section>
+        {/* Call to Action Section */}
 
 
-    </div>
+      </div></>
   );
 }
 

@@ -23,3 +23,10 @@ export const dt = (start: number) => Date.now() - start; // always number
 export const dtStr = (start: number) => `${dt(start)}ms`; // always string
 
 export const keyCooldowns: Record<string, number> = {}; // key -> timestamp when usable again
+
+export function yyyymmdd(date: Date): string {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}

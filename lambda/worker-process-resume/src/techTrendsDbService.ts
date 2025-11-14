@@ -22,12 +22,12 @@ export async function getTechnologyDetail(opts: {
 }) {
   const { tech, region, period, ctx } = opts;
   const cleanTech = tech.toLowerCase();
-  console.log(tech, region, period);
-  log(ctx, "debug", "detail.query.start", {
-    tech: canonical(cleanTech),
-    region,
-    period,
-  });
+  // console.log(tech, region, period);
+  // log(ctx, "debug", "detail.query.start", {
+  //   tech: canonical(cleanTech),
+  //   region,
+  //   period,
+  // });
 
   const res = await dynamo.send(
     new QueryCommand({
@@ -43,40 +43,40 @@ export async function getTechnologyDetail(opts: {
       String(x.region).toUpperCase() === region && String(x.period) === period
   );
 
-  log(ctx, "debug", "detail.rows", {
-    total: res.Count,
-    afterFilter: rows.length,
-    preview: preview(rows, [
-      "skill_canonical",
-      "region",
-      "period",
-      "work_mode",
-      "seniority",
-      "job_count",
-      "salary_median",
-    ]),
-  });
+  // log(ctx, "debug", "detail.rows", {
+  //   total: res.Count,
+  //   afterFilter: rows.length,
+  //   preview: preview(rows, [
+  //     "skill_canonical",
+  //     "region",
+  //     "period",
+  //     "work_mode",
+  //     "seniority",
+  //     "job_count",
+  //     "salary_median",
+  //   ]),
+  // });
 
   // Find summary row (All, All)
   let summary =
     rows.find((r) => r.work_mode === "All" && r.seniority === "All") ?? null;
 
   if (!summary && rows.length) {
-    log(ctx, "warn", "detail.no-all-row", {
-      tech,
-      haveModes: [...new Set(rows.map((r) => r.work_mode))],
-      haveSeniority: [...new Set(rows.map((r) => r.seniority))],
-    });
-    summary = synthesizeSummary(rows);
-    log(ctx, "debug", "detail.synthesized", {
-      summary: pick(summary, [
-        "work_mode",
-        "seniority",
-        "job_count",
-        "salary_median",
-        "regional_share",
-      ]),
-    });
+    // log(ctx, "warn", "detail.no-all-row", {
+    //   tech,
+    //   haveModes: [...new Set(rows.map((r) => r.work_mode))],
+    //   haveSeniority: [...new Set(rows.map((r) => r.seniority))],
+    // });
+    // summary = synthesizeSummary(rows);
+    // log(ctx, "debug", "detail.synthesized", {
+    //   summary: pick(summary, [
+    //     "work_mode",
+    //     "seniority",
+    //     "job_count",
+    //     "salary_median",
+    //     "regional_share",
+    //   ]),
+    // });
   }
 
   // Group by work_mode x seniority for proper breakdown
@@ -135,13 +135,13 @@ export async function getTechnologyDetail(opts: {
     })
     .sort((a, b) => (b.job_count ?? 0) - (a.job_count ?? 0));
 
-  log(ctx, "info", "detail.out", {
-    tech,
-    rows: rows.length,
-    hasSummary: !!summary,
-    by_work_mode_entries: by_work_mode.length,
-    by_seniority_entries: by_seniority.length,
-  });
+  // log(ctx, "info", "detail.out", {
+  //   tech,
+  //   rows: rows.length,
+  //   hasSummary: !!summary,
+  //   by_work_mode_entries: by_work_mode.length,
+  //   by_seniority_entries: by_seniority.length,
+  // });
 
   return {
     summary,

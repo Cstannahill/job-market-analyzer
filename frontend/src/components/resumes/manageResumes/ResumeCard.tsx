@@ -22,6 +22,7 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { Mail, FileText, CalendarClock, MapPin, FileType, Award, ChevronRight } from "lucide-react";
 import type { ResumeRecord } from "@/shared-types";
+import Bullet from "@/assets/lists/24.svg";
 
 // --- small helpers ---
 const formatIso = (iso?: string | null) =>
@@ -260,7 +261,7 @@ export function ResumeCard({
 
                     {/* EXPERIENCE */}
                     <TabsContent value="experience" className="mt-0">
-                        <ScrollArea className="px-5 sm:px-6 py-4 h-[480px]">
+                        <div className="px-5 sm:px-6 py-4 h-[480px]">
                             {experience && experience.length > 0 ? (
                                 <Accordion type="single" collapsible className="w-full">
                                     {experience.map((job, idx) => (
@@ -283,9 +284,19 @@ export function ResumeCard({
                                                 </div>
                                             </AccordionTrigger>
                                             <AccordionContent>
-                                                <ul className="list-disc pl-5 space-y-2 text-sm leading-relaxed">
+                                                <ul className="bullet-list ">
                                                     {(job.description ?? []).map((d, i) => (
-                                                        <li style={{ margin: "1rem .25rem" }} key={i}>{d}</li>
+                                                        <li key={i}>
+                                                            <span className="bullet">
+                                                                <img
+                                                                    src={Bullet}
+                                                                    alt="List Bullet"
+                                                                />
+
+                                                            </span>
+                                                            <span className="text">{d}
+                                                            </span>
+                                                        </li>
                                                     ))}
                                                 </ul>
                                             </AccordionContent>
@@ -295,7 +306,7 @@ export function ResumeCard({
                             ) : (
                                 <div className="text-sm text-muted-foreground">No experience entries.</div>
                             )}
-                        </ScrollArea>
+                        </div>
                     </TabsContent>
 
                     {/* INSIGHTS */}
@@ -756,7 +767,7 @@ export function ResumeCard({
                     {formatIso(resume.insightsMetadata?.generatedAt)}
                 </div>
             </CardFooter>
-        </Card>
+        </Card >
     );
 }
 

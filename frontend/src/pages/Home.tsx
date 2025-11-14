@@ -12,6 +12,15 @@ const Home: React.FC = () => {
                 path=""
                 image="/public/og/home.avif"
             />
+            {/* <div style={{ left: "20rem" }} className="fixed inset-y-0 xl:flex-row items-center z-20"
+            >
+                <TechGrid />
+            </div> */}
+            {/* <div style={{ right: "20rem" }} className="fixed inset-y-0 xl:flex-col items-center z-20"
+            >
+                <TechGrid2 />
+            </div> */}
+
             <LandingPage />
         </>
     );

@@ -3,15 +3,20 @@
   "version": "1.0.0",
   "description": "A Lambda function to normalize DynamoDB tables.",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "build": "tsup"
+    "build": "tsup",
+    "zip": "tsup && rm -rf package-lock.json node_modules && npm install --omit=dev && node ../../zip.js . && npm install"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.913.0",
     "@aws-sdk/lib-dynamodb": "^3.913.0",
-    "@aws-sdk/client-dynamodb": "^3.913.0"
+    "@neondatabase/serverless": "^1.0.2"
   },
   "devDependencies": {
-    "typescript": "^5.9.3",
-    "@types/node": "^24.8.1"
+    "@types/node": "^24.8.1",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
   }
 }
