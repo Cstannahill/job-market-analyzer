@@ -37,6 +37,7 @@ COMPANY: ${job.company ?? "N/A"}
 TITLE: ${job.title ?? "N/A"}
 POSTED: ${job.postedDate ?? "N/A"}
 LOCATION_RAW: ${job.locationRaw ?? "N/A"}
+SOURCE_URL: ${job.sourceUrl ?? "N/A"}
 SOURCES_RAW: ${job.sourcesRaw ?? "N/A"}
 
 DESCRIPTION:
@@ -275,9 +276,13 @@ Return a JSON array with one object per job, maintaining the same order as input
   if (!Array.isArray(parsed))
     throw new Error("OpenRouter response is not an array");
 
-  return parsed.map((obj: any, idx: number) =>
-    validateEnrichedData(obj, jobRecords[idx].jobId)
-  );
+  return parsed.map((obj: any, idx: number) => {
+    const validated = validateEnrichedData(obj, jobRecords[idx].jobId);
+    if (!validated.source_url && jobRecords[idx]?.sourceUrl) {
+      validated.source_url = jobRecords[idx]!.sourceUrl;
+    }
+    return validated;
+  });
 }
 //#endregion
 

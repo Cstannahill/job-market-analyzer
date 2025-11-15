@@ -104,11 +104,42 @@ type ApplyAnchorsInput = {
 };
 
 const WEIGHTS = {
-  inRange: { actual: 0.9, anchor: 0.1 },
-  outOfRange: { actual: 0.45, anchor: 0.55 },
+  inRange: { actual: 0.7, anchor: 0.3 },
+  outOfRange: { actual: 0.35, anchor: 0.65 },
 };
 
-const BLEND_TOLERANCE = 250; // USD
+const BLEND_TOLERANCE = 100; // USD
+
+const SOFTWARE_FALLBACK_KEYWORDS = [
+  "software",
+  "full stack",
+  "frontend",
+  "front end",
+  "backend",
+  "platform",
+  "infrastructure",
+  "infra",
+  "systems",
+  "system",
+  "site reliability",
+  "sre",
+  "reliability",
+  "devops",
+  "cloud",
+  "security",
+  "secops",
+  "mobile",
+  "ios",
+  "android",
+  "embedded",
+  "firmware",
+  "robotics",
+  "graphics",
+  "ai",
+  "machine learning",
+  "ml",
+  "automation",
+];
 
 export type AnchoredSalarySource = "actual" | "anchor" | "weighted" | "clamped";
 
@@ -209,12 +240,27 @@ function matchesCriterion(criterion: AnchorCriteria, profile: JobProfile): boole
     }
   }
   if (criterion.includes) {
-    const hasKeyword = criterion.includes.some((kw) =>
+    let hasKeyword = criterion.includes.some((kw) =>
       profile.normalized.includes(kw.toLowerCase())
     );
+    if (!hasKeyword && hasSoftwareRole(criterion.roles)) {
+      hasKeyword = matchesSoftwareFallback(profile.normalized);
+    }
     if (!hasKeyword) return false;
+  } else if (hasSoftwareRole(criterion.roles)) {
+    if (!matchesSoftwareFallback(profile.normalized)) return false;
   }
   return true;
+}
+
+function hasSoftwareRole(roles?: Role[]): boolean {
+  if (!roles) return false;
+  return roles.some((role) => role === "developer" || role === "engineer");
+}
+
+function matchesSoftwareFallback(normalizedTitle: string): boolean {
+  const lower = normalizedTitle.toLowerCase();
+  return SOFTWARE_FALLBACK_KEYWORDS.some((kw) => lower.includes(kw));
 }
 
 function buildProfile(jobTitle: string): JobProfile {
@@ -227,7 +273,7 @@ function buildProfile(jobTitle: string): JobProfile {
 
 function extractRoles(tokens: string[], normalized: string): Set<Role> {
   const roles = new Set<Role>();
-  const developerTokens = new Set(["developer", "dev"]);
+  const developerTokens = new Set(["developer", "dev", "development"]);
   const engineerTokens = new Set([
     "engineer",
     "eng",
@@ -235,6 +281,27 @@ function extractRoles(tokens: string[], normalized: string): Set<Role> {
     "software",
     "backend",
     "frontend",
+    "architect",
+    "architecture",
+    "platform",
+    "systems",
+    "system",
+    "infrastructure",
+    "infra",
+    "sre",
+    "reliability",
+    "site",
+    "devops",
+    "security",
+    "secops",
+    "cloud",
+    "mobile",
+    "ios",
+    "android",
+    "embedded",
+    "firmware",
+    "robotics",
+    "automation",
   ]);
 
   for (const token of tokens) {

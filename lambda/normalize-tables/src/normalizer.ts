@@ -554,6 +554,10 @@ function normalizeJobCore(
   const { min: minimumSalary, max: maximumSalary } = parseSalaryRange(
     nullIfEmpty(posting.salary_range)
   );
+  const sourceUrl =
+    nullIfEmpty(posting.source_url) ??
+    extractSourceUrlFromSources(posting.sources) ??
+    null;
 
   return {
     dynamoId: posting.jobId,
@@ -569,6 +573,7 @@ function normalizeJobCore(
     seniorityLevel,
     status: deriveStatus(posting.status),
     source,
+    sourceUrl,
   };
 }
 
@@ -601,4 +606,66 @@ export function normalizeDynamoJobPosting(
     skills: buildSkillRecords(skillNames),
     industries: buildIndustryRecords(industryNames),
   };
+}
+
+function extractSourceUrlFromSources(value: unknown): string | null {
+  if (!value) return null;
+
+  const normalize = (val?: string | null): string | null => {
+    if (!val) return null;
+    const trimmed = val.trim();
+    return trimmed ? trimmed : null;
+  };
+
+  const fromEntry = (entry: any): string | null => {
+    if (!entry) return null;
+    if (typeof entry === "string") {
+      if (entry.startsWith("{") || entry.startsWith("[")) {
+        try {
+          const parsed = JSON.parse(entry);
+          return Array.isArray(parsed)
+            ? extractSourceUrlFromSources(parsed)
+            : fromEntry(parsed);
+        } catch {
+          return null;
+        }
+      }
+      if (entry.startsWith("http")) return normalize(entry);
+      return null;
+    }
+    const record = entry.M ?? entry;
+    const candidate =
+      record?.originalUrl ??
+      record?.original_url ??
+      record?.source_url ??
+      record?.url;
+    if (typeof candidate === "string") return normalize(candidate);
+    if (candidate && typeof candidate === "object" && typeof candidate.S === "string") {
+      return normalize(candidate.S);
+    }
+    return null;
+  };
+
+  const entries: any[] = (() => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    if (value && typeof value === "object" && Array.isArray((value as any).L)) {
+      return (value as any).L;
+    }
+    return [];
+  })();
+
+  for (const entry of entries) {
+    const url = fromEntry(entry);
+    if (url) return url;
+  }
+
+  return null;
 }

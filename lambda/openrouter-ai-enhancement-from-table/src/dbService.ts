@@ -98,6 +98,8 @@ export function validateEnrichedData(
       typeof data.industry === "string" ? data.industry.trim() : undefined,
     processed_date: new Date().toISOString(),
     status: "Active",
+    source_url:
+      typeof data.source_url === "string" ? data.source_url.trim() : undefined,
   };
 
   // small dedupe
@@ -187,6 +189,7 @@ export async function getUnprocessedJobsFromDynamo(): Promise<JobRecord[]> {
           postedDate: safeString(item.postedDate),
           locationRaw: safeString(item.location),
           sourcesRaw: safeString(item.sources),
+          sourceUrl: extractOriginalUrl(item.sources),
         });
 
         if (results.length >= MAX_ITEMS_PER_RUN) break;
@@ -199,4 +202,55 @@ export async function getUnprocessedJobsFromDynamo(): Promise<JobRecord[]> {
   }
 
   return results;
+}
+
+function extractOriginalUrl(value: unknown): string | undefined {
+  if (!value) return undefined;
+
+  const attemptRead = (entry: any): string | undefined => {
+    if (!entry) return undefined;
+    if (typeof entry === "string") {
+      const trimmed = entry.trim();
+      if (trimmed.startsWith("http")) return trimmed;
+      try {
+        const parsed = JSON.parse(trimmed);
+        return attemptRead(parsed);
+      } catch {
+        return undefined;
+      }
+    }
+    const record = entry.M ?? entry;
+    const raw =
+      record?.originalUrl ??
+      record?.original_url ??
+      record?.url ??
+      record?.source_url;
+    if (typeof raw === "string") return raw.trim();
+    if (raw && typeof raw === "object" && typeof raw.S === "string") {
+      return raw.S.trim();
+    }
+    return undefined;
+  };
+
+  const asArray = (() => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    if (value && typeof value === "object") {
+      if (Array.isArray((value as any).L)) return (value as any).L;
+    }
+    return [];
+  })();
+
+  for (const entry of asArray) {
+    const url = attemptRead(entry);
+    if (url) return url;
+  }
+  return undefined;
 }
