@@ -374,6 +374,19 @@ body {
   margin: 0;
 }
 
+.job-loading-grid {
+  width: 100%;
+  margin-top: var(--space-xl);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-lg);
+}
+
+.job-loading-card {
+  height: 14rem;
+  border-radius: var(--radius-xl);
+}
+
 /* Card wrapper around the list of job postings */
 .post-list-card {
   background: var(--muted-foreground);
@@ -426,6 +439,15 @@ body {
   .search-input,
   .tech-filter {
     width: 100%;
+  }
+
+  .job-loading-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+
+  .job-loading-card {
+    height: 11rem;
   }
 }
 

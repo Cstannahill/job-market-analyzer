@@ -19,7 +19,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-sm);
   margin-bottom: var(--space-sm);
+}
+
+.tech-bar-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-width: 0;
 }
 
 .tech-name {
@@ -94,4 +102,36 @@
 .tech-bar-wrapper:hover .tech-bar {
   filter: brightness(1.1);
   box-shadow: 0 0 20px rgba(79, 70, 229, 0.4);
+}
+
+@media (max-width: 640px) {
+  .top-tech-card {
+    padding: var(--space-lg);
+  }
+
+  .top-tech-list {
+    gap: var(--space-md);
+  }
+
+  .tech-bar-container {
+    padding: var(--space-xs) 0;
+  }
+
+  .tech-bar-header {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .tech-bar-label {
+    width: 100%;
+  }
+
+  .tech-count {
+    font-size: var(--text-base);
+    margin-left: auto;
+  }
+
+  .tech-name {
+    font-size: var(--text-base);
+  }
 }

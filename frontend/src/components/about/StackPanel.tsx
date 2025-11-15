@@ -50,7 +50,7 @@ export const StackPanel: React.FC<{
 
     return (<>
         <h5 className="text-lg font-bold text-foreground my-2 text-center">Stack</h5>
-        <Card className="flex flex-row justify-between border border-border/60 backdrop-blur-sm w-full">
+        <Card className="stack-panel-card flex flex-col gap-4 lg:flex-row justify-between border border-border/60 backdrop-blur-sm w-full">
             <div className="w-full m-0 p-0">
 
                 {frontendItems.length > 0 && (
@@ -78,7 +78,7 @@ export const StackPanel: React.FC<{
                     </div>
                 )}
             </div>
-            <Card className="z-10 bg-foreground/5">
+            <Card className="stack-panel-principles z-10 bg-foreground/5 w-full lg:w-auto">
                 <div>
                     <h4 className="text-mdfont-bold text-foreground mb-3 text-center">Data Principles</h4>
                     <ul className="space-y-3">

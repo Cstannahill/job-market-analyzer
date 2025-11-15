@@ -1,0 +1,83 @@
+/* Targeted responsive tweaks for narrow breakpoints */
+
+@media (max-width: 420px) {
+  /* Home hero + CTA spacing */
+  .hero-content.container {
+    padding-inline: var(--space-lg);
+  }
+
+  .stats-grid {
+    gap: var(--space-md);
+  }
+
+  .cta-card {
+    margin-inline: var(--space-md);
+    padding: var(--space-lg) var(--space-md);
+    max-height: none !important;
+  }
+
+  .cta-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cta-buttons a {
+    width: 100%;
+    max-width: none;
+  }
+
+  /* Section card padding (Top Tech / About / Postings) */
+  .about-section-card {
+    margin-inline: var(--space-md);
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  .about-section-card .section-card-title {
+    font-size: 1.25rem;
+  }
+
+  /* Header/nav compaction so auth forms stay above the fold */
+  .site-header {
+    border-radius: 0;
+  }
+
+  .site-header__nav-shell {
+    padding-inline: var(--space-sm);
+  }
+
+  .site-header .main-nav {
+    padding: 0.2rem 0.4rem;
+    gap: 0.25rem;
+  }
+
+  .site-header .nav-link {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  /* Job postings pagination / layout */
+  .job-grid {
+    gap: var(--space-lg);
+  }
+
+  .pagination-container {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .pagination-container select {
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  /* Stack panel readability on About page */
+  .stack-panel-card {
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+
+  .stack-panel-principles {
+    width: 100%;
+  }
+}

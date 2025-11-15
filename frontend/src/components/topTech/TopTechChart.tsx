@@ -57,21 +57,33 @@ const TopTechChart: React.FC = () => {
         );
     }
     return (
+        <Card className="top-tech-card bg-card/90 my-3 backdrop-blur-sm border border-chart-4 shadow-sm hover:shadow-md transition">
+            <CardDescription className="section-subtitle text-center text-white/70 section-description lg:text-lg md:text-sm nf-mono">
+                Most in-demand skills across all job postings
+            </CardDescription>
 
-        <Card className="bg-card/90 my-3 about-section-card backdrop-blur-sm border border-chart-4 shadow-sm hover:shadow-md transition">
-            <CardDescription className="section-subtitle text-center text-white/25 section-description lg:text-lg md:text-sm nf-mono">Most in-demand skills across all job postings</CardDescription>
-
-            <Card className="bg-card/90 my-3 about-section-card backdrop-blur-sm border border-chart-4 shadow-sm hover:shadow-md transition">
+            <div className="top-tech-list">
                 {topTechnologies.map((item, index) => {
                     const tech = item.name ?? item.id ?? 'Unknown';
                     const count = item.count ?? 0;
                     const maxCount = topTechnologies[0]?.count ?? 1; // avoid div-by-zero
                     const percentage = (count / maxCount) * 100;
                     return (
-                        <div key={tech} className="tech-bar-container  fade-in" style={{ animationDelay: `${index * 50}ms` }}>
-
-                            <div className="tech-bar-header"><TechBadgeSvgr name={tech} size={40} hideLabel={true} roundStyle='xl' />
-                                <span className="tech-name">{tech}</span>
+                        <div
+                            key={tech}
+                            className="tech-bar-container fade-in"
+                            style={{ animationDelay: `${index * 50}ms` }}
+                        >
+                            <div className="tech-bar-header">
+                                <div className="tech-bar-label">
+                                    <TechBadgeSvgr
+                                        name={tech}
+                                        size={40}
+                                        hideLabel={true}
+                                        roundStyle="xl"
+                                    />
+                                    <span className="tech-name">{tech}</span>
+                                </div>
                                 <span className="tech-count">{count}</span>
                             </div>
                             <div className="tech-bar-wrapper">
@@ -79,7 +91,7 @@ const TopTechChart: React.FC = () => {
                                     className="tech-bar"
                                     style={{
                                         width: `${percentage}%`,
-                                        animationDelay: `${index * 100}ms`
+                                        animationDelay: `${index * 100}ms`,
                                     }}
                                 >
                                     <div className="tech-bar-glow"></div>
@@ -88,10 +100,8 @@ const TopTechChart: React.FC = () => {
                         </div>
                     );
                 })}
-            </Card>
+            </div>
         </Card>
-
-
     );
 };
 

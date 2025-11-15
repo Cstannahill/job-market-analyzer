@@ -1,5 +1,5 @@
 // src/features/trends-v2/TrendsV2Page.tsx
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getTop, getRising, getTechDetail } from '@/services/trendsv2Service';
 import FiltersBar from '@/components/trends-v2/FiltersBar';
 import TopList from '@/components/trends-v2/TopList';
@@ -10,6 +10,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TrendsLayout } from '@/components/TrendsLayout';
 import { toWeek } from '@/lib/utils/dateUtils';
+import useIsMobile from '@/hooks/useIsMobile';
 
 
 const today = new Date();
@@ -21,6 +22,7 @@ console.log(thisWeek)
 export default function TrendsV2Page() {
     const [region, setRegion] = useState<Region>(DEFAULT_REGION);
     const [period, setPeriod] = useState<Period>(DEFAULT_PERIOD);
+    const isMobile = useIsMobile();
 
     const [top, setTop] = useState<TopTechnologiesItem[]>([]);
     const [rising, setRising] = useState<TopTechnologiesItem[]>([]);
@@ -65,6 +67,15 @@ export default function TrendsV2Page() {
 
     // Prepare sidebar content
     const sidebarContent = <TopList data={top} onSelect={pick} selected={selected} />;
+    const selectedSkill = selected?.skill_canonical ?? '';
+    const mobileOptions = useMemo(
+        () =>
+            top.map((item) => ({
+                label: `${item.skill_canonical} • Demand ${item.job_count ?? 0}`,
+                value: item.skill_canonical,
+            })),
+        [top]
+    );
 
     if (loading) {
         return (
@@ -91,15 +102,42 @@ export default function TrendsV2Page() {
         >
             <div className='container'>
                 {/* Filters - Full width */}
-                <div style={{ padding: ".25rem" }} className="flex justify-center py-3 border-b border-white/5 bg-slate-900/30 sticky top-0 z-10">
-                    <FiltersBar
-                        region={region}
-                        period={period}
-                        onChange={({ region, period }) => {
-                            setRegion(region);
-                            setPeriod(period);
-                        }}
-                    />
+                <div className="sticky top-20 sm:top-0 z-20 border-b border-white/5 bg-slate-900/40 backdrop-blur">
+                    <div style={{ padding: ".25rem" }} className="flex justify-center py-3">
+                        <FiltersBar
+                            region={region}
+                            period={period}
+                            onChange={({ region, period }) => {
+                                setRegion(region);
+                                setPeriod(period);
+                            }}
+                        />
+                    </div>
+                    {isMobile && mobileOptions.length > 0 && (
+                        <div className="px-4 pb-3">
+                            <label className="text-xs uppercase tracking-wide text-slate-300 block mb-2">
+                                Select Technology
+                            </label>
+                            <select
+                                className="w-full rounded-lg bg-slate-900 text-white border border-white/15 px-3 py-2 text-sm"
+                                value={selectedSkill}
+                                onChange={(e) => {
+                                    const pickItem = top.find(
+                                        (t) => t.skill_canonical === e.target.value
+                                    );
+                                    if (pickItem) {
+                                        pick(pickItem);
+                                    }
+                                }}
+                            >
+                                {mobileOptions.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                 </div>
 
                 {/* Main Content - Full width, no containers */}

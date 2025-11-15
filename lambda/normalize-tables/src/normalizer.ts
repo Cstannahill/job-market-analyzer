@@ -26,7 +26,8 @@ import {
 type CompanyDirectory = Map<string, string>;
 
 const GLOBAL_COMPANY_DIRECTORY: CompanyDirectory = new Map();
-const SOURCE_COMPANY_DIRECTORY: Partial<Record<JobSource, CompanyDirectory>> = {};
+const SOURCE_COMPANY_DIRECTORY: Partial<Record<JobSource, CompanyDirectory>> =
+  {};
 
 const COMPANY_ALIASES: Array<{ canonical: string; variants: string[] }> = [
   {
@@ -47,7 +48,11 @@ const COMPANY_ALIASES: Array<{ canonical: string; variants: string[] }> = [
   },
   {
     canonical: "Amazon",
-    variants: ["Amazon.com", "Amazon Web Services", "Amazon Web Services (AWS)"],
+    variants: [
+      "Amazon.com",
+      "Amazon Web Services",
+      "Amazon Web Services (AWS)",
+    ],
   },
   {
     canonical: "Apple",
@@ -126,7 +131,10 @@ hydrateCompanyDirectories();
 type TechnologyAlias = { canonical: string; variants: string[] };
 
 const TECHNOLOGY_ALIASES: TechnologyAlias[] = [
-  { canonical: "JavaScript", variants: ["js", "java script", "javascript"] },
+  {
+    canonical: "JavaScript",
+    variants: ["js", "java script", "javascript", "vanilla js"],
+  },
   { canonical: "TypeScript", variants: ["ts", "typescript", "type script"] },
   { canonical: "Node.js", variants: ["node", "nodejs", "node.js"] },
   { canonical: "React", variants: ["reactjs", "react.js", "react js"] },
@@ -144,7 +152,10 @@ const TECHNOLOGY_ALIASES: TechnologyAlias[] = [
   { canonical: "Flask", variants: ["flask framework"] },
   { canonical: "FastAPI", variants: ["fast api"] },
   { canonical: "Ruby on Rails", variants: ["rails", "ror", "ruby on rails"] },
-  { canonical: "PostgreSQL", variants: ["postgres", "postgresql", "postgress"] },
+  {
+    canonical: "PostgreSQL",
+    variants: ["postgres", "postgresql", "postgress"],
+  },
   { canonical: "MySQL", variants: ["mysql database"] },
   { canonical: "MongoDB", variants: ["mongodb", "mongo db", "mongo"] },
   { canonical: "SQL Server", variants: ["mssql", "ms sql", "microsoft sql"] },
@@ -267,7 +278,7 @@ const COMPANY_SIZE_KEYWORDS: Array<[RegExp, CompanySize]> = [
   [/\b51[-\s]?200\b|\b201[-\s]?500\b/, "medium"],
   [/\b501[-\s]?1000\b/, "large"],
   [/\b1000[-\s]?5000\b|\b5001[-\s]?10000\b/, "large"],
-  [/\b10000\+\b|\b10000[-\s]?/ , "enterprise"],
+  [/\b10000\+\b|\b10000[-\s]?/, "enterprise"],
 ];
 
 const REMOTE_STATUS_KEYWORDS: Array<[RegExp, RemoteStatus]> = [
@@ -276,10 +287,7 @@ const REMOTE_STATUS_KEYWORDS: Array<[RegExp, RemoteStatus]> = [
     "remote",
   ],
   [/hybrid|flex(?:ible)?|partial\s*remote/, "hybrid"],
-  [
-    /on[-\s]?site|onsite|in[-\s]?office|in\s+person|office\s+based/,
-    "on_site",
-  ],
+  [/on[-\s]?site|onsite|in[-\s]?office|in\s+person|office\s+based/, "on_site"],
   [/not\s*specified|unknown|n\/a/, "not_specified"],
 ];
 
@@ -477,9 +485,7 @@ function normalizeSkillName(raw: string): string | null {
   return toTitleCase(cleaned);
 }
 
-function normalizeSkillList(
-  rawValues: DynamoJobPosting["skills"]
-): string[] {
+function normalizeSkillList(rawValues: DynamoJobPosting["skills"]): string[] {
   const items = coerceStringArray(rawValues);
   return uniqueCaseInsensitive(
     items
@@ -525,9 +531,7 @@ function buildCompanyRecord(
   return { name, size };
 }
 
-function buildTechnologyRecords(
-  names: string[]
-): NewTechnologyRecord[] {
+function buildTechnologyRecords(names: string[]): NewTechnologyRecord[] {
   return names.map((name) => ({ name, type: null }));
 }
 
