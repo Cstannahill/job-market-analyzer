@@ -1,18 +1,31 @@
 import { chromium } from "playwright-chromium";
 import fs from "fs";
 import path from "path";
+import { pathToFileURL } from "url";
 
 // Generic screenshot runner
 // Usage: run with node from frontend/ folder: node e2e/screenshot-all.mjs
 // Ensure dev server is running at BASE_URL
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:5173";
-const ROUTES = ["/", "/trends"];
+const ROUTES = [
+  "/",
+  "/home",
+  "/trends",
+  "/top-tech",
+  "/postings",
+  "/about",
+  "/resumes/upload",
+  "/resumes/manage",
+  "/login",
+  "/register",
+];
 const VIEWPORTS = [
   { name: "mobile-360", width: 360, height: 800 },
   { name: "mobile-412", width: 412, height: 800 },
   { name: "tablet-768", width: 768, height: 1024 },
   { name: "desktop-1280", width: 1280, height: 900 },
+  { name: "full-1920", width: 1920, height: 1080 },
 ];
 const OUT_DIR = path.resolve(process.cwd(), "screenshots");
 
@@ -59,11 +72,15 @@ async function run() {
   }
 }
 
-if (require.main === module) {
-  run().catch((e) => {
-    console.error(e);
+export default run;
+
+const invokedDirectly =
+  process.argv[1] &&
+  pathToFileURL(process.argv[1]).href === import.meta.url;
+
+if (invokedDirectly) {
+  run().catch((err) => {
+    console.error(err);
     process.exit(1);
   });
 }
-
-export default run;
