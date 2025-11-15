@@ -51,3 +51,14 @@
   box-shadow: var(--shadow-lg);
   border: 1px solid var(--border-color);
 }
+
+.top-tech-card {
+  padding: var(--space-xl) var(--space-2xl);
+}
+
+.top-tech-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  margin-top: var(--space-xl);
+}

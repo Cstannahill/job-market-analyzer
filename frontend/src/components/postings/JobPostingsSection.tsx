@@ -226,12 +226,10 @@ export const JobPostingsSection: React.FC = () => {
             <div className="loading">
                 <Spinner className="size-8" />
                 <p>Loading job postings...</p>
-                <div style={{ width: '100%', marginTop: 24 }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
-                        <Skeleton className="h-56" />
-                        <Skeleton className="h-56" />
-                        <Skeleton className="h-56" />
-                    </div>
+                <div className="job-loading-grid">
+                    <Skeleton className="job-loading-card" />
+                    <Skeleton className="job-loading-card" />
+                    <Skeleton className="job-loading-card" />
                 </div>
             </div>
         );

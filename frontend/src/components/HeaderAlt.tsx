@@ -22,7 +22,7 @@ export const Header: React.FC = () => {
 
     };
     return (
-        <header className="w-full md:w-fit sticky top-0 z-50 border-b rounded-lg border-white/5" >
+        <header className="site-header w-full md:w-fit sticky top-0 z-50 border-b rounded-lg border-white/5" >
             <a
                 href="#main-content"
                 className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:bg-indigo-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:z-50"
@@ -33,7 +33,7 @@ export const Header: React.FC = () => {
             {/* Glassmorphism backdrop with gradient overlay */}
             <div className="absolute rounded-lg  border border-stone-700 inset-0 bg-linear-to-r from-slate-900/98 via-slate-900/95 to-slate-900/98 dark:from-slate-900/98 dark:via-slate-900/95 dark:to-slate-900/98 backdrop-blur-xl" />
 
-            <div className="relative bg-stone-900 rounded-lg container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="site-header__nav-shell relative bg-stone-900 rounded-lg container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className={navClassName}>
                     <img src={trendDevLogo} className="h-10 w-10 m-0 rounded-md shadow-sm shadow-violet-800" alt="TrendDev Logo" />
                     <Link to="/" className="inline-flex items-center gap-3 no-underline focus:outline-none">

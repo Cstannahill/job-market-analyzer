@@ -40,7 +40,8 @@ function normalizeLookup(name: string) {
         "event bridge": "eventbridge",
         "event-bridge": "eventbridge",
         "ec2": "ec2",
-        "s3": "s3"
+        "s3": "s3",
+        "vanilla js": "javascript"
 
     };
 
