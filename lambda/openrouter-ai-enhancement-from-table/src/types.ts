@@ -6,6 +6,7 @@ export interface JobRecord {
   postedDate?: string;
   locationRaw?: string;
   sourcesRaw?: string;
+  sourceUrl?: string;
 }
 
 export interface EnrichedJobData {
@@ -27,4 +28,5 @@ export interface EnrichedJobData {
   processed_date: string;
   status?: string;
   enrichment_run_id?: string;
+  source_url?: string;
 }

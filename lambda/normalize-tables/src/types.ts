@@ -13,6 +13,7 @@ export type DynamoJobPosting = {
   benefits?: DynamoStringCollection;
   company_name?: string | null;
   company_size?: string | null;
+  source_url?: string | null;
   industry?: string | DynamoStringCollection | null;
   job_description?: string | null;
   job_title?: string | null;
@@ -29,6 +30,7 @@ export type DynamoJobPosting = {
   status?: string | null;
   technologies?: DynamoStringCollection;
   normalized?: boolean | "true" | "false" | null;
+  sources?: unknown;
   Id?: string;
   [key: string]: unknown;
 };
@@ -88,6 +90,7 @@ export type JobNeon = {
   seniorityLevel: SeniorityLevel | null;
   status: string | null;
   source: JobSource | null;
+  sourceUrl: string | null;
 };
 
 /*  NORMALIZER OUTPUT TYPES */

@@ -401,7 +401,7 @@ function normSeniority(x: string): Seniority {
   if (t === "mid") return "Mid";
   if (t === "senior") return "Senior";
   if (t === "lead") return "Lead";
-  if (t === "executive") return "Director";
+  if (t === "executive") return "Principal";
   if (/intern/.test(t)) return "Intern";
   if (/junior|entry/.test(t)) return "Junior";
   if (/lead/.test(t)) return "Lead";
