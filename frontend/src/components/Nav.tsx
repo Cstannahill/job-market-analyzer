@@ -22,6 +22,10 @@ const NavLinks: { to: string; label: string; icon: React.ReactNode }[] = [
     { to: '/about', label: 'About', icon: <FileQuestionMark className="h-4 w-4" /> },
 ];
 
+const ResumeLinks: { to: string; label: string; icon: React.ReactNode }[] = [
+    { to: '/resumes/upload', label: 'Upload Resume', icon: <FileUser className="h-4 w-4" /> },
+    { to: '/resumes/manage', label: 'Manage Uploaded', icon: <ListChecks className="h-4 w-4" /> },
+];
 
 export const Nav: React.FC = () => {
     const isMobile = useIsMobile();
@@ -89,9 +93,9 @@ export const Nav: React.FC = () => {
             </div >
 
             {/* Mobile nav (sheet/drawer) from shared MobileNav component */}
-            < div className="lg:hidden ml-auto" >
-                <MobileNav links={NavLinks} />
-            </div >
+            <div className="lg:hidden ml-auto">
+                <MobileNav links={NavLinks} resumeLinks={ResumeLinks} />
+            </div>
         </nav >
     );
 };

@@ -8,7 +8,12 @@ import { useAuthStore, useAuthUser } from '@/stores/authStore';
 
 type LinkItem = { to: string; label: string; icon: React.ReactNode };
 
-export const MobileNav: React.FC<{ links: LinkItem[] }> = ({ links }) => {
+type MobileNavProps = {
+    links: LinkItem[];
+    resumeLinks?: LinkItem[];
+};
+
+export const MobileNav: React.FC<MobileNavProps> = ({ links, resumeLinks = [] }) => {
     const { pathname } = useLocation();
     const user = useAuthUser();
     const logout = useAuthStore((state) => state.logout);
@@ -56,6 +61,30 @@ export const MobileNav: React.FC<{ links: LinkItem[] }> = ({ links }) => {
                                 {link.label}
                             </NavLink>
                         ))}
+                        {resumeLinks.length > 0 && (
+                            <div className="pt-4 border-t border-slate-800/30">
+                                <p className="text-xs uppercase tracking-wide text-slate-400 mb-2">
+                                    Resume
+                                </p>
+                                <div className="flex flex-col gap-3">
+                                    {resumeLinks.map((link) => (
+                                        <NavLink
+                                            key={link.to}
+                                            to={link.to}
+                                            className={`text-base font-medium px-3 py-2 rounded-md transition-colors flex items-center gap-3 ${isActive(link.to)
+                                                ? "bg-[#1a2432] text-cyan-300"
+                                                : "text-foreground hover:bg-[#151f2c] hover:text-cyan-300"
+                                                }`}
+                                        >
+                                            <span className="bg-slate-900/30 p-2 rounded-md">
+                                                {link.icon}
+                                            </span>
+                                            {link.label}
+                                        </NavLink>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                         <div className="flex border-t border-slate-800/30  justify-center mobile-nav-auth-div">
                             {!user ? (
                                 <Link to="/login" >

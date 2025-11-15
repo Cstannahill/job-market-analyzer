@@ -72,6 +72,7 @@ type DbJobRow = {
   salary_mentioned: boolean | null;
   minimum_salary: number | null;
   maximum_salary: number | null;
+  technologies: (string | null)[] | null;
 };
 
 type SourcePosting = {
@@ -394,7 +395,13 @@ function normIndustry(x: string) {
   return x.toLowerCase() === "unknown" ? "Unknown" : title(x);
 }
 function normSeniority(x: string): Seniority {
-  const t = x.toLowerCase();
+  const t = x.trim().toLowerCase();
+  // Neon stores normalized seniority enums via normalize-tables lambda.
+  if (t === "entry") return "Junior";
+  if (t === "mid") return "Mid";
+  if (t === "senior") return "Senior";
+  if (t === "lead") return "Lead";
+  if (t === "executive") return "Director";
   if (/intern/.test(t)) return "Intern";
   if (/junior|entry/.test(t)) return "Junior";
   if (/lead/.test(t)) return "Lead";
@@ -406,9 +413,15 @@ function normSeniority(x: string): Seniority {
   return "Unknown";
 }
 function normWorkMode(x: string): WorkMode {
-  const t = x.toLowerCase();
-  if (t.includes("remote")) return "Remote";
-  if (t.includes("hybrid")) return "Hybrid";
+  const base = x.trim().toLowerCase();
+  const tokenized = base.replace(/[\s-]+/g, "_");
+  // Normalize Neon enum values first (remote|hybrid|on_site|not_specified).
+  if (tokenized === "remote") return "Remote";
+  if (tokenized === "hybrid") return "Hybrid";
+  if (tokenized === "on_site" || tokenized === "onsite") return "On-site";
+  if (tokenized === "not_specified") return "On-site";
+  if (base.includes("remote")) return "Remote";
+  if (base.includes("hybrid")) return "Hybrid";
   return "On-site";
 }
 function title(s: string) {
@@ -431,46 +444,39 @@ async function fetchPostings(days: string[]): Promise<SourcePosting[]> {
   const base = await pool.query<DbJobRow>(
     `
       SELECT
-        id,
-        dynamo_id,
-        job_title,
-        location,
-        remote_status,
-        seniority_level,
-        salary_mentioned,
-        minimum_salary,
-        maximum_salary
-      FROM ${TABLES.jobs}
-      WHERE DATE(processed_date) = ANY($1::date[])
+        j.id,
+        j.dynamo_id,
+        j.job_title,
+        j.location,
+        j.remote_status,
+        j.seniority_level,
+        j.salary_mentioned,
+        j.minimum_salary,
+        j.maximum_salary,
+        COALESCE(
+          ARRAY_AGG(DISTINCT t.name) FILTER (WHERE t.name IS NOT NULL),
+          '{}'
+        ) AS technologies
+      FROM ${TABLES.jobs} j
+      LEFT JOIN ${TABLES.jobsTechnologies} jt ON jt.job_id = j.id
+      LEFT JOIN ${TABLES.technologies} t ON t.id = jt.technology_id
+      WHERE DATE(j.processed_date) = ANY($1::date[])
+      GROUP BY
+        j.id,
+        j.dynamo_id,
+        j.job_title,
+        j.location,
+        j.remote_status,
+        j.seniority_level,
+        j.salary_mentioned,
+        j.minimum_salary,
+        j.maximum_salary
     `,
     [days]
   );
 
   const rows = base.rows ?? [];
   if (rows.length === 0) return [];
-
-  const jobUuidList = rows.map((row) => row.id);
-  const techMap = new Map<string, string[]>();
-
-  if (jobUuidList.length > 0) {
-    const techRes = await pool.query<{ job_id: string; name: string | null }>(
-      `
-        SELECT jt.job_id, t.name
-        FROM ${TABLES.jobsTechnologies} jt
-        JOIN ${TABLES.technologies} t ON t.id = jt.technology_id
-        WHERE jt.job_id = ANY($1::uuid[])
-      `,
-      [jobUuidList]
-    );
-
-    for (const row of techRes.rows ?? []) {
-      const name = row.name?.trim();
-      if (!name) continue;
-      const next = techMap.get(row.job_id) ?? [];
-      next.push(name);
-      techMap.set(row.job_id, next);
-    }
-  }
 
   return rows.map((row) => ({
     jobId: (row.dynamo_id ?? row.id) as string,
@@ -481,7 +487,7 @@ async function fetchPostings(days: string[]): Promise<SourcePosting[]> {
     salary_mentioned: Boolean(row.salary_mentioned),
     salary_range: buildSalaryRange(row.minimum_salary, row.maximum_salary),
     industry: "Unknown",
-    technologies: dedupeStrings(techMap.get(row.id) ?? []),
+    technologies: dedupeStrings(row.technologies ?? []),
     skills: [],
   }));
 }
@@ -497,10 +503,11 @@ function buildSalaryRange(
   return `${safeMin ?? safeMax}`;
 }
 
-function dedupeStrings(values: string[]): string[] {
+function dedupeStrings(values: Array<string | null | undefined>): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
   for (const value of values) {
+    if (!value) continue;
     const trimmed = value.trim();
     if (!trimmed) continue;
     const key = trimmed.toLowerCase();
