@@ -2,7 +2,6 @@ export const COMPANY_ICON_COLORS: Record<string, string> = {
   //   gemini: "",
   godaddy: "#292929",
   mews: "#2B2828",
-  reddit: "#ff4700",
   rubrik: "#262930",
   chime: "#1dc879",
   ensono: "#6758ab",
