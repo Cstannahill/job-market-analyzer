@@ -12,7 +12,7 @@
     "test:run": "vitest run",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",
-    "e2e:screens": "node ./e2e/trends.run.mjs",
+    "e2e:screens": "node ./e2e/screenshot-all.js",
     "e2e:with-dev": "node ./e2e/run-with-dev.js"
   },
   "dependencies": {
