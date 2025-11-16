@@ -132,8 +132,8 @@ export const JobPostingsControls: React.FC<JobPostingsControlsProps> = ({
         <>
             {/* Filters Section */}
 
-            <div style={{ padding: "1rem 0 0 0" }} className="w-full lg:grid grid-cols-3">
-                <div className="col-span-1 lg:col-start-3 flex w-full justify-start lg:justify-end mb-4 lg:mb-0">
+            <div style={{ padding: "1rem 0 0 0" }} className="w-full lg:grid grid-cols-5">
+                <div className="col-span-1 lg:col-start-5 flex w-full justify-start lg:justify-end mb-4 lg:mb-0">
                     <TechSearchCombobox
                         value={filters}
                         className="w-full"

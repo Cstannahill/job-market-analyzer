@@ -291,8 +291,8 @@ export const JobPostingsSection: React.FC = () => {
             </div>
 
             {/* Bottom Pagination */}
-            <div className="pagination-container flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between py-4">
-                <div className="pagination-controls flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-center">
+            <div className="pagination-container flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between lg:grid lg:grid-cols-3 py-4">
+                <div className="pagination-controls flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-center lg:col-start-2">
                     <Button
                         onClick={() => fetchPage(Math.max(1, pageIndex - 1))}
                         disabled={pageIndex === 1 || rqIsLoading || isFetchingNextPage}
