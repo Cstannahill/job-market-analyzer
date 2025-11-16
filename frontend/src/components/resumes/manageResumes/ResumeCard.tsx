@@ -82,13 +82,13 @@ export function ResumeCard({
     return (
         <Card style={{ padding: "2rem" }} className={cn("rounded-2xl shadow-sm border-muted w-full", className)}>
             <CardHeader className="p-5 sm:p-6">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="lg:flex lg:flex-col lg:gap-3 flex-row items-center justify-between">
                     <div>
-                        <CardTitle className="text-xl sm:text-2xl break-all">
+                        <CardTitle className="text-sm lg:text-2xl lg:text-nowrap text-wrap">
                             {originalFileName ?? "Resume"}
                         </CardTitle>
-                        <CardDescription className="mt-1 flex flex-wrap items-center gap-2 text-muted-foreground">
-                            <span className="inline-flex items-center gap-1">
+                        <CardDescription className="mt-1 flex flex-wrap items-center gap-2 text-muted-foreground text-wrap lg:text-nowrap">
+                            <span className="inline-flex items-center gap-1 flex-wrap">
                                 <FileType className="size-4" />
                                 {contentType ?? "—"}
                             </span>
@@ -136,18 +136,20 @@ export function ResumeCard({
                 {/* Tabs: Overview / Experience / Insights */}
                 <Tabs defaultValue="overview" className="w-full">
                     <div className="px-5 sm:px-6 pt-4">
-                        <TabsList className="grid w-full grid-cols-5 lg:grid-cols-5">
-                            <TabsTrigger className="text-sm lg:text-lg" value="overview">Overview</TabsTrigger>
-                            <TabsTrigger className="text-sm lg:text-lg" value="experience">Experience</TabsTrigger>
-                            <TabsTrigger className="text-sm lg:text-lg" value="insights">Insights</TabsTrigger>
-                            <TabsTrigger className="text-sm lg:text-lg" value="salary">Salary</TabsTrigger>
-                            <TabsTrigger className="text-sm lg:text-lg" value="career">Career Path</TabsTrigger>
-                        </TabsList>
+                        <div className="w-full  overflow-x-auto lg:flex lg:justify-center">
+                            <TabsList className="grid w-full grid-cols-5  min-w-[420px] flex-nowrap gap-2 lg:w-auto">
+                                <TabsTrigger style={{ fontSize: "0.875rem", padding: "0 .875rem" }} className="text-sm lg:text-lg px-2" value="overview">Overview</TabsTrigger>
+                                <TabsTrigger style={{ fontSize: "0.875rem", padding: "0 .875rem" }} className="text-sm lg:text-lg" value="experience">Experience</TabsTrigger>
+                                <TabsTrigger style={{ fontSize: "0.875rem", padding: "0 .875rem" }} className="text-sm lg:text-lg" value="insights">Insights</TabsTrigger>
+                                <TabsTrigger style={{ fontSize: "0.875rem", padding: "0 .875rem" }} className="text-sm lg:text-lg" value="salary">Salary</TabsTrigger>
+                                <TabsTrigger style={{ fontSize: "0.875rem", padding: "0 .875rem" }} className="text-sm lg:text-lg" value="career">Career Path</TabsTrigger>
+                            </TabsList>
+                        </div>
                     </div>
 
                     {/* OVERVIEW */}
                     <TabsContent value="overview" className="mt-0">
-                        <div className="px-5 sm:px-6 py-4 space-y-6">
+                        <div className="px-1 lg:px-6 py-4 space-y-6">
                             {/* Summary */}
                             {(oneLine || threeLine) && (
                                 <section>
@@ -261,52 +263,54 @@ export function ResumeCard({
 
                     {/* EXPERIENCE */}
                     <TabsContent value="experience" className="mt-0">
-                        <div className="px-5 sm:px-6 py-4 h-[480px]">
-                            {experience && experience.length > 0 ? (
-                                <Accordion type="single" collapsible className="w-full">
-                                    {experience.map((job, idx) => (
-                                        <AccordionItem style={{ padding: ".25rem .5rem", margin: "1rem " }} key={`${job.company}-${idx}`} value={`exp-${idx}`}>
-                                            <AccordionTrigger className="text-left">
-                                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-1">
-                                                    <div className="flex flex-col">
-                                                        <span className="font-semibold">{job.title}</span>
-                                                        <span className="text-sm text-muted-foreground">
-                                                            {`${job.company} `}
-                                                            {job.location ? (
-                                                                <span className="inline-flex items-center gap-1 ml-1">
-                                                                    <MapPin className="size-3" /> {job.location}
-                                                                </span>
-                                                            ) : null}
-                                                        </span>
+                        <ScrollArea className="h-[420px] sm:h-auto">
+                            <div className="px-5 sm:px-6 py-4">
+                                {experience && experience.length > 0 ? (
+                                    <Accordion type="single" collapsible className="w-full">
+                                        {experience.map((job, idx) => (
+                                            <AccordionItem style={{ padding: ".25rem .5rem", margin: "1rem " }} key={`${job.company}-${idx}`} value={`exp-${idx}`}>
+                                                <AccordionTrigger className="text-left">
+                                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-1">
+                                                        <div className="flex flex-col">
+                                                            <span className="font-semibold">{job.title}</span>
+                                                            <span className="text-sm text-muted-foreground">
+                                                                {`${job.company} `}
+                                                                {job.location ? (
+                                                                    <span className="inline-flex items-center gap-1 ml-1">
+                                                                        <MapPin className="size-3" /> {job.location}
+                                                                    </span>
+                                                                ) : null}
+                                                            </span>
+                                                        </div>
+                                                        <span className="text-xs text-muted-foreground">{`${job.duration} - (${job.durationMonths} months)`}</span>
+
                                                     </div>
-                                                    <span className="text-xs text-muted-foreground">{`${job.duration} - (${job.durationMonths} months)`}</span>
+                                                </AccordionTrigger>
+                                                <AccordionContent>
+                                                    <ul className="bullet-list pr-2 sm:pr-0">
+                                                        {(job.description ?? []).map((d, i) => (
+                                                            <li key={i}>
+                                                                <span className="bullet">
+                                                                    <img
+                                                                        src={Bullet}
+                                                                        alt="List Bullet"
+                                                                    />
 
-                                                </div>
-                                            </AccordionTrigger>
-                                            <AccordionContent>
-                                                <ul className="bullet-list ">
-                                                    {(job.description ?? []).map((d, i) => (
-                                                        <li key={i}>
-                                                            <span className="bullet">
-                                                                <img
-                                                                    src={Bullet}
-                                                                    alt="List Bullet"
-                                                                />
-
-                                                            </span>
-                                                            <span className="text">{d}
-                                                            </span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </AccordionContent>
-                                        </AccordionItem>
-                                    ))}
-                                </Accordion>
-                            ) : (
-                                <div className="text-sm text-muted-foreground">No experience entries.</div>
-                            )}
-                        </div>
+                                                                </span>
+                                                                <span className="text">{d}
+                                                                </span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </AccordionContent>
+                                            </AccordionItem>
+                                        ))}
+                                    </Accordion>
+                                ) : (
+                                    <div className="text-sm text-muted-foreground">No experience entries.</div>
+                                )}
+                            </div>
+                        </ScrollArea>
                     </TabsContent>
 
                     {/* INSIGHTS */}
