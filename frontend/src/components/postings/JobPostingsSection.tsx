@@ -291,8 +291,8 @@ export const JobPostingsSection: React.FC = () => {
             </div>
 
             {/* Bottom Pagination */}
-            <div className="grid grid-cols-3 flex-col sm:flex-row items-center gap-3 py-3 pagination-container">
-                <div className="flex col-start-2 items-center gap-3 justify-center sm:flex-1 sm:justify-center">
+            <div className="pagination-container flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between py-4">
+                <div className="pagination-controls flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-center">
                     <Button
                         onClick={() => fetchPage(Math.max(1, pageIndex - 1))}
                         disabled={pageIndex === 1 || rqIsLoading || isFetchingNextPage}
@@ -321,12 +321,12 @@ export const JobPostingsSection: React.FC = () => {
                     </Button>
                 </div>
 
-                <div className="grid- items-center justify-center sm:justify-end gap-3 w-full sm:w-auto sm:flex-1">
+                <div className="pagination-size flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
                     <div className="text-sm text-white/60 whitespace-nowrap">Results per page</div>
                     <select
                         value={pageSize}
                         onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                        className="w-20 rounded-md text-sm font-medium bg-transparent border border-white/10 px-3 py-1"
+                        className="pagination-size-select rounded-md text-sm font-medium bg-transparent border border-white/10 px-3 py-1"
                     >
                         <option value="10">10</option>
                         <option value="20">20</option>

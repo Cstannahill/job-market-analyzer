@@ -35,6 +35,7 @@ type Props = {
     disabled?: boolean;
     showCounts?: boolean;
     widthClass?: string;    // e.g. "w-[280px]"
+    contentWidthClass?: string;
     maxVisible?: number;
 };
 
@@ -50,7 +51,8 @@ export function TechSearchCombobox({
     className,
     disabled,
     showCounts = true,
-    widthClass = "w-[320px]",
+    widthClass = "w-full sm:w-[320px]",
+    contentWidthClass,
     maxVisible = 20
 }: Props) {
     const [open, setOpen] = React.useState(false);
@@ -170,7 +172,7 @@ export function TechSearchCombobox({
                 </Button>
             </PopoverTrigger>
 
-            <PopoverContent className={cn(widthClass, "p-0")} align="start">
+            <PopoverContent className={cn(contentWidthClass ?? widthClass, "max-w-[90vw] p-0")} align="start">
                 <Command shouldFilter={false} loop>
                     <CommandInput
                         value={input}

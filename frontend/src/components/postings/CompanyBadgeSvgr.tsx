@@ -21,7 +21,8 @@ function normalizeLookup(name: string) {
     const specialCases: Record<string, string> = {
         'andurilindustries': 'anduril-industries',
         "ciandt": "cit",
-        "hubspotjobs": "hubspot"
+        "hubspotjobs": "hubspot",
+        "quizlet2": "quizlet2"
 
 
     };
@@ -29,6 +30,7 @@ function normalizeLookup(name: string) {
     if (specialCases[lower]) return specialCases[lower];
 
     // Pattern-based special cases
+    if (lower.includes("quizlet")) return "quizlet2";
     if (lower.includes("gitlab")) return "gitlab";
     if (lower.includes("housecall")) return "housecall-pro"
 

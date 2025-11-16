@@ -17,7 +17,6 @@ function normalizeLookup(name: string) {
 
     // Special cases - consolidated for readability
     const specialCases: Record<string, string> = {
-        'llms': 'llm',
         'rails': 'rails',
         'ruby on rails': 'rails',
         'aws': 'aws',
@@ -41,13 +40,16 @@ function normalizeLookup(name: string) {
         "event-bridge": "eventbridge",
         "ec2": "ec2",
         "s3": "s3",
-        "vanilla js": "javascript"
+        "vanilla js": "javascript",
+        "llms": "llm"
 
     };
 
     if (specialCases[lower]) return specialCases[lower];
 
     // Pattern-based special cases
+    if (lower.includes("agile")) return "agile"
+    if (lower.includes("llms") || lower === "ai" || lower === "ai models") return "llm"
     if (lower.includes("dynamo")) return "dynamodb"
     if (lower.includes("atlassian")) return "atlassian"
     if (lower.includes("apache spark") || lower.includes("apache-spark")) return "spark"

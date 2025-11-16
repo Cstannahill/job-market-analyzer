@@ -6,6 +6,7 @@ export const COMPANY_ICON_COLORS: Record<string, string> = {
   chime: "#1dc879",
   ensono: "#6758ab",
   attlasian: "#1f6ddc",
+  robinhood: "#c6f600",
   //   mongodb: "#ffffff",
   //   spacex: "#ffffff",
   //       "abnormalsecurity",
