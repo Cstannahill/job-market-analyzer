@@ -132,16 +132,19 @@ export const JobPostingsControls: React.FC<JobPostingsControlsProps> = ({
         <>
             {/* Filters Section */}
 
-            <div className="lg:grid grid-cols-3" >
-                <TechSearchCombobox
-                    value={filters}
-                    className='col-start-3'
-                    onChange={setFilters}
-                    onCommit={handleCommit}
-                    options={techCounts.map(t => ({ value: t.name ?? t.id, label: t.name ?? t.id, count: t.count }))}
-                    widthClass="w-[360px]"
-                />
-            </div >
+            <div style={{ padding: "1rem 0 0 0" }} className="w-full lg:grid grid-cols-3">
+                <div className="col-span-1 lg:col-start-3 flex w-full justify-start lg:justify-end mb-4 lg:mb-0">
+                    <TechSearchCombobox
+                        value={filters}
+                        className="w-full"
+                        onChange={setFilters}
+                        onCommit={handleCommit}
+                        options={techCounts.map(t => ({ value: t.name ?? t.id, label: t.name ?? t.id, count: t.count }))}
+                        widthClass="w-full sm:w-[360px]"
+                        contentWidthClass="w-full sm:w-[360px]"
+                    />
+                </div>
+            </div>
             {/* Top Pagination */}
             {PaginationControls}
         </>

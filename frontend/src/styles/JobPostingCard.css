@@ -276,9 +276,13 @@
 /* Tags Container - Enhanced */
 .tag-container {
   display: flex;
-  flex-wrap: wrap;
+  /* flex-wrap: wrap; */
   justify-content: space-around;
   align-items: center;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 6px;
 }
 .tag-container-skills-row {
   justify-content: center;
