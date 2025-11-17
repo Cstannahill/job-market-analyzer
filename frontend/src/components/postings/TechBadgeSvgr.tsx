@@ -42,6 +42,8 @@ function normalizeLookup(name: string) {
         "s3": "s3",
         "aws s3": "s3",
         "vanilla js": "javascript",
+        "modern javascript": "javascript",
+        "modern js": "javascript",
         "llms": "llm",
         "dagger 2": "android",
         "jetpack navigation": "android"
