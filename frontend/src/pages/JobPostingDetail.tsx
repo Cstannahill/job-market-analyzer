@@ -15,7 +15,7 @@ type LocationState = {
 
 const Panel: React.FC<{ title: string; children: React.ReactNode; className?: string, style?: CSSProperties }> = ({ title, children, className, style }) => (
 
-    <div style={style} className={cn("rounded-3xl border border-white/5 bg-slate-900/70 p-6 shadow-inner", className)}>
+    <div style={style} className={cn("rounded-xl border border-stone-500/75 bg-slate-900/70 p-6 shadow-inner", className)}>
         <h3 className="mb-3 text-xl font-semibold text-white">{title}</h3>
         {children}
     </div>
@@ -25,6 +25,7 @@ const TagGrid: React.FC<{ items: string[]; variant?: "primary" | "secondary" }> 
     <div className="flex flex-wrap gap-2 text-wrap">
         {items.map((item, index) => (
             <Badge
+                style={{ padding: "0rem 1rem" }}
                 key={`${item}-${index}`}
                 variant={variant === "primary" ? "default" : "secondary"}
                 className={cn(
@@ -43,7 +44,7 @@ const TagGrid: React.FC<{ items: string[]; variant?: "primary" | "secondary" }> 
 const InfoRow: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
     <div className="grid gap-2 text-sm text-white/80 sm:grid-cols-[160px_auto] lg:text-base">
         <span className="font-semibold uppercase tracking-wide text-white/40">{label}</span>
-        <span className="font-semibold text-white break-words">{value || 'Unknown'}</span>
+        <span className="font-semibold text-white wrap-word-break">{value || 'Unknown'}</span>
     </div>
 );
 const formatDate = (dateString: string) => {
@@ -98,7 +99,7 @@ const JobPostingDetail: React.FC = () => {
                     </Link>
                 </div>
 
-                <Card style={{ padding: "1rem 1rem" }} className="mx-auto w-full  rounded-xl border border-white/10 bg-gradient-to-b from-stone-900/95 via-zinc-800/90 to-neutral-950/90 text-white shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
+                <Card style={{ padding: "1rem 1rem" }} className="mx-auto w-full  rounded-xl border border-white/10 bg-linear-to-b from-stone-900/95 via-zinc-800/90 to-neutral-950/90 text-white shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
                     <CardContent className="space-y-8 p-6 lg:p-12">
                         <header className="space-y-4">
                             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -133,26 +134,26 @@ const JobPostingDetail: React.FC = () => {
                             <InfoRow label="Source URL" value={sourceLink} />
                         </section>
 
-                        <Panel style={{ padding: ".5rem 1rem", margin: "1rem 0" }} title="Job Description" className="bg-gradient-to-b from-stone-900/95 via-zinc-800/90 to-neutral-950/90">
+                        <Panel style={{ padding: ".5rem 1rem", margin: "1rem 0" }} title="Job Description" className="bg-linear-to-b from-stone-900/95 via-zinc-800/90 to-neutral-950/90">
                             <p className="whitespace-pre-line text-base leading-relaxed text-white/90">
                                 {posting.job_description || 'No description provided.'}
                             </p>
                         </Panel>
 
                         {posting.requirements?.length ? (
-                            <Panel style={{ padding: ".5rem 1rem", margin: ".5rem 0", textWrap: "balance" }} title="Requirements" className="bg-gradient-to-b from-stone-900/95 via-zinc-800/90 to-neutral-950/90">
+                            <Panel style={{ padding: ".5rem 1rem", margin: ".5rem 0", textWrap: "balance" }} title="Requirements" className="bg-linear-to-b from-stone-900/95 via-zinc-800/90 to-neutral-950/90">
                                 <TagGrid items={posting.requirements} variant="secondary" />
                             </Panel>
                         ) : null}
 
                         {posting.technologies?.length ? (
-                            <Panel style={{ padding: ".5rem 1rem", margin: "0.5rem 0" }} title="Technologies" className="bg-gradient-to-b from-stone-900/95 via-zinc-800/95 to-neutral-950/90">
+                            <Panel style={{ padding: ".5rem 1rem", margin: "0.5rem 0" }} title="Technologies" className="bg-linear-to-b from-stone-900/95 via-zinc-800/95 to-neutral-950/90">
                                 <TagGrid items={posting.technologies} />
                             </Panel>
                         ) : null}
 
                         {posting.skills?.length ? (
-                            <Panel style={{ padding: ".5rem 1rem", margin: "0.5rem 0" }} title="Skills" className="bg-gradient-to-b from-stone-900/95 via-zinc-800/95 to-neutral-950/90">
+                            <Panel style={{ padding: ".5rem 1rem", margin: "0.5rem 0" }} title="Skills" className="bg-linear-to-b from-stone-900/95 via-zinc-800/95 to-neutral-950/90">
                                 <TagGrid items={posting.skills} variant="secondary" />
                             </Panel>
                         ) : null}

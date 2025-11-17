@@ -30,7 +30,7 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
             state={{ posting }}
             className="block h-full transition hover:-translate-y-1 hover:no-underline"
         >
-            <Card className="job-card cursor-pointer flex h-full flex-col">
+            <Card className="job-card  cursor-pointer flex h-full flex-col">
                 <MetaPillContainer posting={posting} date={formatDate(posting.processed_date)} />
                 <CardHeader style={{ padding: "0.25rem", margin: "0rem .25rem" }} className="job-card-header">
                     <div className="flex flex-row justify-around">

@@ -27,19 +27,13 @@ const DDB_ENHANCED_TABLE = "job-postings-enhanced"; // PK: jobId
 const DDB_BASE_TABLE = "job-postings"; // PK: PK = JOB#<id>
 
 // IDs to remove from Neon (Postgres)
-const neonJobIds: string[] = [
-  "5cf639dc-930f-48a6-8015-3345b2b36259",
-  "d22d86e8-bcfe-494a-bb5e-f54f3ad43564",
-  "fbac5933-5ca8-4835-9e0c-03bef2d27bb8",
-  "5cf639dc-930f-48a6-8015-3345b2b36259",
-];
+const neonJobIds: string[] = [];
 
 // IDs to remove from DynamoDB
 const dynamoJobIds: string[] = [
-  "76737b7e2d446b5a5cedbb5da575658ddd6c9de3",
-  "f90320a60eb2a9d45d445ef9bcf7ef8e6a5f32d4",
-  "367b416cb675738511afc5c2407696dfcef7e663",
-  "935285ae81e2259e0a343d812cacbdfd32a2e79f",
+  "69bbddabdcfba02c66dc0126b7d2fb7489a0ee44",
+  "6786ebd77415272c54863cc98074c17cac63eda9",
+  "065c6989516d82b9e5c75a67dc3a843d73143bd3",
 ];
 
 // ---------- UTILITIES ----------

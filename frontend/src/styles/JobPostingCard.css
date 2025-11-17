@@ -9,6 +9,8 @@
   border: 1px solid rgba(255, 255, 255, 0.8);
   overflow: hidden;
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .job-card::before {
