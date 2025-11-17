@@ -125,10 +125,13 @@ function unwrapLambdaPayload(payload: unknown): unknown {
     "statusCode" in payload &&
     typeof (payload as { body?: unknown }).body === "string"
   ) {
-    try {
-      return JSON.parse((payload as { body: string }).body);
-    } catch {
-      return payload;
+    const proxyBody = (payload as { body?: unknown }).body;
+    if (typeof proxyBody === "string") {
+      try {
+        return JSON.parse(proxyBody);
+      } catch {
+        return payload;
+      }
     }
   }
   return payload;
