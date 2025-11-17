@@ -94,7 +94,8 @@ async function upsertJob(
         seniority_level,
         status,
         source,
-        source_url
+        source_url,
+        years_exp_req
       )
       VALUES (
         $1,
@@ -110,7 +111,8 @@ async function upsertJob(
         $11::seniority,
         $12,
         $13::source,
-        $14
+        $14,
+        $15
       )
       ON CONFLICT (dynamo_id)
       DO UPDATE SET
@@ -126,7 +128,8 @@ async function upsertJob(
         seniority_level = EXCLUDED.seniority_level,
         status = EXCLUDED.status,
         source = EXCLUDED.source,
-        source_url = EXCLUDED.source_url
+        source_url = EXCLUDED.source_url,
+        years_exp_req = EXCLUDED.years_exp_req
       RETURNING id
     `,
     [
@@ -144,6 +147,7 @@ async function upsertJob(
       job.status,
       job.source,
       job.sourceUrl,
+      job.yearsExpReq,
     ]
   );
 

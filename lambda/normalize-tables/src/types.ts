@@ -13,6 +13,7 @@ export type DynamoJobPosting = {
   benefits?: DynamoStringCollection;
   company_name?: string | null;
   company_size?: string | null;
+  job_board_source?: string | null;
   source_url?: string | null;
   industry?: string | DynamoStringCollection | null;
   job_description?: string | null;
@@ -29,6 +30,7 @@ export type DynamoJobPosting = {
   skills?: DynamoStringCollection;
   status?: string | null;
   technologies?: DynamoStringCollection;
+  years_exp_req?: string | null;
   normalized?: boolean | "true" | "false" | null;
   sources?: unknown;
   Id?: string;
@@ -44,12 +46,7 @@ export type CompanySize =
   | "large"
   | "enterprise";
 export type JobSource = "greenhouse" | "lever" | "usajobs" | "muse" | "unknown";
-export type SeniorityLevel =
-  | "entry"
-  | "mid"
-  | "senior"
-  | "lead"
-  | "executive";
+export type SeniorityLevel = "junior" | "mid" | "senior" | "lead" | "executive";
 
 /*  NEON TYPES  */
 
@@ -91,6 +88,7 @@ export type JobNeon = {
   status: string | null;
   source: JobSource | null;
   sourceUrl: string | null;
+  yearsExpReq: string | null;
 };
 
 /*  NORMALIZER OUTPUT TYPES */
@@ -119,5 +117,3 @@ export type NormalizedJobEntities = {
   technologies: NewTechnologyRecord[];
   industries: NewIndustryRecord[];
 };
-
-
