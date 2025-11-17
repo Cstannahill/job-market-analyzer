@@ -256,6 +256,8 @@ export const getJobPostingsPage = async (opts?: {
   limit?: number;
   lastKey?: string | null;
   tech?: string;
+  workModes?: string[];
+  seniorityLevels?: string[];
 }): Promise<{
   items: BaseJobListing[];
   count: number;
@@ -265,6 +267,10 @@ export const getJobPostingsPage = async (opts?: {
   if (opts?.limit) params.limit = String(opts.limit);
   if (opts?.lastKey) params.lastKey = opts.lastKey;
   if (opts?.tech) params.tech = opts.tech;
+  if (opts?.workModes?.length)
+    params["remote_status"] = opts.workModes.join(",");
+  if (opts?.seniorityLevels?.length)
+    params["seniority_level"] = opts.seniorityLevels.join(",");
 
   const q = new URLSearchParams(params).toString();
   const url = `${API_URL}/job-postings${q ? `?${q}` : ""}`;

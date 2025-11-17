@@ -9,13 +9,32 @@ import { getJobPostingsPage } from '@/services/jobPostingsService';
 import { getJobPostingsStats } from '@/services/jobStatsService';
 import type { BaseJobListing, JobStats } from '@/shared-types';
 import { JobPostingCard } from '@/components/postings/JobPostingCard';
-import { JobPostingsControls } from '@/components/postings/JobPostingsControls';
+import {
+    JobPostingsControls,
+    type JobPostingsFilters,
+} from '@/components/postings/JobPostingsControls';
 import { Spinner } from '@/components/ui/spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 
-// ---- NEW: unified filters state type
-type Filters = { tech: string | null; query: string };
+type Filters = JobPostingsFilters;
+
+const createDefaultFilters = (): Filters => ({
+    tech: null,
+    query: '',
+    workModes: [],
+    seniorityLevels: [],
+});
+
+const serializeFilterValues = (values: string[]): string =>
+    values.length ? [...values].sort().join('|') : 'ALL';
+
+const haveSameItems = (a: string[], b: string[]): boolean => {
+    if (a.length !== b.length) return false;
+    const sortedA = [...a].sort();
+    const sortedB = [...b].sort();
+    return sortedA.every((value, index) => value === sortedB[index]);
+};
 
 type Page = {
     items: BaseJobListing[];
@@ -30,7 +49,7 @@ export const JobPostingsSection: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     // ---- NEW: single source of truth for filters
-    const [filters, setFilters] = useState<Filters>({ tech: null, query: '' });
+    const [filters, setFilters] = useState<Filters>(() => createDefaultFilters());
 
     // ---- Back-compat local state (derived), so the rest of your UI remains unchanged
     const searchTerm = filters.query;
@@ -51,8 +70,17 @@ export const JobPostingsSection: React.FC = () => {
         initialData: cachedStats,
     });
 
-    // ---- KEY CHANGE: include filters.tech in queryKey so cache partitions by tech
-    const queryKey = ['job-postings', pageSize, filters.tech ?? 'ALL'] as const;
+    const serializedWorkModes = serializeFilterValues(filters.workModes);
+    const serializedSeniorities = serializeFilterValues(filters.seniorityLevels);
+
+    // ---- KEY CHANGE: include filters in queryKey so cache partitions by selection
+    const queryKey = [
+        'job-postings',
+        pageSize,
+        filters.tech ?? 'ALL',
+        serializedWorkModes,
+        serializedSeniorities,
+    ] as const;
 
     const {
         data,
@@ -72,6 +100,8 @@ export const JobPostingsSection: React.FC = () => {
                 limit: pageSize,
                 lastKey: pageParam ?? undefined,
                 tech: filters.tech ?? undefined,   // <--- this switches Lambda path
+                workModes: filters.workModes,
+                seniorityLevels: filters.seniorityLevels,
                 // status?: keep your default in the service or pass it here if needed
             });
         },
@@ -183,7 +213,7 @@ export const JobPostingsSection: React.FC = () => {
     useEffect(() => {
         fetchPage(1).catch(() => { });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pageSize, filters.tech]); // include tech so first page is fetched when switching dataset
+    }, [pageSize, filters.tech, serializedWorkModes, serializedSeniorities]); // include filters so first page is fetched when switching dataset
 
     useEffect(() => {
         if (!currentPage) return;
@@ -194,25 +224,21 @@ export const JobPostingsSection: React.FC = () => {
     }, [currentPage?.items?.length, currentPage?.lastKey]);
 
     // ---- NEW: single handler to receive combobox commits from JobPostingsControls
-    const handleFiltersCommit = (next: { tech: string | null; query: string }) => {
+    const handleFiltersCommit = (next: Filters) => {
         const techChanged = next.tech !== filters.tech;
-        // const queryChanged = next.query !== filters.query;
+        const workModesChanged = !haveSameItems(next.workModes, filters.workModes);
+        const seniorityChanged = !haveSameItems(next.seniorityLevels, filters.seniorityLevels);
 
-        // Update local filters
         setFilters(next);
-
-        // Reset pagination
         setPageIndex(1);
 
-        // If the tech changed, the server-side dataset changed -> clear cache for this key
-        if (techChanged) {
+        if (techChanged || workModesChanged || seniorityChanged) {
             queryClient.removeQueries({ queryKey });
         }
-        // For query changes, we keep cache (client-side filter only).
     };
 
     const handleClearFilters = () => {
-        handleFiltersCommit({ tech: null, query: '' });
+        handleFiltersCommit(createDefaultFilters());
     };
 
     const handlePageSizeChange = (size: number) => {
@@ -252,9 +278,20 @@ export const JobPostingsSection: React.FC = () => {
             <JobPostingsControls
                 // legacy props (derived) so you don’t have to refactor the control yet
                 searchTerm={searchTerm}
-                onSearchChange={(q) => handleFiltersCommit({ tech: filters.tech, query: q })}
+                filters={filters}
+                onSearchChange={(q) =>
+                    handleFiltersCommit({
+                        ...filters,
+                        query: q,
+                    })
+                }
                 selectedTech={selectedTech}
-                onTechChange={(t) => handleFiltersCommit({ tech: t === '__all__' ? null : t, query: filters.query })}
+                onTechChange={(t) =>
+                    handleFiltersCommit({
+                        ...filters,
+                        tech: t === '__all__' ? null : t,
+                    })
+                }
                 techCounts={stats?.technologies}
                 pageIndex={pageIndex}
                 totalPages={totalPages}
@@ -266,7 +303,12 @@ export const JobPostingsSection: React.FC = () => {
                 isNextDisabled={!currentPage?.lastKey || isFetchingNextPage || rqIsLoading}
                 nextButtonLabel={isFetchingNextPage ? 'Loading...' : 'Next'}
                 onClearFilters={handleClearFilters}
-                showClearFilters={!!(filters.query || filters.tech)}
+                showClearFilters={Boolean(
+                    filters.query ||
+                    filters.tech ||
+                    filters.workModes.length ||
+                    filters.seniorityLevels.length
+                )}
 
                 // ---- NEW: pass-through for the combobox (when you swap it in)
                 onFiltersCommit={handleFiltersCommit}

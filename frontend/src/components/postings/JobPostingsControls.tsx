@@ -8,13 +8,36 @@ import {
     SelectContent,
     SelectItem,
 } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { TechSearchCombobox, type TechSearchValue } from '@/components/postings/TechSearchCombobox';
+
+export type WorkModeFilter = "remote" | "hybrid" | "onsite";
+export type SeniorityLevelFilter = "junior" | "mid" | "senior" | "lead";
+
+export type JobPostingsFilters = TechSearchValue & {
+    workModes: WorkModeFilter[];
+    seniorityLevels: SeniorityLevelFilter[];
+};
+
+const WORK_MODE_OPTIONS: { label: string; value: WorkModeFilter }[] = [
+    { label: "Remote", value: "remote" },
+    { label: "Hybrid", value: "hybrid" },
+    { label: "On-Site", value: "onsite" },
+];
+
+const SENIORITY_OPTIONS: { label: string; value: SeniorityLevelFilter }[] = [
+    { label: "Junior", value: "junior" },
+    { label: "Mid", value: "mid" },
+    { label: "Senior", value: "senior" },
+    { label: "Lead", value: "lead" },
+];
 
 export interface JobPostingsControlsProps {
     // Search state
     searchTerm: string;
     onSearchChange: (value: string) => void;
     searchPlaceholder?: string;
+    filters: JobPostingsFilters;
 
     // Technology filter state
     selectedTech: string;
@@ -41,11 +64,12 @@ export interface JobPostingsControlsProps {
     // Clear filters
     onClearFilters: () => void;
     showClearFilters: boolean;
-    onFiltersCommit: (next: TechSearchValue) => void;
+    onFiltersCommit: (next: JobPostingsFilters) => void;
 }
 
 export const JobPostingsControls: React.FC<JobPostingsControlsProps> = ({
 
+    filters: externalFilters,
     techCounts = [],
     pageIndex,
     totalPages,
@@ -60,15 +84,54 @@ export const JobPostingsControls: React.FC<JobPostingsControlsProps> = ({
     // isLoading = false,
     nextButtonLabel = "Next",
 }) => {
-    const [filters, setFilters] = useState<TechSearchValue>({ tech: null, query: "" });
+    const [filters, setFilters] = useState<JobPostingsFilters>(externalFilters);
 
-    const handleCommit = React.useCallback(
-        (next: TechSearchValue) => {
-            setFilters(next);
-            onFiltersCommit(next);
+    React.useEffect(() => {
+        setFilters(externalFilters);
+    }, [externalFilters]);
+
+    const commitFilters = React.useCallback(
+        (updater: (prev: JobPostingsFilters) => JobPostingsFilters) => {
+            setFilters((prev) => {
+                const next = updater(prev);
+                onFiltersCommit(next);
+                return next;
+            });
         },
         [onFiltersCommit]
     );
+
+    const handleCommit = React.useCallback(
+        (next: TechSearchValue) => {
+            commitFilters((prev) => ({ ...prev, ...next }));
+        },
+        [commitFilters]
+    );
+
+    const handleWorkModeToggle = React.useCallback(
+        (mode: WorkModeFilter, checked: boolean | "indeterminate") => {
+            commitFilters((prev) => {
+                const withoutMode = prev.workModes.filter((m) => m !== mode);
+                const shouldAdd = checked === true;
+                const workModes = shouldAdd ? [...withoutMode, mode] : withoutMode;
+                return { ...prev, workModes };
+            });
+        },
+        [commitFilters]
+    );
+
+    const handleSeniorityToggle = React.useCallback(
+        (level: SeniorityLevelFilter, checked: boolean | "indeterminate") => {
+            commitFilters((prev) => {
+                const withoutLevel = prev.seniorityLevels.filter((l) => l !== level);
+                const shouldAdd = checked === true;
+                const seniorityLevels = shouldAdd ? [...withoutLevel, level] : withoutLevel;
+                return { ...prev, seniorityLevels };
+            });
+        },
+        [commitFilters]
+    );
+
     const PaginationControls = (
         <div className="lg:grid lg:grid-cols-3 sm:flex-row items-center gap-3 py-3 pagination-container justify-center">
             {/* Navigation controls - centered */}
@@ -132,17 +195,65 @@ export const JobPostingsControls: React.FC<JobPostingsControlsProps> = ({
         <>
             {/* Filters Section */}
 
-            <div style={{ padding: "1rem 0 0 0" }} className="w-full lg:grid grid-cols-5">
-                <div className="col-span-1 lg:col-start-5 flex w-full justify-start lg:justify-end mb-4 lg:mb-0">
-                    <TechSearchCombobox
-                        value={filters}
-                        className="w-full"
-                        onChange={setFilters}
-                        onCommit={handleCommit}
-                        options={techCounts.map(t => ({ value: t.name ?? t.id, label: t.name ?? t.id, count: t.count }))}
-                        widthClass="w-full sm:w-[360px]"
-                        contentWidthClass="w-full sm:w-[360px]"
-                    />
+            <div style={{ padding: "1rem 0 0 0" }} className="w-full">
+                <div className="w-full grid gap-6 lg:grid-cols-3">
+                    <div className="col-span-1 lg:col-span-2 lg:col-start-3 flex flex-col gap-4">
+                        <div>
+                            <p className="text-xs uppercase tracking-wide text-white/60 mb-2">
+                                Work Arrangement
+                            </p>
+                            <div className="flex flex-wrap gap-4" role="group" aria-label="Work arrangement filters">
+                                {WORK_MODE_OPTIONS.map((option) => {
+                                    const checkboxId = `work-mode-${option.value}`;
+                                    return (
+                                        <div key={option.value} className="flex items-center gap-2 text-sm font-medium text-white/80">
+                                            <Checkbox
+                                                id={checkboxId}
+                                                checked={filters.workModes.includes(option.value)}
+                                                onCheckedChange={(checked) => handleWorkModeToggle(option.value, checked)}
+                                            />
+                                            <label htmlFor={checkboxId}>{option.label}</label>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div>
+                            <p className="text-xs uppercase tracking-wide text-white/60 mb-2">
+                                Seniority Level
+                            </p>
+                            <div className="flex flex-wrap gap-4" role="group" aria-label="Seniority level filters">
+                                {SENIORITY_OPTIONS.map((option) => {
+                                    const checkboxId = `seniority-${option.value}`;
+                                    return (
+                                        <div key={option.value} className="flex items-center gap-2 text-sm font-medium text-white/80">
+                                            <Checkbox
+                                                id={checkboxId}
+                                                checked={filters.seniorityLevels.includes(option.value)}
+                                                onCheckedChange={(checked) => handleSeniorityToggle(option.value, checked)}
+                                            />
+                                            <label htmlFor={checkboxId}>{option.label}</label>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        <div>
+                            <TechSearchCombobox
+                                value={filters}
+                                className="w-full"
+                                onChange={(next) => setFilters((prev) => ({ ...prev, ...next }))}
+                                onCommit={handleCommit}
+                                options={techCounts.map(t => ({ value: t.name ?? t.id, label: t.name ?? t.id, count: t.count }))}
+                                widthClass="w-full sm:w-[360px]"
+                                contentWidthClass="w-full sm:w-[360px]"
+                            />
+                        </div>
+                    </div>
+                    <div className="col-span-1 lg:col-start-5 flex w-full justify-start lg:justify-end mb-4 lg:mb-0">
+
+                    </div>
                 </div>
             </div>
             {/* Top Pagination */}

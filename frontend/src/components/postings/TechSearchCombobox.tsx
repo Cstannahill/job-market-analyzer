@@ -51,7 +51,7 @@ export function TechSearchCombobox({
     className,
     disabled,
     showCounts = true,
-    widthClass = "w-full sm:w-[320px]",
+    widthClass,
     contentWidthClass,
     maxVisible = 20
 }: Props) {
