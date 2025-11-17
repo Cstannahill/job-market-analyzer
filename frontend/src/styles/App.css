@@ -374,6 +374,19 @@ body {
   margin: 0;
 }
 
+@media (max-width: 1024px) {
+  .job-grid {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    justify-content: center;
+  }
+
+  .job-grid > a {
+    width: 100%;
+    max-width: 560px;
+    justify-self: center;
+  }
+}
+
 .job-loading-grid {
   width: 100%;
   margin-top: var(--space-xl);

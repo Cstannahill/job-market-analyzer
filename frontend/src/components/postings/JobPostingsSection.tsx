@@ -320,7 +320,7 @@ export const JobPostingsSection: React.FC = () => {
                     <p>No job postings match your filters.</p>
                 </div>
             ) : (
-                <div className="job-grid">
+                <div className="job-grid grid grid-cols-1">
                     {filteredPostings.map((posting) => (
                         <JobPostingCard key={posting.jobId} posting={posting} />
                     ))}
