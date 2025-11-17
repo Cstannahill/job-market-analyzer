@@ -15,8 +15,11 @@ import useIsMobile from '@/hooks/useIsMobile';
 
 const today = new Date();
 const thisWeek: WeekPeriod = toWeek(today);
+const weekNumb = Number(thisWeek.split("W")[1]);
+const lastWeek = weekNumb - 1
+const trendWeek = thisWeek.split("W")[0] + "W" + lastWeek as WeekPeriod
 const DEFAULT_REGION: Region = "GLOBAL";
-const DEFAULT_PERIOD: Period = thisWeek;
+const DEFAULT_PERIOD: Period = trendWeek;
 console.log(thisWeek)
 
 export default function TrendsV2Page() {
