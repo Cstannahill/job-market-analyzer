@@ -11,6 +11,7 @@ import { RegisterPage } from '@/pages/Register';
 import VerifyEmail from '@/pages/VerifyEmail';
 import About from '@/pages/About';
 import Postings from '@/pages/Postings';
+import JobPostingDetail from '@/pages/JobPostingDetail';
 import TopTech from '@/pages/TopTech';
 import UploadResume from '@/pages/UploadResume';
 import { ManageResumesPage } from '@/pages/ManageResumes';
@@ -103,6 +104,7 @@ function App() {
                 <Route path="/about" element={<About />} />
                 <Route path="/trends" element={<TrendsV2Page />} />
                 <Route path="/postings" element={<Postings />} />
+                <Route path="/postings/:jobId" element={<JobPostingDetail />} />
                 <Route path="/top-tech" element={<TopTech />} />
 
                 {/* ==================== AUTH ROUTES ==================== */}
