@@ -40,8 +40,11 @@ function normalizeLookup(name: string) {
         "event-bridge": "eventbridge",
         "ec2": "ec2",
         "s3": "s3",
+        "aws s3": "s3",
         "vanilla js": "javascript",
-        "llms": "llm"
+        "llms": "llm",
+        "dagger 2": "android",
+        "jetpack navigation": "android"
 
     };
 
@@ -73,7 +76,7 @@ function normalizeLookup(name: string) {
     if (lower.includes('google cloud')) return 'gcp';
     if (lower === 'go' || lower === 'golang' || lower.includes('golang') || (lower.includes("go lang"))) return 'golang';
     if (lower.includes('java/')) return 'java';
-    if (lower.includes('postgre') || lower.includes('sql')) return 'postgresql';
+    if (lower.includes('postgre')) return 'postgresql';
     if (lower.includes('rag') && lower.includes('pipeline')) return 'rag';
     if (lower === 'rags') return 'rag';
     if (lower.includes('rest') && lower.includes('api')) return 'rest';

@@ -7,6 +7,7 @@ export interface JobRecord {
   locationRaw?: string;
   sourcesRaw?: string;
   sourceUrl?: string;
+  jobBoardSource?: string;
 }
 
 export interface EnrichedJobData {
@@ -16,6 +17,7 @@ export interface EnrichedJobData {
   technologies: string[];
   skills: string[];
   requirements: string[];
+  years_exp_req?: string;
   seniority_level?: string;
   location?: string;
   company_name?: string;
@@ -29,4 +31,5 @@ export interface EnrichedJobData {
   status?: string;
   enrichment_run_id?: string;
   source_url?: string;
+  job_board_source?: string;
 }

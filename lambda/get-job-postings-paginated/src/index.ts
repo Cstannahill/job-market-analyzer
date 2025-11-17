@@ -70,6 +70,77 @@ export const handler = async (
     const limitParam = event.queryStringParameters?.limit;
     const lastKeyParam = event.queryStringParameters?.lastKey;
     const sortOrderParam = event.queryStringParameters?.sortOrder || "DESC";
+    const parseListParam = (value?: string | null) =>
+      value
+        ? value
+            .split(",")
+            .map((entry) => entry.trim())
+            .filter(Boolean)
+        : [];
+
+    const mapRemoteFilterValue = (value: string): string | null => {
+      const normalized = value.trim().toLowerCase();
+      if (!normalized) return null;
+      if (/remote|wfh|distributed/.test(normalized)) {
+        return "Remote";
+      }
+      if (/hybrid|flex/.test(normalized)) {
+        return "Hybrid";
+      }
+      if (/on[-\s]?site|in[-\s]?office/.test(normalized)) {
+        return "On-site";
+      }
+      return null;
+    };
+
+    const mapSeniorityFilterValue = (value: string): string | null => {
+      const normalized = value.trim().toLowerCase();
+      if (!normalized) return null;
+      if (/entry|junior|jr|intern|apprentice|new\s*grad/.test(normalized)) {
+        return "Entry";
+      }
+      if (/mid|intermediate|associate/.test(normalized)) {
+        return "Mid";
+      }
+      if (/senior|sr/.test(normalized)) {
+        return "Senior";
+      }
+      if (/lead|principal|staff|architect|manager/.test(normalized)) {
+        return "Lead";
+      }
+      return null;
+    };
+
+    const remoteStatusFilters = parseListParam(qs.remote_status)
+      .map(mapRemoteFilterValue)
+      .filter((value): value is string => Boolean(value));
+    const seniorityFilters = parseListParam(qs.seniority_level)
+      .map(mapSeniorityFilterValue)
+      .filter((value): value is string => Boolean(value));
+    const remoteStatusSet = new Set(remoteStatusFilters);
+    const senioritySet = new Set(seniorityFilters);
+
+    const matchesJobFilters = (job: JobPosting) => {
+      if (remoteStatusSet.size > 0) {
+        const jobRemote = job.remote_status
+          ? mapRemoteFilterValue(job.remote_status)
+          : null;
+        if (!jobRemote || !remoteStatusSet.has(jobRemote)) {
+          return false;
+        }
+      }
+
+      if (senioritySet.size > 0) {
+        const jobSeniority = job.seniority_level
+          ? mapSeniorityFilterValue(job.seniority_level)
+          : null;
+        if (!jobSeniority || !senioritySet.has(jobSeniority)) {
+          return false;
+        }
+      }
+
+      return true;
+    };
 
     const limit = limitParam
       ? Math.min(Math.max(parseInt(limitParam, 10), 1), 100)
@@ -99,59 +170,61 @@ export const handler = async (
     // tech query
     if (techParam) {
       const techSlug = slugifyTech(techParam);
+      const collected: JobPosting[] = [];
+      let techIndexCursor: Record<string, unknown> | undefined =
+        ExclusiveStartKey;
 
-      // Query companion table by PK=tech and SK prefix = `${status}#`
-      const q = new QueryCommand({
-        TableName: TechIndexTable,
-        KeyConditionExpression: "#pk = :t AND begins_with(#sk, :p)",
-        ExpressionAttributeNames: { "#pk": "PK", "#sk": "SK" },
-        ExpressionAttributeValues: {
-          ":t": techSlug,
-          ":p": `${StatusValue}#`,
-        },
-        Limit: limit,
-        ScanIndexForward, // ASC=>oldest first, DESC=>newest first
-        ...(ExclusiveStartKey && { ExclusiveStartKey }),
-      });
-
-      const iq = await docClient.send(q);
-      const indexRows = iq.Items ?? [];
-
-      // Get jobIds from either explicit attr or from SK suffix
-      const jobIds = indexRows
-        .map((it) => (it.jobId as string) || String(it.SK).split("#").pop())
-        .filter(Boolean) as string[];
-
-      let jobs: JobPosting[] = [];
-      if (jobIds.length > 0) {
-        // BatchGet full items from main table (assumes PK = Id)
-        const keys = jobIds.map((jobId) => ({ jobId }));
-        const bg = new BatchGetCommand({
-          RequestItems: { [TableName]: { Keys: keys } },
+      do {
+        const q = new QueryCommand({
+          TableName: TechIndexTable,
+          KeyConditionExpression: "#pk = :t AND begins_with(#sk, :p)",
+          ExpressionAttributeNames: { "#pk": "PK", "#sk": "SK" },
+          ExpressionAttributeValues: {
+            ":t": techSlug,
+            ":p": `${StatusValue}#`,
+          },
+          Limit: limit,
+          ScanIndexForward, // ASC=>oldest first, DESC=>newest first
+          ...(techIndexCursor && { ExclusiveStartKey: techIndexCursor }),
         });
-        const br = await docClient.send(bg);
-        jobs = (br.Responses?.[TableName] ?? []) as JobPosting[];
 
-        // BatchGet order is undefined — sort to match requested order
-        // (We sort by processed_date; Dynamo already handed us SK order)
-        jobs.sort((a, b) =>
-          ScanIndexForward
-            ? (a.processed_date ?? "").localeCompare(b.processed_date ?? "")
-            : (b.processed_date ?? "").localeCompare(a.processed_date ?? "")
-        );
-      }
+        const iq = await docClient.send(q);
+        const indexRows = iq.Items ?? [];
 
-      const next = iq.LastEvaluatedKey
-        ? encodeCursor(iq.LastEvaluatedKey)
-        : null;
+        const jobIds = indexRows
+          .map((it) => (it.jobId as string) || String(it.SK).split("#").pop())
+          .filter(Boolean) as string[];
+
+        if (jobIds.length > 0) {
+          const keys = jobIds.map((jobId) => ({ jobId }));
+          const bg = new BatchGetCommand({
+            RequestItems: { [TableName]: { Keys: keys } },
+          });
+          const br = await docClient.send(bg);
+          const jobs = (br.Responses?.[TableName] ?? []) as JobPosting[];
+
+          jobs.sort((a, b) =>
+            ScanIndexForward
+              ? (a.processed_date ?? "").localeCompare(b.processed_date ?? "")
+              : (b.processed_date ?? "").localeCompare(a.processed_date ?? "")
+          );
+
+          collected.push(...jobs.filter(matchesJobFilters));
+        }
+
+        techIndexCursor = iq.LastEvaluatedKey;
+      } while (collected.length < limit && techIndexCursor);
+
+      const filteredJobs = collected.slice(0, limit);
+      const next = techIndexCursor ? encodeCursor(techIndexCursor) : null;
 
       return {
         statusCode: 200,
         headers,
         body: JSON.stringify({
           success: true,
-          count: jobs.length,
-          data: jobs,
+          count: filteredJobs.length,
+          data: filteredJobs,
           lastKey: next,
           hasMore: !!next,
           status: StatusValue,
@@ -163,38 +236,80 @@ export const handler = async (
     }
 
     // Query DynamoDB using GSI with pagination
-    const queryCommand = new QueryCommand({
+    const expressionAttributeNames: Record<string, string> = {
+      "#status": "status",
+    };
+    const expressionAttributeValues: Record<string, unknown> = {
+      ":status": StatusValue,
+    };
+    const filterExpressions: string[] = [];
+
+    if (remoteStatusFilters.length) {
+      expressionAttributeNames["#remote_status"] = "remote_status";
+      const placeholders = remoteStatusFilters.map((value, index) => {
+        const key = `:remoteStatus${index}`;
+        expressionAttributeValues[key] = value;
+        return key;
+      });
+      filterExpressions.push(`#remote_status IN (${placeholders.join(", ")})`);
+    }
+
+    if (seniorityFilters.length) {
+      expressionAttributeNames["#seniority_level"] = "seniority_level";
+      const placeholders = seniorityFilters.map((value, index) => {
+        const key = `:seniorityLevel${index}`;
+        expressionAttributeValues[key] = value;
+        return key;
+      });
+      filterExpressions.push(
+        `#seniority_level IN (${placeholders.join(", ")})`
+      );
+    }
+
+    const buildQueryInput = (
+      startKey?: Record<string, unknown> | undefined
+    ) => ({
       TableName,
       IndexName,
       KeyConditionExpression: "#status = :status",
-      ExpressionAttributeNames: {
-        "#status": "status",
-      },
-      ExpressionAttributeValues: {
-        ":status": StatusValue,
-      },
+      ExpressionAttributeNames: expressionAttributeNames,
+      ExpressionAttributeValues: expressionAttributeValues,
       Limit: limit,
       ScanIndexForward, // true for ASC, false for DESC (newest first)
-      ...(ExclusiveStartKey && { ExclusiveStartKey }),
+      ...(startKey && { ExclusiveStartKey: startKey }),
+      ...(filterExpressions.length && {
+        FilterExpression: filterExpressions.join(" AND "),
+      }),
     });
 
-    console.log("Executing query with params:", {
-      TableName,
-      IndexName,
-      Status: StatusValue,
-      Limit: limit,
-      ScanIndexForward,
-      hasExclusiveStartKey: !!ExclusiveStartKey,
-    });
+    const aggregated: JobPosting[] = [];
+    let queryCursor: Record<string, unknown> | undefined = ExclusiveStartKey;
 
-    const response = await docClient.send(queryCommand);
-    const items = (response.Items || []) as JobPosting[];
+    do {
+      const queryInput = buildQueryInput(queryCursor);
+      console.log("Executing query with params:", {
+        TableName,
+        IndexName,
+        Status: StatusValue,
+        Limit: limit,
+        ScanIndexForward,
+        hasExclusiveStartKey: !!queryCursor,
+        remoteStatusFilters,
+        seniorityFilters,
+      });
+      const queryCommand = new QueryCommand(queryInput);
+      const response = await docClient.send(queryCommand);
+      const items = (response.Items || []) as JobPosting[];
+      aggregated.push(...items.filter(matchesJobFilters));
+      queryCursor = response.LastEvaluatedKey;
+    } while (aggregated.length < limit && queryCursor);
 
-    // Encode the LastEvaluatedKey for the next page
+    const pagedItems = aggregated.slice(0, limit);
+
     let encodedLastKey: string | null = null;
-    if (response.LastEvaluatedKey) {
+    if (queryCursor) {
       try {
-        const json = JSON.stringify(response.LastEvaluatedKey);
+        const json = JSON.stringify(queryCursor);
         encodedLastKey = Buffer.from(json, "utf8").toString("base64");
         console.log("Encoded lastKey for next page");
       } catch (err) {
@@ -203,18 +318,16 @@ export const handler = async (
     }
 
     console.log(
-      `Retrieved ${items.length} items, hasMore: ${!!encodedLastKey}`
+      `Retrieved ${pagedItems.length} filtered items, hasMore: ${!!encodedLastKey}`
     );
 
-    // Return paginated response
-    // Results are automatically sorted by processed_date (order controlled by ScanIndexForward)
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         success: true,
-        count: items.length,
-        data: items,
+        count: pagedItems.length,
+        data: pagedItems,
         lastKey: encodedLastKey,
         hasMore: !!encodedLastKey,
         status: StatusValue,

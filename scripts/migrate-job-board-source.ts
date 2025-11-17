@@ -1,13 +1,13 @@
 #!/usr/bin/env ts-node
 
 /**
- * One-time script to copy original job source URLs from the raw `job-postings`
- * table into the `job-postings-enhanced` table's `source_url` attribute.
+ * One-time script to copy job board source names from the raw `job-postings`
+ * table into the `job-postings-enhanced` table's `job_board_source` attribute.
  *
- * Reads PK records shaped like `JOB#<id>` with a constant SK of `POSTING#v1`,
- * extracts the original URL from the `sources` attribute, strips the `JOB#`
- * prefix to obtain the target `jobId`, and updates the enhanced table only
- * when a matching record exists and `source_url` is not already set.
+ * Reads PK records shaped like `JOB#<id>` with `SK = POSTING#v1`, extracts the
+ * `source`-style field from the `sources` attribute, strips the `JOB#` prefix to
+ * obtain `jobId`, and updates the enhanced table only when a matching record
+ * exists and `job_board_source` is not already set (unless overwrite is enabled).
  */
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
@@ -40,9 +40,9 @@ type RawJobPosting = {
 type MigrationStats = {
   scanned: number;
   considered: number;
-  withUrl: number;
+  withSource: number;
   updated: number;
-  skippedNoUrl: number;
+  skippedNoSource: number;
   skippedBadPk: number;
   skippedMissingTarget: number;
   skippedAlreadySet: number;
@@ -83,14 +83,13 @@ function stripJobPrefix(pk?: string): string | null {
   return jobId || null;
 }
 
-function normalizeUrl(value?: string | null): string | null {
+function normalizeSource(value?: string | null): string | null {
   if (!value) return null;
   const trimmed = value.trim();
-  if (!trimmed) return null;
-  return /^https?:\/\//i.test(trimmed) ? trimmed : null;
+  return trimmed || null;
 }
 
-function extractOriginalUrl(value: unknown): string | null {
+function extractJobBoardSource(value: unknown): string | null {
   if (!value) return null;
 
   const parseEntry = (entry: any): string | null => {
@@ -99,64 +98,71 @@ function extractOriginalUrl(value: unknown): string | null {
     if (typeof entry === "string") {
       const trimmed = entry.trim();
       if (!trimmed) return null;
-      if (/^https?:\/\//i.test(trimmed)) return trimmed;
       if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
         try {
           const parsed = JSON.parse(trimmed);
-          return extractOriginalUrl(parsed);
+          return extractJobBoardSource(parsed);
         } catch {
           return null;
         }
       }
-      return null;
+      return normalizeSource(trimmed);
     }
 
     if (entry && typeof entry === "object" && typeof entry.S === "string") {
-      return normalizeUrl(entry.S);
+      return normalizeSource(entry.S);
     }
 
+    if (!entry || typeof entry !== "object") return null;
     const record = entry.M ?? entry;
+    if (!record || typeof record !== "object") return null;
+
     const candidate =
-      record?.originalUrl ??
-      record?.original_url ??
-      record?.source_url ??
-      record?.url;
+      record?.source ??
+      record?.source_name ??
+      record?.sourceName ??
+      record?.job_board_source ??
+      record?.job_board ??
+      record?.jobBoard ??
+      record?.name;
 
     if (typeof candidate === "string") {
-      return normalizeUrl(candidate);
+      return normalizeSource(candidate);
     }
     if (
       candidate &&
       typeof candidate === "object" &&
       typeof candidate.S === "string"
     ) {
-      return normalizeUrl(candidate.S);
+      return normalizeSource(candidate.S);
     }
 
     return null;
   };
 
-  const entries = (() => {
+  const asArray = (() => {
     if (Array.isArray(value)) return value;
     if (typeof value === "string") {
       try {
         const parsed = JSON.parse(value);
-        if (Array.isArray(parsed)) return parsed;
-        return [parsed];
+        return Array.isArray(parsed) ? parsed : [];
       } catch {
         return [];
       }
     }
     if (value && typeof value === "object") {
-      const list = (value as any).L;
-      if (Array.isArray(list)) return list;
+      if (Array.isArray((value as any).L)) return (value as any).L;
     }
-    return [value];
+    return [];
   })();
 
-  for (const entry of entries) {
-    const url = parseEntry(entry);
-    if (url) return url;
+  for (const entry of asArray) {
+    const source = parseEntry(entry);
+    if (source) return source;
+  }
+
+  if (asArray.length === 0) {
+    return parseEntry(value);
   }
 
   return null;
@@ -164,21 +170,21 @@ function extractOriginalUrl(value: unknown): string | null {
 
 async function updateEnhanced(
   jobId: string,
-  url: string
+  jobBoardSource: string
 ): Promise<"updated" | "already-set" | "missing-target"> {
-  const expressionAttributeNames = { "#su": "source_url" };
-  const expressionAttributeValues = { ":url": url };
+  const expressionAttributeNames = { "#jbs": "job_board_source" };
+  const expressionAttributeValues = { ":source": jobBoardSource };
 
   const conditionExpression = OVERWRITE_EXISTING
     ? "attribute_exists(jobId)"
-    : "attribute_exists(jobId) AND attribute_not_exists(#su)";
+    : "attribute_exists(jobId) AND attribute_not_exists(#jbs)";
 
   try {
     await dynamo.send(
       new UpdateCommand({
         TableName: TARGET_TABLE,
         Key: { jobId },
-        UpdateExpression: "SET #su = :url",
+        UpdateExpression: "SET #jbs = :source",
         ExpressionAttributeNames: expressionAttributeNames,
         ExpressionAttributeValues: expressionAttributeValues,
         ConditionExpression: conditionExpression,
@@ -192,7 +198,7 @@ async function updateEnhanced(
       }
       const state = await getEnhancedState(jobId);
       if (!state.exists) return "missing-target";
-      if (state.hasSourceUrl) return "already-set";
+      if (state.hasJobBoardSource) return "already-set";
       return "missing-target";
     }
     throw error;
@@ -201,20 +207,20 @@ async function updateEnhanced(
 
 async function getEnhancedState(
   jobId: string
-): Promise<{ exists: boolean; hasSourceUrl: boolean }> {
+): Promise<{ exists: boolean; hasJobBoardSource: boolean }> {
   const res = await dynamo.send(
     new GetCommand({
       TableName: TARGET_TABLE,
       Key: { jobId },
-      ProjectionExpression: "jobId, source_url",
+      ProjectionExpression: "jobId, job_board_source",
     })
   );
-  if (!res.Item) return { exists: false, hasSourceUrl: false };
+  if (!res.Item) return { exists: false, hasJobBoardSource: false };
   return {
     exists: true,
-    hasSourceUrl:
-      typeof (res.Item as any).source_url === "string" &&
-      Boolean((res.Item as any).source_url?.trim()),
+    hasJobBoardSource:
+      typeof (res.Item as any).job_board_source === "string" &&
+      Boolean((res.Item as any).job_board_source?.trim()),
   };
 }
 
@@ -222,9 +228,9 @@ async function run() {
   const stats: MigrationStats = {
     scanned: 0,
     considered: 0,
-    withUrl: 0,
+    withSource: 0,
     updated: 0,
-    skippedNoUrl: 0,
+    skippedNoSource: 0,
     skippedBadPk: 0,
     skippedMissingTarget: 0,
     skippedAlreadySet: 0,
@@ -232,7 +238,7 @@ async function run() {
   };
 
   console.log(
-    "Starting source_url migration",
+    "Starting job_board_source migration",
     JSON.stringify(
       {
         region: AWS_REGION,
@@ -260,15 +266,15 @@ async function run() {
       continue;
     }
 
-    const url = extractOriginalUrl(item.sources);
-    if (!url) {
-      stats.skippedNoUrl += 1;
+    const sourceName = extractJobBoardSource(item.sources);
+    if (!sourceName) {
+      stats.skippedNoSource += 1;
       continue;
     }
-    stats.withUrl += 1;
+    stats.withSource += 1;
 
     try {
-      const result = await updateEnhanced(jobId, url);
+      const result = await updateEnhanced(jobId, sourceName);
       if (result === "updated") {
         stats.updated += 1;
       } else if (result === "already-set") {
@@ -295,3 +301,4 @@ run().catch((error) => {
   console.error("Migration failed", error);
   process.exit(1);
 });
+

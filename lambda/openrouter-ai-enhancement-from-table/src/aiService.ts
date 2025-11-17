@@ -46,7 +46,7 @@ ${job.description ?? ""}
     })
     .join("\n---\n\n");
 
-  return `Analyze these ${jobRecords.length} job postings and extract structured information.
+  return `Analyze these ${jobRecords.length} job postings and extract structured information. Capture the required years of experience if the description specifies it.
 
 ${jobsSection}
 
@@ -60,6 +60,7 @@ Return a JSON array with ${jobRecords.length} objects in the same order, followi
     "technologies": ["array", "of", "strings"],
     "skills": ["array", "of", "strings"],
     "requirements": ["array", "of", "strings"],
+    "years_exp_req": "string or null (e.g. '3-5 years', '5+ years', 'at least 3 years')",
     "seniority_level": "Entry|Mid|Senior|Lead|Executive",
     "location": "string or null",
     "company_name": "string or null",
@@ -281,10 +282,70 @@ Return a JSON array with one object per job, maintaining the same order as input
     if (!validated.source_url && jobRecords[idx]?.sourceUrl) {
       validated.source_url = jobRecords[idx]!.sourceUrl;
     }
+    if (!validated.job_board_source && jobRecords[idx]?.jobBoardSource) {
+      validated.job_board_source = jobRecords[idx]!.jobBoardSource;
+    }
+    if (!validated.years_exp_req) {
+      const derivedYears = deriveYearsExperience(
+        jobRecords[idx]?.description,
+        jobRecords[idx]?.title
+      );
+      if (derivedYears) {
+        validated.years_exp_req = derivedYears;
+      }
+    }
     return validated;
   });
 }
 //#endregion
+
+type YearsPattern = {
+  regex: RegExp;
+  format: (match: RegExpMatchArray) => string;
+};
+
+const YEARS_PATTERNS: YearsPattern[] = [
+  {
+    regex:
+      /\b(\d{1,2})\s*(?:-|–|to)\s*(\d{1,2})\s+years?(?:\s+of)?\s+experience\b/i,
+    format: (match) => `${match[1]}-${match[2]} years`,
+  },
+  {
+    regex:
+      /\b(?:at least|minimum(?: of)?|minimum of|min(?:\.|imum)? of)\s+(\d{1,2})\s+years?(?:\s+of)?\s+experience\b/i,
+    format: (match) => `at least ${match[1]} years`,
+  },
+  {
+    regex:
+      /\b(\d{1,2})\s*(?:\+|plus)\s+years?(?:\s+of)?\s+experience\b/i,
+    format: (match) => `${match[1]}+ years`,
+  },
+  {
+    regex:
+      /\b(\d{1,2})\s+years?(?:\s+of)?\s+experience\b/i,
+    format: (match) => `${match[1]} years`,
+  },
+  {
+    regex:
+      /\b(\d{1,2})\s*(?:\+|plus)?\s*yrs?(?:\s+of)?\s+experience\b/i,
+    format: (match) => `${match[1]} years`,
+  },
+];
+
+function deriveYearsExperience(
+  ...texts: Array<string | undefined | null>
+): string | undefined {
+  const combined = texts
+    .filter((t): t is string => typeof t === "string" && t.trim().length > 0)
+    .join(" ");
+  if (!combined) return undefined;
+  const normalized = combined.replace(/\s+/g, " ").trim();
+  for (const { regex, format } of YEARS_PATTERNS) {
+    const match = normalized.match(regex);
+    if (match) return format(match);
+  }
+  return undefined;
+}
 
 //#region Rate limit header learning (no immediate retries)
 function applyRateLimitHeaders(h: Record<string, any>, apiKey: string) {

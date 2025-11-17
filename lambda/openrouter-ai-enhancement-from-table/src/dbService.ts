@@ -61,7 +61,14 @@ export function validateEnrichedData(
     requirements: Array.isArray(data.requirements)
       ? data.requirements.filter((r: any) => typeof r === "string" && r.trim())
       : [],
-    seniority_level: ["Entry", "Mid", "Senior", "Lead", "Executive"].includes(
+    years_exp_req:
+      typeof data.years_exp_req === "string"
+        ? data.years_exp_req.trim() || undefined
+        : typeof data.years_exp_req === "number" &&
+          Number.isFinite(data.years_exp_req)
+        ? `${data.years_exp_req}`
+        : undefined,
+    seniority_level: ["Junior", "Mid", "Senior", "Lead", "Executive"].includes(
       data.seniority_level
     )
       ? data.seniority_level
@@ -100,6 +107,10 @@ export function validateEnrichedData(
     status: "Active",
     source_url:
       typeof data.source_url === "string" ? data.source_url.trim() : undefined,
+    job_board_source:
+      typeof data.job_board_source === "string"
+        ? data.job_board_source.trim()
+        : undefined,
   };
 
   // small dedupe
@@ -177,6 +188,7 @@ export async function getUnprocessedJobsFromDynamo(): Promise<JobRecord[]> {
         if (!item.PK || typeof item.PK !== "string") continue;
 
         const jobId = item.PK.replace(/^JOB#/, "");
+        const sourceDetails = extractSourceDetails(item.sources);
 
         const alreadyProcessed = await isJobProcessed(jobId);
         if (alreadyProcessed) continue;
@@ -189,7 +201,8 @@ export async function getUnprocessedJobsFromDynamo(): Promise<JobRecord[]> {
           postedDate: safeString(item.postedDate),
           locationRaw: safeString(item.location),
           sourcesRaw: safeString(item.sources),
-          sourceUrl: extractOriginalUrl(item.sources),
+          sourceUrl: sourceDetails?.url,
+          jobBoardSource: sourceDetails?.jobBoardSource,
         });
 
         if (results.length >= MAX_ITEMS_PER_RUN) break;
@@ -204,30 +217,50 @@ export async function getUnprocessedJobsFromDynamo(): Promise<JobRecord[]> {
   return results;
 }
 
+type SourceDetails = {
+  url?: string;
+  jobBoardSource?: string;
+};
+
 function extractOriginalUrl(value: unknown): string | undefined {
+  return extractSourceDetails(value)?.url;
+}
+
+function extractSourceDetails(value: unknown): SourceDetails | undefined {
   if (!value) return undefined;
 
-  const attemptRead = (entry: any): string | undefined => {
-    if (!entry) return undefined;
-    if (typeof entry === "string") {
-      const trimmed = entry.trim();
-      if (trimmed.startsWith("http")) return trimmed;
+  const attemptRead = (entry: any): SourceDetails | undefined => {
+    const asString = readAttributeString(entry);
+    if (asString) {
+      if (asString.startsWith("http")) return { url: asString };
       try {
-        const parsed = JSON.parse(trimmed);
+        const parsed = JSON.parse(asString);
         return attemptRead(parsed);
       } catch {
         return undefined;
       }
     }
+
+    if (!entry || typeof entry !== "object") return undefined;
+
     const record = entry.M ?? entry;
-    const raw =
-      record?.originalUrl ??
-      record?.original_url ??
-      record?.url ??
-      record?.source_url;
-    if (typeof raw === "string") return raw.trim();
-    if (raw && typeof raw === "object" && typeof raw.S === "string") {
-      return raw.S.trim();
+    if (!record || typeof record !== "object") return undefined;
+
+    const url =
+      readAttributeString(record.originalUrl) ??
+      readAttributeString(record.original_url) ??
+      readAttributeString(record.url) ??
+      readAttributeString(record.source_url);
+
+    const jobBoardSource =
+      readAttributeString(record.source) ??
+      readAttributeString(record.source_name) ??
+      readAttributeString(record.sourceName) ??
+      readAttributeString(record.job_board_source) ??
+      readAttributeString(record.job_board);
+
+    if (url || jobBoardSource) {
+      return { url, jobBoardSource };
     }
     return undefined;
   };
@@ -249,8 +282,31 @@ function extractOriginalUrl(value: unknown): string | undefined {
   })();
 
   for (const entry of asArray) {
-    const url = attemptRead(entry);
-    if (url) return url;
+    const details = attemptRead(entry);
+    if (details && (details.url || details.jobBoardSource)) {
+      return details;
+    }
+  }
+
+  if (asArray.length === 0) {
+    const fallback = attemptRead(value);
+    if (fallback && (fallback.url || fallback.jobBoardSource)) {
+      return fallback;
+    }
+  }
+
+  return undefined;
+}
+
+function readAttributeString(value: any): string | undefined {
+  if (!value) return undefined;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length ? trimmed : undefined;
+  }
+  if (typeof value === "object" && typeof value.S === "string") {
+    const trimmed = value.S.trim();
+    return trimmed.length ? trimmed : undefined;
   }
   return undefined;
 }

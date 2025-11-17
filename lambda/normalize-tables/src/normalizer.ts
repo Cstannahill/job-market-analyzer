@@ -292,7 +292,7 @@ const REMOTE_STATUS_KEYWORDS: Array<[RegExp, RemoteStatus]> = [
 ];
 
 const SENIORITY_KEYWORDS: Array<[RegExp, SeniorityLevel]> = [
-  [/\bintern(ship)?|apprentice|junior|jr|entry|new\s*grad/, "entry"],
+  [/\bintern(ship)?|apprentice|junior|jr|entry|new\s*grad/, "junior"],
   [/\bmid\b|mid[-\s]?level|intermediate|associate/, "mid"],
   [/\bsenior\b|sr\b|sr\./, "senior"],
   [/\bprincipal|staff|lead|architect|manager|supervisor|head\b/, "lead"],
@@ -324,6 +324,26 @@ function deriveSource(jobId: string | null | undefined): JobSource | null {
     if (pattern.test(jobId)) return source;
   }
   return null;
+}
+
+function deriveSourceFromJobBoardField(
+  jobBoardSource: string | null | undefined
+): JobSource | null {
+  if (!jobBoardSource) return null;
+  const normalized = jobBoardSource.trim().toLowerCase();
+  if (!normalized) return null;
+  switch (normalized) {
+    case "greenhouse":
+      return "greenhouse";
+    case "lever":
+      return "lever";
+    case "usajobs":
+      return "usajobs";
+    case "muse":
+      return "muse";
+    default:
+      return null;
+  }
 }
 
 function sanitizeCompanyBase(raw: string): string {
@@ -574,13 +594,17 @@ function normalizeJobCore(
     status: deriveStatus(posting.status),
     source,
     sourceUrl,
+    yearsExpReq: nullIfEmpty(posting.years_exp_req),
   };
 }
 
 export function normalizeDynamoJobPosting(
   posting: DynamoJobPosting
 ): NormalizedJobEntities {
-  const source = deriveSource(posting.jobId);
+  const sourceFromBoard = deriveSourceFromJobBoardField(
+    posting.job_board_source
+  );
+  const source = sourceFromBoard ?? deriveSource(posting.jobId);
   const jobSource: JobSource = source ?? "unknown";
   const companySize = mapCompanySize(posting.company_size);
   const remoteStatus = mapRemoteStatus(posting.remote_status);
@@ -640,7 +664,11 @@ function extractSourceUrlFromSources(value: unknown): string | null {
       record?.source_url ??
       record?.url;
     if (typeof candidate === "string") return normalize(candidate);
-    if (candidate && typeof candidate === "object" && typeof candidate.S === "string") {
+    if (
+      candidate &&
+      typeof candidate === "object" &&
+      typeof candidate.S === "string"
+    ) {
       return normalize(candidate.S);
     }
     return null;
