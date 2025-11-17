@@ -53,6 +53,9 @@ function normalizeLookup(name: string) {
     if (specialCases[lower]) return specialCases[lower];
 
     // Pattern-based special cases
+    if (lower.includes("flink")) return "flink"
+    if (lower.includes("airflow")) return "airflow"
+    if (lower.includes("maven")) return "maven"
     if (lower.includes("agile")) return "agile"
     if (lower.includes("llms") || lower === "ai" || lower === "ai models") return "llm"
     if (lower.includes("dynamo")) return "dynamodb"

@@ -314,6 +314,12 @@ export const getJobPostingsPage = async (opts?: {
       industry: String(row["industry"] ?? "Unknown"),
       remote_status: String(row["remote_status"] ?? "Unknown"),
       seniority_level: String(row["seniority_level"] ?? "Unknown"),
+      salary_range: String(row["salary_range"] ?? "Unknown"),
+      requirements: Array.isArray(row["requirements"])
+        ? (row["requirements"] as string[])
+        : [],
+      source_url: String(row["source_url"] || "Unknown"),
+      job_board_source: String(row["job_board_source"] || "Unknown"),
     } as unknown as BaseJobListing;
   });
 

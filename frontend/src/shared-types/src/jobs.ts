@@ -16,6 +16,8 @@ export interface BaseJobListing {
   industry: string[];
   /** Full job description / body text */
   job_description: string;
+  source_url?: string;
+  job_board_source?: string;
   /** Job title (normalized) */
   job_title: string;
   /** Location string (city, remote, etc.) */

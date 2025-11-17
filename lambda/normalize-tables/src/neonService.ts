@@ -108,7 +108,7 @@ async function upsertJob(
         $8,
         $9,
         $10,
-        $11::seniority,
+        $11::seniority_levels,
         $12,
         $13::source,
         $14,
