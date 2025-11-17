@@ -15,7 +15,7 @@ const ROLE_WORDS =
 // Classic non-software domains (early reject unless software signals are present)
 const NON_DEV_EXCLUSIONS = [
   // disciplines
-  /\b(power|electrical|electronics?|rf|rfics?|analog|mixed[-\s]?signal|mechanical|civil|structural|chemical|biomedical|materials?|industrial|process|manufacturing|hvac|petroleum|mining|nuclear|aerospace|automotive|mechanical|flight test|propulsion|spaceport|ground\s*station|gnc|adcs|pressure\s*vessel|failure\s+analysis|landscape|product\s+design|automation\s+controls?)\b/i,
+  /\b(power|electrical|electronics?|rf|rfics?|analog|mixed[-\s]?signal|mechanical|civil|structural|chemical|biomedical|materials?|industrial|process|manufacturing|hvac|petroleum|mining|nuclear|mechanic|aerospace|automotive|mechanical|flight|propulsion|spaceport|ground\s*station|gnc|adcs|pressure\s*vessel|failure\s+analysis|landscape|product\s+design|automation\s+controls?)\b/i,
   // hardware keywords
   /\b(hardware|pcb|pcba|board\s*layout|layout|asic|fpga|vlsi|rtl|semiconductor|verilog|vhdl|emc|emi)\b/i,
 ];
