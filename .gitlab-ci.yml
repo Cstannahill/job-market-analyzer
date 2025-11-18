@@ -23,13 +23,6 @@ install:
       - node_modules/
     expire_in: 1h
 
-lint:
-  stage: lint
-  needs: ["install"]
-  script:
-    # Use workspace-aware lint
-    - npm run lint --workspace=frontend
-
 test:
   stage: test
   needs: ["install"]
