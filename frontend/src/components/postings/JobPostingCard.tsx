@@ -49,8 +49,8 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
 
 
 
-                    <div className="flex w-full justify-center">
-                        <span className="salary">{posting.salary_range && posting.salary_range !== "Unknown" ? `${posting.salary_range}` : null}</span>
+                    <div className="grid w-full justify-center">
+                        <span className="salary text-end">{posting.salary_range && posting.salary_range !== "Unknown" ? `${posting.salary_range}` : null}</span>
                     </div>
                 </CardHeader>
 

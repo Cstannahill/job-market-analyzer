@@ -26,7 +26,8 @@ function normalizeLookup(name: string) {
         "shieldai": "shield-ai",
         "applied intuition": "applied-intuition",
         "appliedintuition": "applied-intuition",
-        "abnormalsecurity": "abnormal-security"
+        "abnormalsecurity": "abnormal-security",
+
 
 
     };
@@ -34,6 +35,7 @@ function normalizeLookup(name: string) {
     if (specialCases[lower]) return specialCases[lower];
 
     // Pattern-based special cases
+    if (lower.includes("brillio")) return "brillio"
     if (lower.includes("quizlet")) return "quizlet2";
     if (lower.includes("gitlab")) return "gitlab";
     if (lower.includes("housecall")) return "housecall-pro"
@@ -115,7 +117,8 @@ export default function CompanyBadgeSvgr({
         '2xl': 'rounded-3xl',
         'full': 'rounded-full'
     };
-    const label = (name ?? key ?? "").trim();
+    let label = (name ?? key ?? "").trim();
+    label = formatCompanyName(label)
     const parts = label.split(/[-\s]+/).filter(Boolean);
 
     const shouldColumnize = parts.length > 1;
