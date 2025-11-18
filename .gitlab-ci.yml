@@ -1,0 +1,42 @@
+stages:
+  - install
+  - test
+  - build
+
+variables:
+  FRONTEND_DIR: "frontend"
+
+default:
+  image: node:22
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - $FRONTEND_DIR/node_modules/
+
+install:
+  stage: install
+  script:
+    - cd "$FRONTEND_DIR"
+    - npm ci
+  artifacts:
+    paths:
+      - $FRONTEND_DIR/node_modules/
+    expire_in: 1h
+
+test:
+  stage: test
+  needs: ["install"]
+  script:
+    - cd "$FRONTEND_DIR"
+    - npm test
+
+build:
+  stage: build
+  needs: ["install"]
+  script:
+    - cd "$FRONTEND_DIR"
+    - npm run build
+  artifacts:
+    paths:
+      - $FRONTEND_DIR/dist/
+    expire_in: 1 week
