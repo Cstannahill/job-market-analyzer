@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/
 import { toProperCase } from '@/lib/stringHelpers';
 import { MetaPillContainer } from '@/components/postings/MetaPillContainer';
 import TechBadgeSvgr from '@/components/postings/TechBadgeSvgr';
+import { hasTechIcon } from '@/lib/utils/techBadgeHelpers';
 import CompanyBadgeSvgr from '@/components/postings/CompanyBadgeSvgr';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 interface JobPostingCardProps {
@@ -23,6 +24,8 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
         return monthDay;
     };
 
+
+    const techsWithIcons = posting.technologies.filter(hasTechIcon);
 
     return (
         <Link
@@ -71,11 +74,17 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
                     </div>
                     <CardContent className="mt-auto">
                         <div className="job-section">
-                            {posting.technologies.length > 0 && (
+                            {techsWithIcons.length > 0 && (
                                 <>
                                     <h4>Technologies and Skills</h4>
                                     <div className="tag-container flex flex-wrap items-start">
-                                        {posting.technologies.slice(0, 5).map((tech, index) => (
+                                        {techsWithIcons.slice(0, 4).map((tech, index) => (
+                                            <TechBadgeSvgr key={`${tech}-${posting.jobId}-${index}`} name={tech} size={26} roundStyle='full' />
+
+                                        ))}
+                                    </div>
+                                    <div className="tag-container flex flex-wrap items-start">
+                                        {techsWithIcons.slice(4, 7).map((tech, index) => (
                                             <TechBadgeSvgr key={`${tech}-${posting.jobId}-${index}`} name={tech} size={26} roundStyle='full' />
 
                                         ))}
