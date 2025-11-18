@@ -1,5 +1,5 @@
 import { toProperCase } from "@/lib/stringHelpers";
-import { getCompanyIconColor } from "@/lib/utils/companyHelpers";
+import { formatCompanyName, getCompanyIconColor } from "@/lib/utils/companyHelpers";
 import React, { type JSX, useState, useEffect } from "react";
 
 export type ModuleShape = { default?: string; ReactComponent?: React.ComponentType<React.SVGProps<SVGSVGElement>> };
@@ -22,7 +22,11 @@ function normalizeLookup(name: string) {
         'andurilindustries': 'anduril-industries',
         "ciandt": "cit",
         "hubspotjobs": "hubspot",
-        "quizlet2": "quizlet2"
+        "quizlet2": "quizlet2",
+        "shieldai": "shield-ai",
+        "applied intuition": "applied-intuition",
+        "appliedintuition": "applied-intuition",
+        "abnormalsecurity": "abnormal-security"
 
 
     };
@@ -160,7 +164,7 @@ export default function CompanyBadgeSvgr({
                         ? label.toUpperCase()
                         : shouldColumnize
                             ? <div className="flex flex-col">{parts.map(mapNameColumnRows)}</div>
-                            : toProperCase(label)
+                            : formatCompanyName(label).toProperCase()
                     }
                 </small>
             )}

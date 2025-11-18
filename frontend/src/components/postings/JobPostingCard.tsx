@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/
 import { toProperCase } from '@/lib/stringHelpers';
 import { MetaPillContainer } from '@/components/postings/MetaPillContainer';
 import TechBadgeSvgr from '@/components/postings/TechBadgeSvgr';
+import { hasTechIcon } from '@/lib/utils/techBadgeHelpers';
 import CompanyBadgeSvgr from '@/components/postings/CompanyBadgeSvgr';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 interface JobPostingCardProps {
@@ -24,13 +25,15 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
     };
 
 
+    const techsWithIcons = posting.technologies.filter(hasTechIcon);
+
     return (
         <Link
             to={`/postings/${posting.jobId}`}
             state={{ posting }}
             className="block h-full transition hover:-translate-y-1 hover:no-underline"
         >
-            <Card className="job-card  cursor-pointer flex h-full flex-col">
+            <Card className="job-card cursor-pointer flex h-full flex-col">
                 <MetaPillContainer posting={posting} date={formatDate(posting.processed_date)} />
                 <CardHeader style={{ padding: "0.25rem", margin: "0rem .25rem" }} className="job-card-header">
                     <div className="flex flex-row justify-around">
@@ -71,11 +74,17 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
                     </div>
                     <CardContent className="mt-auto">
                         <div className="job-section">
-                            {posting.technologies.length > 0 && (
+                            {techsWithIcons.length > 0 && (
                                 <>
                                     <h4>Technologies and Skills</h4>
                                     <div className="tag-container flex flex-wrap items-start">
-                                        {posting.technologies.slice(0, 5).map((tech, index) => (
+                                        {techsWithIcons.slice(0, 4).map((tech, index) => (
+                                            <TechBadgeSvgr key={`${tech}-${posting.jobId}-${index}`} name={tech} size={26} roundStyle='full' />
+
+                                        ))}
+                                    </div>
+                                    <div className="tag-container flex flex-wrap items-start">
+                                        {techsWithIcons.slice(4, 7).map((tech, index) => (
                                             <TechBadgeSvgr key={`${tech}-${posting.jobId}-${index}`} name={tech} size={26} roundStyle='full' />
 
                                         ))}
