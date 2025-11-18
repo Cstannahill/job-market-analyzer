@@ -1,5 +1,4 @@
 export const COMPANY_ICON_COLORS: Record<string, string> = {
-  //   gemini: "",
   godaddy: "#292929",
   mews: "#2B2828",
   rubrik: "#262930",
@@ -13,6 +12,7 @@ const NAME_MAP: Record<string, string> = {
   andurilindustries: "Anduril Industries",
   appliedintuition: "Applied Intuition",
   abnormalsecurity: "Abnormal Security",
+  aurorainnovation: "Aurora Innovation",
   shieldai: "Shield-AI",
   ciandt: "CI&T",
 };
@@ -30,6 +30,9 @@ export function getCompanyIconColor(company: string): string {
 }
 
 export const formatCompanyName = (name: string) => {
-  name.toLowerCase();
+  name = name.toLowerCase();
+  if (name.toLowerCase().includes("brillio")) {
+    return "Brillio";
+  }
   return NAME_MAP[name] || name;
 };
