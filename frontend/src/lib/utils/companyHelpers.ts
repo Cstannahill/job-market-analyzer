@@ -7,6 +7,7 @@ export const COMPANY_ICON_COLORS: Record<string, string> = {
   ensono: "#6758ab",
   attlasian: "#1f6ddc",
   robinhood: "#c6f600",
+  spotify: "#1f1b1a",
 };
 const NAME_MAP: Record<string, string> = {
   andurilindustries: "Anduril Industries",
