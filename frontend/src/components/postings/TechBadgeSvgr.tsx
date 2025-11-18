@@ -45,6 +45,7 @@ function normalizeLookup(name: string) {
         "modern javascript": "javascript",
         "modern js": "javascript",
         "llms": "llm",
+        "ai/llm": "llm",
         "dagger 2": "android",
         "jetpack navigation": "android"
 
