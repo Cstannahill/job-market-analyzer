@@ -1,22 +1,25 @@
-import { Suspense } from 'react';
+import { Suspense, lazy } from 'react';
 import { Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { useAuthInitialization } from '@/hooks/useAuthInitialization';
 import { useAuthInitialized } from '@/stores/authStore';
 import { ProtectedRoute } from '@/components/shared/ProtectedRoute';
 
-// Pages
-import Home from '@/pages/Home';
-import Login from '@/pages/Login';
-import { RegisterPage } from '@/pages/Register';
-import VerifyEmail from '@/pages/VerifyEmail';
-import About from '@/pages/About';
-import Postings from '@/pages/Postings';
-// import JobPostingDetail from '@/pages/JobPostingDetail';
-import JobPostingDetail from '@/pages/JobDetail';
-import TopTech from '@/pages/TopTech';
-import UploadResume from '@/pages/UploadResume';
-import { ManageResumesPage } from '@/pages/ManageResumes';
-import TrendsV2Page from '@/pages/TrendsV2';
+// Lazy-loaded pages (route-level code splitting)
+const Home = lazy(() => import('@/pages/Home'));
+const Login = lazy(() => import('@/pages/Login'));
+const RegisterPage = lazy(() =>
+    import('@/pages/Register').then((module) => ({ default: module.RegisterPage })),
+);
+const VerifyEmail = lazy(() => import('@/pages/VerifyEmail'));
+const About = lazy(() => import('@/pages/About'));
+const Postings = lazy(() => import('@/pages/Postings'));
+const JobPostingDetail = lazy(() => import('@/pages/JobDetail'));
+const TopTech = lazy(() => import('@/pages/TopTech'));
+const UploadResume = lazy(() => import('@/pages/UploadResume'));
+const ManageResumesPage = lazy(() =>
+    import('@/pages/ManageResumes').then((module) => ({ default: module.ManageResumesPage })),
+);
+const TrendsV2Page = lazy(() => import('@/pages/TrendsV2'));
 
 /**
  * Application Root Component

@@ -1,6 +1,7 @@
 // src/features/trends-v2/RisingGrid.tsx
 import type { TopTechnologiesItem } from '@/shared-types/src/trendsv2';
 import React from "react";
+import { toProperCase } from "@/lib/stringHelpers";
 import {
     Collapsible,
     CollapsibleContent,
@@ -34,7 +35,7 @@ export default function RisingGrid({ data }: { data: TopTechnologiesItem[] }) {
                     {data.map(it => (
                         <div style={{ padding: ".35rem .5rem" }} key={it.skill_canonical} className="rounded-lg p-3 bg-slate-800/40 border border-slate-800">
                             <div className="flex items-center justify-between">
-                                <div className="text-sm font-semibold text-white text-center">{it.skill_canonical.toProperCase()}</div>
+                                <div className="text-sm font-semibold text-white text-center">{it && it.skill_canonical && typeof (it.skill_canonical) === "string" && toProperCase(it?.skill_canonical)}</div>
                                 <div className={`text-xs px-2 py-0.5 rounded ${(it.job_count_change_pct ?? 0) > 0 ? 'bg-emerald-700/40 text-emerald-200' : 'bg-slate-700/40 text-slate-300'
                                     }`}>
                                     {Math.round(((it as TopTechnologiesItem).job_count_change_pct ?? 0) * 100)}%

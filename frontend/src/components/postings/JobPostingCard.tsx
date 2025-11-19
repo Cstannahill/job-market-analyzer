@@ -101,7 +101,7 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
 
 
                                         {posting.skills.slice(0, 2).map((skill, index) => (
-                                            <TooltipProvider delayDuration={100}>
+                                            <TooltipProvider key={`${posting.jobId}-${skill}`} delayDuration={100}>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <Badge key={index} className="tag tag-skill" variant="secondary">
@@ -117,7 +117,7 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
                                     </div>
                                     <div className="flex flex-row items-center mb-1 tag-container-skills-row">
                                         {posting.skills.length > 2 && posting.skills.slice(2, 5).map((skill, index) => (
-                                            <TooltipProvider delayDuration={100}>
+                                            <TooltipProvider key={`${posting.jobId}-${skill}`} delayDuration={100}>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <Badge key={index} className="tag tag-skill" variant="secondary">
