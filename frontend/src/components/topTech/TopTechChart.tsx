@@ -66,7 +66,7 @@ const TopTechChart: React.FC = () => {
                 {topTechnologies.map((item, index) => {
                     const tech = item.name ?? item.id ?? 'Unknown';
                     const count = item.count ?? 0;
-                    const maxCount = topTechnologies[0]?.count ?? 1; // avoid div-by-zero
+                    const maxCount = topTechnologies[0]?.count ?? 1;
                     const percentage = (count / maxCount) * 100;
                     return (
                         <div

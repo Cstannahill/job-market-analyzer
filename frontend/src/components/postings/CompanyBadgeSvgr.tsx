@@ -162,7 +162,7 @@ export default function CompanyBadgeSvgr({
             )}
 
             {!hideLabel && (
-                <small style={{ fontWeight: "bold" }} className="text-black company-icon-svg-label">
+                <small style={{ fontWeight: "bold" }} className={`${className}text-black company-icon-svg-label`}>
                     {label.length < 4
                         ? label.toUpperCase()
                         : shouldColumnize
