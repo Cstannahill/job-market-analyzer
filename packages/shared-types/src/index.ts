@@ -5,3 +5,4 @@ export * from "./resume-record.js";
 export * from "./trends.js";
 export * from "./trendsv2.js";
 export * from "./auth.js";
+export * from "./canonical-job.js";

@@ -1,4 +1,5 @@
-import { SourceAdapter, CanonicalPosting } from "./types.js";
+import { SourceAdapter } from "./types.js";
+import type { CanonicalJobPosting } from "@job-market-analyzer/types/canonical-job";
 import { hashFromProviderFields, descSig } from "../lib/dedupe.js";
 import { isDevRole } from "../lib/devFilter.js";
 
@@ -20,7 +21,7 @@ export const leverAdapter: SourceAdapter = {
     if (!company) return [];
     const sinceTs = since ? Date.parse(since) : 0;
 
-    const out: CanonicalPosting[] = [];
+    const out: CanonicalJobPosting[] = [];
     const postings = await fetchCompany(company);
 
     for (const p of postings) {

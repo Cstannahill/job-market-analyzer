@@ -1,24 +1,7 @@
-export type CanonicalPosting = {
-  postingHash: string;
-  descriptionSig?: string;
-
-  source: "muse" | "greenhouse" | "lever" | "usajobs" | "seed";
-  sourceType: "api" | "rss" | "json" | "seed";
-  termsUrl?: string;
-  robotsOk?: boolean;
-  fetchedAt: string;
-  originalUrl?: string;
-
-  company: string;
-  title: string;
-  location: { city?: string; region?: string; country?: string; raw?: string };
-  postedDate?: string; // YYYY-MM-DD
-  description?: string;
-  // optional: skills?: string[]
-};
+import type { CanonicalJobPosting } from "@job-market-analyzer/types/canonical-job";
 
 export interface SourceAdapter {
-  name: CanonicalPosting["source"];
+  name: CanonicalJobPosting["source"];
   termsUrl: string;
   robotsOk: boolean;
   fetch(opts: {
@@ -26,5 +9,5 @@ export interface SourceAdapter {
     company?: string;
     since?: string; // ISO date lower bound, adapter decides how to apply
     maxPages?: number;
-  }): Promise<CanonicalPosting[]>;
+  }): Promise<CanonicalJobPosting[]>;
 }

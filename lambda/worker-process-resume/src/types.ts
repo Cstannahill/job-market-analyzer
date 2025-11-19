@@ -1,36 +1,34 @@
+import type {
+  ResumeRecord,
+  ResumeExperienceItem,
+  ContactInfo,
+  IsoDateString,
+} from "@job-market-analyzer/types/resume-record";
+
 export interface InsightsItem {
   resumeId: string;
   insightId: string;
-  insightsText: any;
-  generatedAt: string;
+  insightsText: unknown;
+  generatedAt: IsoDateString;
   generatedBy: string;
 }
 
-export interface Experience {
-  title?: string;
-  company?: string;
-  location?: string;
-  duration?: string;
-  description?: string[];
-}
+export type Experience = Partial<ResumeExperienceItem>;
 
-export interface ResumeBaseItem {
-  PK: string; //userId
-  SK: string; //resumeId
-  status: "pending" | "processed" | "failed";
-  originalFileName: string;
+export type ResumeBaseItem = Pick<
+  ResumeRecord,
+  "PK" | "SK" | "status" | "originalFileName" | "contentType" | "uploadInitiatedAt"
+> & {
   s3Key: string;
-  contentType: string;
-  uploadInitiatedAt: string;
   ttl: number;
-}
+};
 
 export interface ResumeItem extends ResumeBaseItem {
-  contactInfo: Record<string, any>;
+  contactInfo: ContactInfo | Record<string, unknown>;
   totalExperienceMonths?: number;
   totalExperienceLabel?: string;
   skills: string[];
-  education?: any[];
+  education?: unknown[];
   experience: Experience[];
   uploadedAt: string;
   updatedAt?: string;
@@ -38,9 +36,9 @@ export interface ResumeItem extends ResumeBaseItem {
 
 export interface ResumeWithInsights extends ResumeItem {
   insightId: string;
-  insightsText: any;
+  insightsText: unknown;
   insightsMetadata: {
-    generatedAt: string;
+    generatedAt: IsoDateString;
     generatedBy: string;
   };
 }

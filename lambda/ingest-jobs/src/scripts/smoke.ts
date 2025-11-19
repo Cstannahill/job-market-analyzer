@@ -9,7 +9,7 @@
 
 import "dotenv/config";
 import { adapters } from "../adapters/index.js";
-import type { CanonicalPosting } from "../adapters/types.js";
+import type { CanonicalJobPosting } from "@job-market-analyzer/types/canonical-job";
 import { runAdapters } from "../lib/runAdapters.js";
 import fs from "fs";
 import path from "path";

@@ -11,6 +11,7 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.902.0",
     "@aws-sdk/lib-dynamodb": "^3.902.0",
+    "@job-market-analyzer/types": "file:../../packages/shared-types",
     "axios": "^1.12.2",
     "uuid": "^13.0.0"
   },

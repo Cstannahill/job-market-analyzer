@@ -11,7 +11,8 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.913.0",
     "@aws-sdk/lib-dynamodb": "^3.913.0",
-    "@neondatabase/serverless": "^1.0.2"
+    "@neondatabase/serverless": "^1.0.2",
+    "@job-market-analyzer/types": "file:../../packages/shared-types"
   },
   "devDependencies": {
     "@types/node": "^24.8.1",

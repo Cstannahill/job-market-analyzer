@@ -1,6 +1,7 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
-import { SourceAdapter, CanonicalPosting } from "./types.js";
+import { SourceAdapter } from "./types.js";
+import type { CanonicalJobPosting } from "@job-market-analyzer/types/canonical-job";
 import { hashFromProviderFields, descSig } from "../lib/dedupe.js";
 import { isDevRole } from "../lib/devFilter.js";
 
@@ -54,13 +55,13 @@ export const museAdapter: SourceAdapter = {
   termsUrl: "https://www.themuse.com/terms-of-use",
   robotsOk: true,
   async fetch({ maxPages = 50, since }) {
-    const out: CanonicalPosting[] = [];
+    const out: CanonicalJobPosting[] = [];
     const sinceTs = since ? Date.parse(since) : 0;
 
     const first = await fetchPage(0);
     const totalPages = Math.min(first.page_count, maxPages);
 
-    const mapJob = (j: MuseJob): CanonicalPosting | null => {
+    const mapJob = (j: MuseJob): CanonicalJobPosting | null => {
       if (!isDevRole(j.name)) return null; // dev filter
       if (
         sinceTs &&

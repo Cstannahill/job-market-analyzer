@@ -1,6 +1,6 @@
 // src/lib/runAdapters.ts
 import { adapters } from "../adapters/index.js";
-import type { CanonicalPosting } from "../adapters/types.js";
+import type { CanonicalJobPosting } from "@job-market-analyzer/types/canonical-job";
 
 export interface AdapterRunOptions {
   adapterNames: string[];
@@ -15,7 +15,7 @@ export interface AdapterRunOptions {
 }
 
 export interface AdapterRunResult {
-  fetched: CanonicalPosting[];
+  fetched: CanonicalJobPosting[];
   perAdapter: {
     fetched: Record<string, number>;
     uniqueByHash: Record<string, number>;
@@ -76,7 +76,7 @@ export async function runAdapters({
   maxPages = 5,
   log,
 }: AdapterRunOptions): Promise<AdapterRunResult> {
-  const fetched: CanonicalPosting[] = [];
+  const fetched: CanonicalJobPosting[] = [];
   const perAdapter = {
     fetched: {} as Record<string, number>,
     uniqueByHash: {} as Record<string, number>,
@@ -92,7 +92,7 @@ export async function runAdapters({
 
     try {
       const t0 = Date.now();
-      let rows: CanonicalPosting[] = [];
+      let rows: CanonicalJobPosting[] = [];
 
       if (name === "greenhouse" || name === "lever") {
         let slugs = companySlugs.length ? companySlugs : [];
