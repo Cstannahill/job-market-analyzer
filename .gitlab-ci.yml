@@ -16,7 +16,6 @@ default:
 install:
   stage: install
   script:
-    # Install workspace deps (root + frontend + packages/*)
     - npm ci
   artifacts:
     paths:
@@ -26,16 +25,16 @@ install:
 test:
   stage: test
   needs: ["install"]
+  variables:
+    NODE_OPTIONS: "--max-old-space-size=4096"
+    VITEST_MAX_THREADS: "4"
   script:
-    # Your root "test" already calls frontend's test:run
-    #   "test": "npm run test:run --workspace=frontend"
     - npm test
 
 build:
   stage: build
   needs: ["install"]
   script:
-    # Root build script: "(cd frontend && npm run build)"
     - npm run build
   artifacts:
     paths:
