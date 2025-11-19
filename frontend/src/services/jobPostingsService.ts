@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Replace this with your actual API Gateway URL
 const API_URL = import.meta.env.VITE_API_URL || "";
-import type { BaseJobListing } from "@/shared-types";
+import type { BaseJobListing } from "@job-market-analyzer/types";
 
 // Extended model for new table fields
 
@@ -38,6 +38,186 @@ const parseSalaryRange = (s: string | undefined | null) => {
   };
 };
 
+type RawJobRow = Record<string, unknown>;
+
+const normalizeArray = (v: unknown): string[] => {
+  if (!v) return [];
+  if (Array.isArray(v)) return v.filter(Boolean).map((x) => String(x));
+  if (typeof v === "string") {
+    const trimmed = v.trim();
+    if (
+      (trimmed.startsWith("[") && trimmed.endsWith("]")) ||
+      (trimmed.startsWith("{") && trimmed.endsWith("}"))
+    ) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) {
+          return parsed
+            .map((p: unknown) => {
+              if (
+                p &&
+                typeof p === "object" &&
+                "S" in (p as Record<string, unknown>)
+              ) {
+                return (p as Record<string, unknown>)["S"];
+              }
+              return p;
+            })
+            .flat()
+            .filter(Boolean)
+            .map((x) => String(x));
+        }
+        if (typeof parsed === "object") return Object.values(parsed).map(String);
+      } catch {
+        // not JSON, fallthrough
+      }
+    }
+    const splitOn = [",", "|", ";"].find((token) => trimmed.includes(token));
+    if (splitOn) {
+      return trimmed
+        .split(splitOn)
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+    return trimmed ? [trimmed] : [];
+  }
+  return [String(v)];
+};
+
+const coerceString = (value: unknown, fallback = ""): string => {
+  if (value === null || value === undefined) return fallback;
+  const str = String(value).trim();
+  return str || fallback;
+};
+
+const coerceOptionalString = (value: unknown): string | undefined => {
+  const str = coerceString(value);
+  return str ? str : undefined;
+};
+
+const coerceBoolean = (value: unknown): boolean | undefined => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "true") return true;
+    if (normalized === "false") return false;
+  }
+  return undefined;
+};
+
+const toBaseJobListing = (raw: RawJobRow): BaseJobListing => {
+  const jobId =
+    coerceString(
+      raw.jobId ??
+        raw.Id ??
+        raw.id ??
+        raw.pk ??
+        raw.PK ??
+        raw.JobId ??
+        raw.resume_id ??
+        ""
+    ) || "unknown-job";
+  const job_title =
+    coerceString(raw.job_title ?? raw.title ?? raw.jobTitle ?? "Unknown role") ||
+    "Unknown role";
+  const job_description = coerceString(
+    raw.job_description ?? raw.description ?? ""
+  );
+  const location = coerceString(
+    raw.location ?? raw.job_location ?? raw.location_raw ?? "Unknown"
+  );
+  const processed_date =
+    coerceString(
+      raw.processed_date ??
+        raw.date ??
+        raw.processedDate ??
+        raw.posted_date ??
+        raw.created_at ??
+        ""
+    ) || new Date().toISOString();
+  const remote_status = coerceString(
+    raw.remote_status ?? raw.remote ?? raw.workMode ?? "unknown"
+  );
+
+  const salaryRangeSource =
+    (typeof raw.salary_range === "string" && raw.salary_range) ||
+    (typeof raw.salary === "string" && raw.salary) ||
+    (typeof raw.salaryRange === "string" && raw.salaryRange) ||
+    undefined;
+  const { min, max, currency } = parseSalaryRange(salaryRangeSource);
+  const salary_min =
+    typeof raw.minimum_salary === "number" ? raw.minimum_salary : min;
+  const salary_max =
+    typeof raw.maximum_salary === "number" ? raw.maximum_salary : max;
+  const salary_currency =
+    (typeof raw.salary_currency === "string" && raw.salary_currency) ||
+    currency;
+
+  const benefits = normalizeArray(
+    raw.benefits ?? raw.benefit_list ?? raw.benefits_parsed
+  );
+  const industry = normalizeArray(
+    raw.industry ?? raw.industries ?? raw.industry_list
+  );
+  const requirements = normalizeArray(
+    raw.requirements ??
+      raw.requirement_list ??
+      raw.requirements_parsed ??
+      raw.requirement
+  );
+  const skills = normalizeArray(
+    raw.skills ??
+      raw.skill_list ??
+      raw.Skills ??
+      raw.skills_parsed ??
+      raw.requirements
+  );
+  const technologies = normalizeArray(
+    raw.technologies ??
+      raw.tech ??
+      raw.technologies_parsed ??
+      raw.technologies_list ??
+      raw.technologies_raw ??
+      raw.technologies_normalized
+  );
+
+  return {
+    jobId,
+    job_title,
+    job_description,
+    location,
+    processed_date,
+    remote_status,
+    company_name: coerceOptionalString(
+      raw.company_name ??
+        raw.company ??
+        raw.employer ??
+        raw.employer_name ??
+        raw.companyName
+    ),
+    company_size: coerceOptionalString(raw.company_size ?? raw.companySize),
+    industry: industry.length ? industry : undefined,
+    benefits: benefits.length ? benefits : undefined,
+    requirements: requirements.length ? requirements : undefined,
+    salary_mentioned:
+      coerceBoolean(raw.salary_mentioned ?? raw.salaryMentioned) ?? undefined,
+    salary_range: salaryRangeSource,
+    salary_min,
+    salary_max,
+    salary_currency: salary_currency ?? undefined,
+    seniority_level: coerceOptionalString(
+      raw.seniority_level ?? raw.seniority
+    ),
+    skills: skills.length ? skills : undefined,
+    status: coerceOptionalString(raw.status),
+    technologies: technologies.length ? technologies : undefined,
+    source_url: coerceOptionalString(raw.source_url ?? raw.url),
+    job_board_source: coerceOptionalString(
+      raw.job_board_source ?? raw.jobBoardSource
+    ),
+  };
+};
+
 export const getJobPostings = async (): Promise<BaseJobListing[]> => {
   try {
     const response = await axios.get(`${API_URL}/job-postings`);
@@ -70,171 +250,13 @@ export const getJobPostings = async (): Promise<BaseJobListing[]> => {
         ? (payload as unknown[])
         : [];
 
-    // Map backend row shape to frontend JobPosting
-    const normalizeArray = (v: unknown): string[] => {
-      if (!v) return [];
-      if (Array.isArray(v)) return v.filter(Boolean).map((x) => String(x));
-      if (typeof v === "string") {
-        // Attempt to parse JSON-like strings: '[]' or '[{"S":"val"}]' or '"a,b"' or 'a, b'
-        const trimmed = v.trim();
-        // JSON array
-        if (
-          (trimmed.startsWith("[") && trimmed.endsWith("]")) ||
-          (trimmed.startsWith("{") && trimmed.endsWith("}"))
-        ) {
-          try {
-            const parsed = JSON.parse(trimmed);
-            // If parsed is array of objects with S keys (AWS style), extract S
-            if (Array.isArray(parsed)) {
-              return parsed
-                .map((p: unknown) => {
-                  if (
-                    p &&
-                    typeof p === "object" &&
-                    "S" in (p as Record<string, unknown>)
-                  )
-                    return (p as Record<string, unknown>)["S"];
-                  return p;
-                })
-                .flat()
-                .filter(Boolean)
-                .map((x) => String(x));
-            }
-            if (typeof parsed === "object")
-              return Object.values(parsed).map(String);
-          } catch {
-            // not JSON, fallthrough
-          }
-        }
-        // comma separated
-        if (trimmed.includes(","))
-          return trimmed
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean);
-        // pipe or semicolon separated
-        if (trimmed.includes("|"))
-          return trimmed
-            .split("|")
-            .map((s) => s.trim())
-            .filter(Boolean);
-        if (trimmed.includes(";"))
-          return trimmed
-            .split(";")
-            .map((s) => s.trim())
-            .filter(Boolean);
-        // single value
-        return [trimmed];
-      }
-      // fallback
-      return [String(v)];
-    };
-
-    const mapped: BaseJobListing[] = rows.map((row: unknown) => {
-      const r = row as Record<string, unknown>;
-      // Support a few common field names from the new table
-      const id =
-        (r.jobId as string) ||
-        (r.Id as string) ||
-        (r.id as string) ||
-        (r.pk as string) ||
-        (r.PK as string) ||
-        (r.JobId as string) ||
-        "";
-      const title =
-        (r.title as string) ||
-        (r.job_title as string) ||
-        (r.jobTitle as string) ||
-        "";
-      const location =
-        (r.location as string) ||
-        (r.job_location as string) ||
-        (r.location_raw as string) ||
-        "";
-
-      const date =
-        (r.posted_date as string) ||
-        (r.postedAt as string) ||
-        (r.date as string) ||
-        (r.processed_date as string) ||
-        (r.created_at as string) ||
-        "";
-
-      const benefits = normalizeArray(
-        r.benefits ?? r.benefit_list ?? r.benefits_parsed
-      );
-      const company_size =
-        (r.company_size as string) || (r.companySize as string) || undefined;
-      // Try to extract a company/employer name from common fields
-      const company_name =
-        (r.company as string) ||
-        (r.company_name as string) ||
-        (r.employer as string) ||
-        (r.employer_name as string) ||
-        (r.companyName as string) ||
-        undefined;
-      const industry = (r.industry as string) || undefined;
-      const processed_date = (r.processed_date as string) || undefined;
-      const remote_status =
-        (r.remote_status as string) || (r.remote as string) || undefined;
-      const requirements = normalizeArray(
-        r.requirements ??
-          r.requirement_list ??
-          r.requirements_parsed ??
-          r.requirement
-      );
-      const salary_mentioned =
-        (r.salary_mentioned as boolean) ??
-        (r.salaryMentioned as boolean) ??
-        false;
-      const salary_range =
-        (r.salary_range as string) || (r.salary as string) || undefined;
-      const seniority_level = (r.seniority_level as string) || undefined;
-
-      const {
-        min: salary_min,
-        max: salary_max,
-        currency: salary_currency,
-      } = parseSalaryRange(salary_range);
-
-      const skills = normalizeArray(
-        r.skills ??
-          r.requirements ??
-          r.skill_list ??
-          r.Skills ??
-          r.skills_parsed
-      );
-      const technologies = normalizeArray(
-        r.technologies ??
-          r.tech ??
-          r.technologies_parsed ??
-          r.technologies_list ??
-          r.technologies_raw ??
-          r.technologies_normalized
-      );
-      return {
-        jobId: String(id),
-        job_title: String(title),
-        location: String(location),
-        job_description: r.job_description ? String(r.job_description) : "",
-        company_name: String(company_name),
-        skills,
-        technologies,
-        date: String(date),
-        benefits,
-        company_size,
-        industry,
-        processed_date,
-        remote_status,
-        requirements,
-        salary_mentioned,
-        salary_range,
-        salary_min,
-        salary_max,
-        salary_currency,
-        seniority_level,
-      } as unknown as BaseJobListing;
-    });
+    const mapped: BaseJobListing[] = rows
+      .map((row) =>
+        row && typeof row === "object"
+          ? toBaseJobListing(row as RawJobRow)
+          : null
+      )
+      .filter((row): row is BaseJobListing => row !== null);
 
     return mapped;
   } catch (error) {
@@ -296,32 +318,13 @@ export const getJobPostingsPage = async (opts?: {
     ? p.items
     : [];
 
-  const items: BaseJobListing[] = (itemsRaw as unknown[]).map((r) => {
-    const row = r as Record<string, unknown>;
-    return {
-      jobId: String(row["Id"] ?? row["id"] ?? row["jobId"] ?? ""),
-      job_title: String(row["title"] ?? row["job_title"] ?? ""),
-      job_description: String(
-        row["job_description"] ?? row["description"] ?? ""
-      ),
-      location: String(row["location"] ?? row["job_location"] ?? ""),
-      skills: Array.isArray(row["skills"]) ? (row["skills"] as string[]) : [],
-      technologies: Array.isArray(row["technologies"])
-        ? (row["technologies"] as string[])
-        : [],
-      processed_date: String(row["date"] ?? row["processed_date"] ?? ""),
-      company_name: String(row["company_name"] ?? "Unknown"),
-      industry: String(row["industry"] ?? "Unknown"),
-      remote_status: String(row["remote_status"] ?? "Unknown"),
-      seniority_level: String(row["seniority_level"] ?? "Unknown"),
-      salary_range: String(row["salary_range"] ?? "Unknown"),
-      requirements: Array.isArray(row["requirements"])
-        ? (row["requirements"] as string[])
-        : [],
-      source_url: String(row["source_url"] || "Unknown"),
-      job_board_source: String(row["job_board_source"] || "Unknown"),
-    } as unknown as BaseJobListing;
-  });
+  const items: BaseJobListing[] = (itemsRaw as unknown[])
+    .map((row) =>
+      row && typeof row === "object"
+        ? toBaseJobListing(row as RawJobRow)
+        : null
+    )
+    .filter((row): row is BaseJobListing => row !== null);
 
   const lastKey = (p.lastKey as string) ?? null;
   const count = typeof p.count === "number" ? p.count : items.length;

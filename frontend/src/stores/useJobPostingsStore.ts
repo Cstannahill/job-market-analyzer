@@ -1,4 +1,4 @@
-import type { BaseJobListing } from "@/shared-types";
+import type { BaseJobListing } from "@job-market-analyzer/types";
 import { create } from "zustand";
 
 type State = {

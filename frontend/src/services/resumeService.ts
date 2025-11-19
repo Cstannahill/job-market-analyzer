@@ -1,6 +1,6 @@
-import type { CompareResult } from "@/shared-types";
+import type { CompareResult } from "@job-market-analyzer/types";
 import axios from "axios";
-import type { GetUserResumesResponse } from "@/shared-types/src/resume-query";
+import type { GetUserResumesResponse } from "@job-market-analyzer/types/resume-query";
 
 const API_URL =
   (import.meta.env.VITE_RESUME_API_URL as string | undefined) || "";

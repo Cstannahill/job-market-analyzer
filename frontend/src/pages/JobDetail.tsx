@@ -1,6 +1,6 @@
 import React, { type CSSProperties } from 'react';
 import { useLocation, useNavigate, useParams, Link } from 'react-router-dom';
-import type { BaseJobListing } from '@/shared-types';
+import type { BaseJobListing } from '@job-market-analyzer/types';
 import { ExternalLink, MapPin, Briefcase, DollarSign, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -79,6 +79,8 @@ const JobPostingDetail: React.FC = () => {
         );
     }
 
+    const companyName = posting.company_name ?? "Unknown company";
+
     const sourceLink = posting.source_url && posting.source_url.trim() !== '' ? (
         <a
             href={posting.source_url}
@@ -100,12 +102,12 @@ const JobPostingDetail: React.FC = () => {
     const metaDescription =
         metaDescriptionSource.length > 0
             ? metaDescriptionSource.slice(0, 155)
-            : `Explore responsibilities, compensation, and requirements for ${posting.job_title} at ${posting.company_name}.`;
+            : `Explore responsibilities, compensation, and requirements for ${posting.job_title} at ${companyName}.`;
 
     return (
         <Layout>
             <Seo
-                title={`${posting.job_title} at ${posting.company_name} â€“ Job Market Analyzer`}
+                title={`${posting.job_title} at ${companyName} – Job Market Analyzer`}
                 description={metaDescription}
                 path={`postings/${posting.jobId}`}
                 image="/public/og/postings.avif"
@@ -132,12 +134,12 @@ const JobPostingDetail: React.FC = () => {
                                 <div className="shrink-0">
                                     <CompanyBadgeSvgr
                                         className='text-white'
-                                        name={posting.company_name.toLowerCase()}
+                                        name={companyName.toLowerCase()}
                                         roundStyle="lg"
                                         size={80}
                                         hideLabel
                                     />       <p className="text-xl text-white/70 font-semibold">
-                                        {posting.company_name.toProperCase()}
+                                        {companyName.toProperCase()}
                                     </p>
                                 </div>
                                 <div className="flex-1 space-y-3">
@@ -255,3 +257,4 @@ const JobPostingDetail: React.FC = () => {
 };
 
 export default JobPostingDetail;
+

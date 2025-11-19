@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Insights } from "@/shared-types/src/resume";
+import type { Insights } from "@job-market-analyzer/types/resume";
 
 export const ResumeInsights = (insights: Insights | undefined) => {
     console.log(insights, "RESUME");

@@ -5,7 +5,7 @@ import FiltersBar from '@/components/trends-v2/FiltersBar';
 import TopList from '@/components/trends-v2/TopList';
 import RisingGrid from '@/components/trends-v2/RisingGrid';
 import TechDetailPanel from '@/components/trends-v2/TechDetailPanel';
-import type { Region, Period, TopTechnologiesItem, TechnologyDetailResponse, WeekPeriod } from '@/shared-types/src/trendsv2';
+import type { Region, Period, TopTechnologiesItem, TechnologyDetailResponse, WeekPeriod } from '@job-market-analyzer/types/trendsv2';
 import { Spinner } from '@/components/ui/spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TrendsLayout } from '@/components/TrendsLayout';

@@ -4,6 +4,7 @@ import type {
 } from "aws-lambda";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
+import type { BaseJobListing } from "@job-market-analyzer/types";
 
 const CONNECTION_STRING =
   process.env.NEON_DATABASE_URL ?? process.env.DATABASE_URL;
@@ -46,15 +47,6 @@ type DbJobRow = {
   status: string | null;
   processed_date: string | null;
   technologies: string[] | null;
-};
-
-type JobPageResponse = {
-  success: boolean;
-  total: number;
-  totalPages: number;
-  page: number;
-  pageSize: number;
-  items: DbJobRow[];
 };
 
 const headers = {
@@ -145,19 +137,17 @@ export const handler = async (
       [...values, pageSize, offset]
     );
 
-    const response: JobPageResponse = {
-      success: true,
-      total,
-      totalPages,
-      page,
-      pageSize,
-      items: paginatedRows.rows,
-    };
-
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify(response),
+      body: JSON.stringify({
+        success: true,
+        total,
+        totalPages,
+        page,
+        pageSize,
+        items: paginatedRows.rows.map(toBaseJobListing),
+      }),
     };
   } catch (error) {
     console.error("Error querying Neon jobs:", error);
@@ -300,6 +290,40 @@ function buildIdentifier(value: string): string {
   }
 
   return segments.map((segment) => `"${segment}"`).join(".");
+}
+
+function normalizeList(values: readonly (string | null | undefined)[]): string[] {
+  return values
+    .filter((value): value is string => typeof value === "string")
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+function toBaseJobListing(row: DbJobRow): BaseJobListing {
+  const jobId = String(row.dynamo_id ?? row.id ?? "unknown-job");
+  const technologies = normalizeList(row.technologies ?? []);
+
+  return {
+    jobId,
+    job_title: row.job_title ?? "Unknown role",
+    job_description: row.job_description ?? "",
+    location: row.location ?? "Unknown",
+    processed_date: row.processed_date ?? new Date().toISOString(),
+    remote_status: row.remote_status ?? "not_specified",
+    company_name: row.company_name ?? undefined,
+    salary_mentioned:
+      typeof row.salary_mentioned === "boolean" ? row.salary_mentioned : undefined,
+    salary_range:
+      row.minimum_salary != null || row.maximum_salary != null
+        ? [row.minimum_salary, row.maximum_salary]
+            .filter((value): value is number => typeof value === "number")
+            .map((value) => Math.round(value))
+            .join("-") || undefined
+        : undefined,
+    seniority_level: row.seniority_level ?? undefined,
+    status: row.status ?? undefined,
+    technologies: technologies.length ? technologies : undefined,
+  };
 }
 
 export default handler;

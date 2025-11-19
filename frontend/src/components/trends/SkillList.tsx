@@ -1,5 +1,5 @@
 // SkillList.tsx
-import { type SkillTrend } from '@/shared-types';
+import { type SkillTrend } from '@job-market-analyzer/types';
 import SkillCard from './SkillCardAlt';
 
 type Props = {

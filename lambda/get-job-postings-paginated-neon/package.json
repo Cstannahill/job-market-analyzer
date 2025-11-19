@@ -9,6 +9,7 @@
     "zip": "tsup && rm -rf package-lock.json node_modules && npm install --omit=dev && node ../../zip.js . && npm install"
   },
   "dependencies": {
+    "@job-market-analyzer/types": "file:../../packages/shared-types",
     "@neondatabase/serverless": "^1.0.2",
     "ws": "^8.16.0"
   },

@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, beforeAll, beforeEach, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import type { BaseJobListing } from '@/shared-types';
+import type { BaseJobListing } from '@job-market-analyzer/types';
 import { JobPostingCard } from '@/components/postings/JobPostingCard';
 
 const mockHasTechIcon = vi.fn<boolean, [string]>();

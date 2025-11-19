@@ -4,6 +4,7 @@ import type {
   PostConfirmationTriggerEvent,
   PostConfirmationTriggerHandler,
 } from "aws-lambda";
+import type { UserProfile } from "@job-market-analyzer/types/auth";
 
 /**
  * Post-Confirmation Trigger
@@ -23,18 +24,6 @@ const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
 const TABLE_NAME = process.env.USER_PROFILES_TABLE || "UserProfiles";
-
-interface UserProfile {
-  userId: string;
-  email: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-  preferences: {
-    emailNotifications: boolean;
-    theme: "light" | "dark";
-  };
-}
 
 export const handler: PostConfirmationTriggerHandler = async (
   event: PostConfirmationTriggerEvent

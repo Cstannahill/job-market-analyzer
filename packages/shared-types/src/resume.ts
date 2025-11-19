@@ -4,11 +4,11 @@ import type {
   IsoDateString,
   ResumeEducationItem,
   ResumeExperienceItem,
-} from "@/shared-types/src/resume-query";
+} from "./resume-record.js";
 
 export type InsightAchievement = {
   headline: string;
-  metric?: string | null;
+  metric?: string | number | null;
   suggestedBullet: string;
 };
 
@@ -16,6 +16,7 @@ export type InsightResumeEdits = {
   titleAndSummary?: { headline?: string; professionalSummary?: string };
   improvedBullets?: { old?: string | null; new: string }[];
 };
+
 export type EducationItem = {
   name?: string;
   degree?: string;
@@ -26,6 +27,7 @@ export type EducationItem = {
   gpa?: string;
   location?: string;
 };
+
 export type Insights = {
   summary?: { oneLine?: string; threeLine: string };
   strengths?: {
@@ -67,11 +69,7 @@ export type SkillsItem = {
 export type AnalysisPayload = {
   resumeId?: string;
   contactInfo?: { email?: string; phone?: string | null };
-  skills?: {
-    technologies?: string[];
-    softSkills?: string[];
-    reasoning?: string;
-  };
+  skills?: SkillsItem;
   education?: EducationItem[];
   experience?: ExperienceItem[];
   insights?: Insights;
@@ -79,26 +77,25 @@ export type AnalysisPayload = {
 
 export type CompareResult = {
   analysis?: AnalysisPayload;
-  // Backwards compatibility (if your backend sometimes returns top-level fields)
   experience?: ResumeExperienceItem[];
-  insightId?: string; // e.g. "INSIGHT#uuid"
+  insightId?: string;
   insights?: Insights | undefined;
   status?: "processing" | "complete" | "failed";
   error?: string | undefined;
   insightsText?: string;
   insightsMetadata?: {
     generatedAt: IsoDateString;
-    generatedBy: string; // e.g. "amazon.nova-pro-v1:0"
+    generatedBy: string;
   };
   uploadInitiatedAt?: IsoDateString;
   uploadedAt?: IsoDateString;
   updatedAt?: IsoDateString;
-  contentType?: string; // e.g. "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  contentType?: string;
   originalFileName?: string;
   contactInfo?: ContactInfo;
   education?: ResumeEducationItem[];
-  PK?: string; // e.g. "USER#<uuid>"
-  SK?: string; // e.g. "RESUME#<uuid>"
+  PK?: string;
+  SK?: string;
   s3Key?: string;
   skills?: FlatSkills;
 };

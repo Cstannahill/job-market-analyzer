@@ -6,7 +6,7 @@ import type {
   TrendsOverviewResponse,
   Region,
   Period,
-} from "@/shared-types/src/trendsv2";
+} from "@job-market-analyzer/types/trendsv2";
 
 const BASE = import.meta.env.VITE_TRENDSV2_API_URL ?? "";
 

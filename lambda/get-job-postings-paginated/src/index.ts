@@ -6,29 +6,33 @@ import {
   BatchGetCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { slugifyTech } from "./utils.js";
+import type { BaseJobListing } from "@job-market-analyzer/types";
 
 // Initialize DynamoDB client
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 interface JobPosting {
-  Id: string;
+  Id?: string;
+  id?: string;
   job_title?: string;
   job_description?: string;
+  description?: string;
   location?: string;
-  status: string;
-  processed_date: string;
-  benefits?: string[];
+  status?: string;
+  processed_date?: string;
+  date?: string;
+  benefits?: string[] | string;
   company_size?: string;
   company_name?: string;
   industry?: string;
   remote_status?: string;
-  requirements?: string[];
+  requirements?: string[] | string;
   salary_mentioned?: boolean;
   salary_range?: string;
   seniority_level?: string;
-  skills: string[];
-  technologies: string[];
+  skills?: string[] | string;
+  technologies?: string[] | string;
 }
 function encodeCursor(obj: unknown) {
   return Buffer.from(JSON.stringify(obj), "utf8").toString("base64");
@@ -36,6 +40,84 @@ function encodeCursor(obj: unknown) {
 function decodeCursor(b64: string) {
   return JSON.parse(Buffer.from(b64, "base64").toString("utf8"));
 }
+
+const normalizeList = (value: unknown): string[] => {
+  if (!value) return [];
+  if (Array.isArray(value)) {
+    return value
+      .filter((v): v is string => typeof v === "string" && v.trim().length > 0)
+      .map((v) => v.trim());
+  }
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+    if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) {
+          return normalizeList(parsed);
+        }
+      } catch {
+        // fall through
+      }
+    }
+    return [trimmed];
+  }
+  return [];
+};
+
+const coerceString = (value: unknown, fallback = ""): string => {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length ? trimmed : fallback;
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  return fallback;
+};
+
+const coerceOptionalString = (value: unknown): string | undefined => {
+  const str = coerceString(value, "").trim();
+  return str ? str : undefined;
+};
+
+const toBaseJobListing = (job: JobPosting): BaseJobListing => {
+  const jobId = coerceString(job.Id ?? job.id ?? "", "unknown-job");
+  const jobTitle = coerceString(job.job_title ?? "", "Unknown role");
+  const description = coerceString(job.job_description ?? job.description ?? "");
+  const location = coerceString(job.location ?? "", "Unknown");
+  const processedDate =
+    coerceString(job.processed_date ?? job.date ?? "") || new Date().toISOString();
+  const remoteStatus = coerceString(job.remote_status ?? "", "Unknown");
+
+  const benefits = normalizeList(job.benefits);
+  const industry = normalizeList(job.industry);
+  const requirements = normalizeList(job.requirements);
+  const skills = normalizeList(job.skills);
+  const technologies = normalizeList(job.technologies);
+
+  return {
+    jobId,
+    job_title: jobTitle,
+    job_description: description,
+    location,
+    processed_date: processedDate,
+    remote_status: remoteStatus,
+    status: coerceOptionalString(job.status),
+    benefits: benefits.length ? benefits : undefined,
+    company_name: coerceOptionalString(job.company_name),
+    company_size: coerceOptionalString(job.company_size),
+    industry: industry.length ? industry : undefined,
+    requirements: requirements.length ? requirements : undefined,
+    salary_mentioned:
+      typeof job.salary_mentioned === "boolean" ? job.salary_mentioned : undefined,
+    salary_range: coerceOptionalString(job.salary_range),
+    seniority_level: coerceOptionalString(job.seniority_level),
+    skills: skills.length ? skills : undefined,
+    technologies: technologies.length ? technologies : undefined,
+  };
+};
 
 export const handler = async (
   event: APIGatewayProxyEvent
@@ -305,6 +387,7 @@ export const handler = async (
     } while (aggregated.length < limit && queryCursor);
 
     const pagedItems = aggregated.slice(0, limit);
+    const normalizedItems: BaseJobListing[] = pagedItems.map(toBaseJobListing);
 
     let encodedLastKey: string | null = null;
     if (queryCursor) {
@@ -327,7 +410,7 @@ export const handler = async (
       body: JSON.stringify({
         success: true,
         count: pagedItems.length,
-        data: pagedItems,
+        data: normalizedItems,
         lastKey: encodedLastKey,
         hasMore: !!encodedLastKey,
         status: StatusValue,

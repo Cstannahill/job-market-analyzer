@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { SkillsItem } from "@/shared-types/src/resume";
+import type { SkillsItem } from "@job-market-analyzer/types/resume";
 
 
 export const ResumeTechnologies = (skills?: SkillsItem) => {

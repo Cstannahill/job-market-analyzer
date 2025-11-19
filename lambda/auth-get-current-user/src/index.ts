@@ -6,6 +6,7 @@ import type {
   APIGatewayProxyResultV2,
   APIGatewayProxyEventV2,
 } from "aws-lambda";
+import type { UserProfile } from "@job-market-analyzer/types/auth";
 
 /**
  * Get Current User Handler
@@ -35,21 +36,6 @@ const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
 const TABLE_NAME = process.env.USER_PROFILES_TABLE || "UserProfiles";
-
-interface UserProfile {
-  userId: string;
-  email: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-  lastLoginAt?: string;
-  preferences?: {
-    emailNotifications: boolean;
-    theme: "light" | "dark";
-  };
-  resumeUploaded?: boolean;
-  savedSearches?: string[];
-}
 
 interface JWTAuthorizerContext {
   jwt: {

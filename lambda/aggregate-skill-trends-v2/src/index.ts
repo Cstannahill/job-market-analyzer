@@ -6,7 +6,12 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
-import { TrendItem, Seniority, WorkMode, Period, Event } from "./types.js";
+import type {
+  SkillTrendV2Item,
+  Seniority,
+  WorkMode,
+  Period,
+} from "@job-market-analyzer/types/trendsv2";
 import { toWeek, toDay, weekDates } from "./compute/buckets.js";
 import {
   canonicalizeTech,
@@ -187,7 +192,7 @@ export const handler = async () => {
   );
   const globalTotal = totals["GLOBAL"] ?? 0;
 
-  const items: TrendItem[] = [];
+  const items: SkillTrendV2Item[] = [];
 
   for (const [key, job_count] of counts.entries()) {
     const [region, skill, seniority, work_mode, periodStr] = key.split("|") as [
@@ -226,7 +231,7 @@ export const handler = async () => {
     // (Optionally add a small cache map if you expand this.)
     // Skipping read here to keep the first cut simple; add later once table has data.
 
-    const item: TrendItem = {
+    const item: SkillTrendV2Item = {
       skill_canonical: skill.toLowerCase(),
       skill_display: skill,
       region_seniority_mode_period: `${region}#${seniority}#${work_mode}#${periodStr}`,
@@ -234,7 +239,7 @@ export const handler = async () => {
       seniority,
       work_mode,
       dimension: AGG_DIM,
-      period: periodStr as any,
+      period: periodStr as Period,
       period_skill,
       job_count_desc,
       job_count,

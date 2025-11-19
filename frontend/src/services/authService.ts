@@ -19,6 +19,12 @@
  * - Use httpOnly cookies in production (requires backend changes)
  */
 
+import type {
+  UserProfile,
+  RegisterData,
+  LoginData,
+} from "@job-market-analyzer/types/auth";
+
 const API_BASE_URL =
   import.meta.env.VITE_AUTH_API_URL ||
   "https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com";
@@ -29,32 +35,6 @@ interface AuthTokens {
   refreshToken: string;
   expiresIn: number;
   tokenType: string;
-}
-
-interface UserProfile {
-  userId: string;
-  email: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-  lastLoginAt?: string;
-  preferences?: {
-    emailNotifications: boolean;
-    theme: "light" | "dark";
-  };
-  resumeUploaded?: boolean;
-  savedSearches?: string[];
-}
-
-interface RegisterData {
-  email: string;
-  password: string;
-  name?: string;
-}
-
-interface LoginData {
-  email: string;
-  password: string;
 }
 
 interface ApiError {

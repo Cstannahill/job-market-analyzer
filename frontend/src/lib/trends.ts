@@ -1,24 +1,29 @@
-// helpers (at top of file, after imports)
-type Mode = "All" | "Remote" | "Hybrid" | "On-site";
-type Level = "Junior" | "Mid" | "Senior" | "Lead" | "Unknown" | string;
+import type {
+  WorkMode,
+  Seniority,
+} from "@job-market-analyzer/types/trendsv2";
 
 export function pivotToMatrix(
   modes: {
-    work_mode: Mode;
+    work_mode: WorkMode;
     job_count: number;
     salary_median?: number;
-    seniority?: Level;
+    seniority?: Seniority | string;
   }[],
-  seniors: { level: Level; job_count: number; salary_median?: number }[]
+  seniors: {
+    level: Seniority | string;
+    job_count: number;
+    salary_median?: number;
+  }[]
 ) {
   // Normalize the set of columns (seniority levels) you want to show
-  const columns: Level[] = ["Junior", "Mid", "Senior", "Lead"];
-  const rows: Mode[] = ["Remote", "Hybrid", "On-site"];
+  const columns: Seniority[] = ["Junior", "Mid", "Senior", "Lead"];
+  const rows: WorkMode[] = ["Remote", "Hybrid", "On-site"];
 
   // Build lookup: (mode, level) -> {count, p50}
   const cell = new Map<string, { count: number; p50?: number }>();
   // If your API doesn't give per-(mode,level) rows, fall back to by_level for totals
-  const byLevel = new Map<Level, { count: number; p50?: number }>();
+  const byLevel = new Map<Seniority | string, { count: number; p50?: number }>();
   for (const s of seniors)
     byLevel.set(s.level, { count: s.job_count, p50: s.salary_median });
 

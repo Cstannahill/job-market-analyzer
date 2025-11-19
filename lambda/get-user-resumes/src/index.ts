@@ -8,6 +8,7 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 import { buildCorsHeaders } from "./cors.js"; // your helper (ESM path) ← uses allowed origins
 import { coerceInsights } from "./utils.js";
+import type { ResumeRecord } from "@job-market-analyzer/types/resume-record";
 
 // ----------------------
 // Config (adjust as needed)
@@ -32,7 +33,7 @@ type GetUserResumesRequestBody = {
   nextToken?: string; // serialized LastEvaluatedKey
 };
 
-type ResumeItem = Record<string, unknown>; // Narrow if you have a schema
+// Narrow if you have a schema
 
 function parseJson<T>(raw: string | null | undefined): T | null {
   if (!raw) return null;
@@ -96,15 +97,16 @@ export const handler = async (
   try {
     const resp = await doc.send(new QueryCommand(queryInput));
 
-    const items = (resp.Items ?? []).map((it: Record<string, any>) => {
-      const parsed = coerceInsights(it.insightsText);
-      // Prefer normalized field; drop the raw string if parsed
-      if (parsed !== undefined) {
-        const { insightsText, ...rest } = it;
-        return { ...rest, insights: parsed };
+    const items: ResumeRecord[] = (resp.Items ?? []).map(
+      (it: Record<string, any>) => {
+        const parsed = coerceInsights(it.insightsText);
+        if (parsed !== undefined) {
+          const { insightsText, ...rest } = it;
+          return { ...rest, insights: parsed } as ResumeRecord;
+        }
+        return it as ResumeRecord;
       }
-      return it; // leave as-is if we couldn't parse
-    });
+    );
     const nextToken = resp.LastEvaluatedKey
       ? Buffer.from(JSON.stringify(resp.LastEvaluatedKey), "utf-8").toString(
           "base64"
@@ -133,3 +135,8 @@ export const handler = async (
     };
   }
 };
+
+
+
+
+

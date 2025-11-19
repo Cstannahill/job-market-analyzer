@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-query';
 import { getJobPostingsPage } from '@/services/jobPostingsService';
 import { getJobPostingsStats } from '@/services/jobStatsService';
-import type { BaseJobListing, JobStats } from '@/shared-types';
+import type { BaseJobListing, JobStats } from '@job-market-analyzer/types';
 import { JobPostingCard } from '@/components/postings/JobPostingCard';
 import {
     JobPostingsControls,
@@ -128,12 +128,15 @@ export const JobPostingsSection: React.FC = () => {
         // Free-text search remains client-side
         if (filters.query) {
             const lower = filters.query.toLowerCase();
-            filtered = filtered.filter(
-                (posting) =>
+            filtered = filtered.filter((posting) => {
+                const skills = posting.skills ?? [];
+                const technologies = posting.technologies ?? [];
+                return (
                     posting.job_title.toLowerCase().includes(lower) ||
-                    posting.skills.some((s) => s.toLowerCase().includes(lower)) ||
-                    posting.technologies.some((t) => t.toLowerCase().includes(lower))
-            );
+                    skills.some((s) => s.toLowerCase().includes(lower)) ||
+                    technologies.some((t) => t.toLowerCase().includes(lower))
+                );
+            });
         }
 
         // Tech:

@@ -1,7 +1,7 @@
 // ResumeUploaderModern.tsx
 import React, { useEffect, useRef, useState } from "react";
 import { uploadResume, type UploadStatus } from "@/services/resumeService";
-import type { CompareResult, ResumeRecord } from "@/shared-types";
+import type { CompareResult, ResumeRecord } from "@job-market-analyzer/types";
 
 // shadcn/ui imports — change paths if your project places them elsewhere
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";

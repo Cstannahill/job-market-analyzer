@@ -4,6 +4,7 @@ import {
   SignUpCommandInput,
 } from "@aws-sdk/client-cognito-identity-provider";
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import type { RegisterRequest } from "@job-market-analyzer/types/auth";
 
 /**
  * User Registration Handler
@@ -28,12 +29,6 @@ import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 const client = new CognitoIdentityProviderClient({});
 
 const CLIENT_ID = process.env.COGNITO_CLIENT_ID!;
-
-interface RegisterRequest {
-  email: string;
-  password: string;
-  name?: string;
-}
 
 interface ErrorResponse {
   error: string;

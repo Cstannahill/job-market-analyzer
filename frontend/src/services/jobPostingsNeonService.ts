@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { BaseJobListing } from "@/shared-types";
+import type { BaseJobListing } from "@job-market-analyzer/types";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 

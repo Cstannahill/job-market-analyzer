@@ -5,7 +5,11 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
-import type { JobStats, SkillStatItem, TechnologyStatItem } from "./jobs.js";
+import type {
+  JobStats,
+  SkillStatItem,
+  TechnologyStatItem,
+} from "@job-market-analyzer/types";
 
 const STATS_TABLE = process.env.STATS_TABLE ?? "job-postings-stats";
 const STATS_PK = process.env.STATS_PK_NAME ?? "id";

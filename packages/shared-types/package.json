@@ -1,0 +1,56 @@
+{
+  "name": "@job-market-analyzer/types",
+  "version": "0.1.0",
+  "description": "Shared TypeScript contracts for the Job Market Analyzer frontend and Lambdas.",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./jobs": {
+      "import": "./dist/jobs.js",
+      "types": "./dist/jobs.d.ts"
+    },
+    "./lambda": {
+      "import": "./dist/lambda.js",
+      "types": "./dist/lambda.d.ts"
+    },
+    "./resume": {
+      "import": "./dist/resume.js",
+      "types": "./dist/resume.d.ts"
+    },
+    "./resume-record": {
+      "import": "./dist/resume-record.js",
+      "types": "./dist/resume-record.d.ts"
+    },
+    "./resume-query": {
+      "import": "./dist/resume-query.js",
+      "types": "./dist/resume-query.d.ts"
+    },
+    "./trends": {
+      "import": "./dist/trends.js",
+      "types": "./dist/trends.d.ts"
+    },
+    "./trendsv2": {
+      "import": "./dist/trendsv2.js",
+      "types": "./dist/trendsv2.d.ts"
+    },
+    "./auth": {
+      "import": "./dist/auth.js",
+      "types": "./dist/auth.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare": "npm run build",
+    "clean": "rimraf dist"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "rimraf": "^6.0.1"
+  }
+}

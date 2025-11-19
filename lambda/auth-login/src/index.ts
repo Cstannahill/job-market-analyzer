@@ -6,6 +6,10 @@ import {
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import type {
+  LoginRequest,
+  AuthTokensResponse,
+} from "@job-market-analyzer/types/auth";
 
 /**
  * User Login Handler
@@ -38,18 +42,7 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient);
 const CLIENT_ID = process.env.COGNITO_CLIENT_ID!;
 const TABLE_NAME = process.env.USER_PROFILES_TABLE || "UserProfiles";
 
-interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-interface LoginResponse {
-  idToken: string;
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-  tokenType: string;
-}
+type LoginResponse = AuthTokensResponse;
 
 interface ErrorResponse {
   error: string;

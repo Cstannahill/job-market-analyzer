@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { ExperienceItem } from "@/shared-types/src/resume";
+import type { ExperienceItem } from "@job-market-analyzer/types/resume";
 export const ResumeExperience = (experience: ExperienceItem[]) => {
     return (
         <Card className="mb-3 resume-card">
