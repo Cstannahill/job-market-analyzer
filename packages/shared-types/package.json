@@ -42,6 +42,10 @@
     "./auth": {
       "import": "./dist/auth.js",
       "types": "./dist/auth.d.ts"
+    },
+    "./canonical-job": {
+      "import": "./dist/canonical-job.js",
+      "types": "./dist/canonical-job.d.ts"
     }
   },
   "scripts": {

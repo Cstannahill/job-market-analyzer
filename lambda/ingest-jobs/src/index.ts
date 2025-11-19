@@ -2,7 +2,7 @@
 import { DynamoDBClient, BatchGetItemCommand } from "@aws-sdk/client-dynamodb";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { adapters } from "./adapters/index.js"; // registry: muse, greenhouse, lever, usajobs
-import type { CanonicalPosting } from "./adapters/types.js";
+import type { CanonicalJobPosting } from "@job-market-analyzer/types/canonical-job";
 import { upsertMerge } from "./lib/upsert.js";
 import { runAdapters } from "./lib/runAdapters.js";
 import fs from "fs";
@@ -90,7 +90,7 @@ async function batchGetExists(
 
 // Optional archive writer
 async function archiveIfNeeded(
-  p: CanonicalPosting,
+  p: CanonicalJobPosting,
   existed: boolean,
   oldSig?: string
 ) {
@@ -148,7 +148,7 @@ export const handler = async () => {
   const existMap = await batchGetExists(hashes);
 
   // 3) Split into new/changed vs existing
-  const newOrChanged: CanonicalPosting[] = [];
+  const newOrChanged: CanonicalJobPosting[] = [];
   let unchanged = 0;
 
   for (const p of fetched) {

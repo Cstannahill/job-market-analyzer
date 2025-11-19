@@ -4,13 +4,13 @@ import {
   UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
 import { marshall } from "@aws-sdk/util-dynamodb";
-import type { CanonicalPosting } from "../adapters/types.js";
+import type { CanonicalJobPosting } from "@job-market-analyzer/types/canonical-job";
 import { getDayOfYear } from "./dateHelpers.js";
 const today = getDayOfYear();
 export async function upsertMerge(
   ddb: DynamoDBClient,
   table: string,
-  p: CanonicalPosting
+  p: CanonicalJobPosting
 ) {
   const base = {
     PK: `JOB#${p.postingHash}`,

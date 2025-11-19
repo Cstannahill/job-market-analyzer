@@ -1,4 +1,5 @@
-import { SourceAdapter, CanonicalPosting } from "./types.js";
+import { SourceAdapter } from "./types.js";
+import type { CanonicalJobPosting } from "@job-market-analyzer/types/canonical-job";
 import { hashFromProviderFields, descSig } from "../lib/dedupe.js";
 import { isDevRole } from "../lib/devFilter.js";
 
@@ -24,7 +25,7 @@ export const usajobsAdapter: SourceAdapter = {
   termsUrl: "https://www.usajobs.gov/Help/faq/account/policy/",
   robotsOk: true,
   async fetch({ page = 1, maxPages = 2, since }) {
-    const out: CanonicalPosting[] = [];
+    const out: CanonicalJobPosting[] = [];
     const sinceTs = since ? Date.parse(since) : 0;
 
     for (let p = page; p < page + maxPages; p++) {

@@ -28,6 +28,16 @@ import {
 import { weightedMedian } from "./utils.js";
 import { getReqId, log, pick, preview, type Ctx } from "./logging.js";
 import { pivotModeSeniority } from "./pivot.js";
+import type {
+  SkillTrendV2Item,
+  TopTechnologiesItem,
+  RisingTechnologiesItem,
+  TechnologyDetailResponse,
+  TrendsOverviewResponse,
+  WorkMode,
+  Seniority,
+  Period,
+} from "@job-market-analyzer/types/trendsv2";
 type ApiEvent = APIGatewayProxyEvent | APIGatewayProxyEventV2;
 type ApiResult = APIGatewayProxyResult | APIGatewayProxyStructuredResultV2;
 
@@ -76,8 +86,9 @@ export const handler = async (event: ApiEvent): Promise<ApiResult> => {
       const period = requireParam(query.period, "period");
       const limit = clampInt(query.limit, 20, 1, 100);
       const data = await getTopTechnologies({ region, period, limit, ctx });
-      log(ctx, "info", "top.done", { count: data.length });
-      return ok({ region, period, count: data.length, data });
+      const mapped = data.map(toTopTechnologiesItem);
+      log(ctx, "info", "top.done", { count: mapped.length });
+      return ok({ region, period, count: mapped.length, data: mapped });
     }
 
     if (path.endsWith("/v2/trends/technologies/rising")) {
@@ -85,8 +96,9 @@ export const handler = async (event: ApiEvent): Promise<ApiResult> => {
       const period = requireParam(query.period, "period");
       const limit = clampInt(query.limit, 20, 1, 100);
       const data = await getRisingTechnologies({ region, period, limit, ctx });
-      log(ctx, "info", "rising.done", { count: data.length });
-      return ok({ region, period, count: data.length, data });
+      const mapped = data.map(toTopTechnologiesItem);
+      log(ctx, "info", "rising.done", { count: mapped.length });
+      return ok({ region, period, count: mapped.length, data: mapped });
     }
 
     if (path.includes("/v2/trends/technology/")) {
@@ -145,7 +157,7 @@ async function getTopTechnologies(opts: {
   period: string;
   limit: number;
   ctx?: { rid: string };
-}) {
+}): Promise<SkillTrendV2Item[]> {
   const { region, period, limit, ctx } = opts;
 
   const pageSize = Math.max(limit * 5, 100);
@@ -279,7 +291,7 @@ async function getTopTechnologies(opts: {
   }
 
   picked.sort((a, b) => (b.job_count ?? 0) - (a.job_count ?? 0));
-  const out = picked.slice(0, limit);
+  const out = picked.slice(0, limit).map(normalizeTrendRow);
   log(ctx, "info", "top.out", {
     outLen: out.length,
     preview: preview(out, [
@@ -298,7 +310,7 @@ async function getRisingTechnologies(opts: {
   period: string;
   limit: number;
   ctx?: { rid: string };
-}) {
+}): Promise<SkillTrendV2Item[]> {
   const { region, period, limit, ctx } = opts;
   const base = await getTopTechnologies({
     region,
@@ -339,7 +351,9 @@ async function getTechnologyDetail(opts: {
   region: string;
   period: string;
   ctx?: { rid: string };
-}) {
+}): Promise<
+  Omit<TechnologyDetailResponse, "technology" | "region" | "period">
+> {
   const { tech, region, period, ctx } = opts;
 
   log(ctx, "debug", "detail.query.start", {
@@ -462,16 +476,33 @@ async function getTechnologyDetail(opts: {
     by_seniority_entries: by_seniority.length,
   });
 
+  const normalizedSummary = summary ? normalizeTrendRow(summary) : null;
+
   return {
-    summary,
-    by_work_mode,
-    by_seniority,
+    summary: normalizedSummary,
+    by_work_mode: by_work_mode.map((row) => ({
+      work_mode: row.work_mode as WorkMode,
+      seniority: row.seniority as Seniority,
+      job_count: row.job_count ?? 0,
+      salary_median: row.salary_median,
+      salary_p75: row.salary_p75,
+      salary_p95: row.salary_p95,
+      regional_share: row.regional_share,
+      global_share: row.global_share,
+    })),
+    by_seniority: by_seniority.map((row) => ({
+      level: row.level as Seniority,
+      job_count: row.job_count ?? 0,
+      salary_median: row.salary_median,
+    })),
     cooccurring_skills:
-      summary?.cooccurring_skills ?? mostCommon(rows, "cooccurring_skills", 10),
+      normalizedSummary?.cooccurring_skills ??
+      mostCommon(rows, "cooccurring_skills", 10),
     industry_distribution:
-      summary?.industry_distribution ??
+      normalizedSummary?.industry_distribution ??
       mostCommon(rows, "industry_distribution", 10),
-    top_titles: summary?.top_titles ?? mostCommon(rows, "top_titles", 5),
+    top_titles:
+      normalizedSummary?.top_titles ?? mostCommon(rows, "top_titles", 5),
   };
 }
 
@@ -553,7 +584,7 @@ async function getOverview(opts: {
   period: string;
   limit: number;
   ctx?: Ctx;
-}) {
+}): Promise<Omit<TrendsOverviewResponse, "region" | "period">> {
   const { region, period, limit, ctx } = opts;
 
   log(ctx, "debug", "overview.start", { region, period, limit });
@@ -572,6 +603,7 @@ async function getOverview(opts: {
   });
 
   const top = await getTopTechnologies({ region, period, limit, ctx });
+  const topItems = top.map(toTopTechnologiesItem);
 
   const remote_share_est = (() => {
     const allRow = top.find((x) => x.work_mode === "All");
@@ -581,7 +613,7 @@ async function getOverview(opts: {
   const out = {
     total_postings,
     remote_share: remote_share_est,
-    top_technologies: top,
+    top_technologies: topItems,
   };
 
   log(ctx, "info", "overview.out", {
@@ -597,3 +629,124 @@ async function getOverview(opts: {
 
   return out;
 }
+
+function normalizeTrendRow(row: Record<string, any>): SkillTrendV2Item {
+  const skillCanonical = String(row.skill_canonical ?? "").trim();
+  const region = String(row.region ?? "GLOBAL");
+  const seniority = (row.seniority ?? "Unknown") as Seniority;
+  const workMode = (row.work_mode ?? "All") as WorkMode;
+  const period = String(row.period ?? "") as Period;
+  const jobCount =
+    typeof row.job_count === "number"
+      ? row.job_count
+      : Number(row.job_count) || 0;
+
+  return {
+    skill_canonical: skillCanonical,
+    skill_display: String(row.skill_display ?? skillCanonical),
+    region,
+    seniority,
+    work_mode: workMode,
+    period,
+    region_seniority_mode_period:
+      row.region_seniority_mode_period ??
+      `${region}#${seniority}#${workMode}#${period}`,
+    period_skill: row.period_skill ?? `${period}#${skillCanonical}`,
+    job_count_desc:
+      row.job_count_desc ??
+      `${String(jobCount).padStart(6, "0")}#${skillCanonical}#${region}`,
+    job_count: jobCount,
+    salary_min: numberOrUndefined(row.salary_min),
+    salary_max: numberOrUndefined(row.salary_max),
+    salary_median: numberOrUndefined(row.salary_median),
+    salary_p75: numberOrUndefined(row.salary_p75),
+    salary_p95: numberOrUndefined(row.salary_p95),
+    regional_share: numberOrUndefined(row.regional_share),
+    global_share: numberOrUndefined(row.global_share),
+    remote_share: numberOrUndefined(row.remote_share),
+    cooccurring_skills: normalizeCountMap(row.cooccurring_skills),
+    industry_distribution: normalizeCountMap(row.industry_distribution),
+    top_titles: normalizeCountMap(row.top_titles),
+    job_count_change_pct: numberOrUndefined(row.job_count_change_pct),
+    median_salary_change_pct: numberOrUndefined(
+      row.median_salary_change_pct
+    ),
+    trend_signal: row.trend_signal,
+    dimension: row.dimension,
+  };
+}
+
+function toTopTechnologiesItem(row: SkillTrendV2Item): TopTechnologiesItem {
+  return {
+    skill_canonical: row.skill_canonical,
+    skill_display: row.skill_display,
+    region: row.region,
+    work_mode: row.work_mode,
+    period: row.period,
+    job_count: row.job_count,
+    regional_share: row.regional_share,
+    global_share: row.global_share,
+    salary_median: row.salary_median,
+    salary_p75: row.salary_p75,
+    salary_p95: row.salary_p95,
+    trend_signal: row.trend_signal,
+    remote_share: row.remote_share,
+    job_count_change_pct: row.job_count_change_pct,
+    cooccurring_skills: row.cooccurring_skills,
+    industry_distribution: row.industry_distribution,
+    top_titles: row.top_titles,
+  };
+}
+
+const numberOrUndefined = (value: unknown): number | undefined => {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : undefined;
+  }
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? undefined : parsed;
+  }
+  if (
+    value &&
+    typeof value === "object" &&
+    "N" in (value as Record<string, unknown>)
+  ) {
+    return numberOrUndefined((value as Record<string, unknown>).N);
+  }
+  return undefined;
+};
+
+const normalizeCountMap = (
+  value: unknown
+): Record<string, number> | undefined => {
+  if (!value) return undefined;
+  const out: Record<string, number> = {};
+
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      if (
+        entry &&
+        typeof entry === "object" &&
+        "key" in entry &&
+        "value" in entry
+      ) {
+        const key = String((entry as Record<string, unknown>).key ?? "").trim();
+        const num = numberOrUndefined(
+          (entry as Record<string, unknown>).value
+        );
+        if (key && num !== undefined) out[key] = num;
+      } else if (typeof entry === "string") {
+        out[entry] = (out[entry] ?? 0) + 1;
+      }
+    }
+  } else if (typeof value === "object") {
+    for (const [key, val] of Object.entries(
+      value as Record<string, unknown>
+    )) {
+      const num = numberOrUndefined(val);
+      if (key && num !== undefined) out[key] = num;
+    }
+  }
+
+  return Object.keys(out).length ? out : undefined;
+};

@@ -8,27 +8,19 @@ export type DynamoStringAttribute = {
 
 export type DynamoStringCollection = Array<string | DynamoStringAttribute>;
 
-export type DynamoJobPosting = {
-  jobId: string;
+export type DynamoJobPosting = BaseJobListing & {
   benefits?: DynamoStringCollection;
   company_name?: string | null;
   company_size?: string | null;
   job_board_source?: string | null;
   source_url?: string | null;
   industry?: string | DynamoStringCollection | null;
-  job_description?: string | null;
-  job_title?: string | null;
-  location?: string | null;
-  processed_date?: string | null;
   processed_day?: string | null;
   processed_week?: string | null;
-  remote_status?: string | null;
   requirements?: DynamoStringCollection;
   salary_mentioned?: boolean | string | null;
   salary_range?: string | null;
-  seniority_level?: string | null;
   skills?: DynamoStringCollection;
-  status?: string | null;
   technologies?: DynamoStringCollection;
   years_exp_req?: string | null;
   normalized?: boolean | "true" | "false" | null;
@@ -117,3 +109,4 @@ export type NormalizedJobEntities = {
   technologies: NewTechnologyRecord[];
   industries: NewIndustryRecord[];
 };
+import type { BaseJobListing } from "@job-market-analyzer/types";

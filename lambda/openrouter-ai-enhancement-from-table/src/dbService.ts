@@ -44,22 +44,46 @@ export function validateEnrichedData(
   data: any,
   fallbackJobId: string
 ): EnrichedJobData {
+  const fallbackTitle = data.job_title ?? data.title ?? "Unknown role";
+  const fallbackDescription =
+    typeof data.job_description === "string" && data.job_description.trim()
+      ? data.job_description
+      : data.description ?? "";
+  const fallbackLocation = data.location ?? data.locationRaw ?? "Unknown";
+  const remoteStatusValue = (() => {
+    const val =
+      typeof data.remote_status === "string" ? data.remote_status.trim() : "";
+    if (!val) return "not_specified";
+    return val;
+  })();
+
   const validated: EnrichedJobData = {
     jobId: typeof data.jobId === "string" ? data.jobId : fallbackJobId,
     job_title:
-      typeof data.job_title === "string" ? data.job_title.trim() : undefined,
+      typeof fallbackTitle === "string"
+        ? fallbackTitle.trim() || "Unknown role"
+        : "Unknown role",
     job_description:
-      typeof data.job_description === "string"
-        ? data.job_description.trim()
-        : undefined,
+      typeof fallbackDescription === "string"
+        ? fallbackDescription.trim() || "Description unavailable"
+        : "Description unavailable",
     technologies: Array.isArray(data.technologies)
-      ? data.technologies.filter((t: any) => typeof t === "string" && t.trim())
+      ? data.technologies
+          .filter((t: unknown): t is string => typeof t === "string")
+          .map((t) => t.trim())
+          .filter(Boolean)
       : [],
     skills: Array.isArray(data.skills)
-      ? data.skills.filter((s: any) => typeof s === "string" && s.trim())
+      ? data.skills
+          .filter((s: unknown): s is string => typeof s === "string")
+          .map((s) => s.trim())
+          .filter(Boolean)
       : [],
     requirements: Array.isArray(data.requirements)
-      ? data.requirements.filter((r: any) => typeof r === "string" && r.trim())
+      ? data.requirements
+          .filter((r: unknown): r is string => typeof r === "string")
+          .map((r) => r.trim())
+          .filter(Boolean)
       : [],
     years_exp_req:
       typeof data.years_exp_req === "string"
@@ -73,8 +97,9 @@ export function validateEnrichedData(
     )
       ? data.seniority_level
       : "Mid",
-    location:
-      typeof data.location === "string" ? data.location.trim() : undefined,
+    location: typeof fallbackLocation === "string"
+      ? fallbackLocation.trim() || "Unknown"
+      : "Unknown",
     company_name:
       typeof data.company_name === "string"
         ? data.company_name.trim()
@@ -84,11 +109,7 @@ export function validateEnrichedData(
       typeof data.salary_range === "string"
         ? data.salary_range.trim()
         : undefined,
-    remote_status: ["Remote", "Hybrid", "On-site", "Not specified"].includes(
-      data.remote_status
-    )
-      ? data.remote_status
-      : "Not specified",
+    remote_status: remoteStatusValue,
     benefits: Array.isArray(data.benefits)
       ? data.benefits.filter((b: any) => typeof b === "string" && b.trim())
       : [],
