@@ -123,7 +123,7 @@ export default function TechBadgeSvgr({
             )}
 
             {!hideLabel && (
-                <small className="text-black tech-icon-svg-label">
+                <small className={`${className} text-black tech-icon-svg-label`}>
                     {label.length < 4
                         ? label.toUpperCase()
                         : shouldColumnize
