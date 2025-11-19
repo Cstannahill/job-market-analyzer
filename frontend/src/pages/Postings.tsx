@@ -9,9 +9,9 @@ const Postings: React.FC = () => {
     return (
         <Layout>
             <Seo
-                title="Job Postings — Job Market Analyzer"
+                title="Job Postings – Job Market Analyzer"
                 description="Explore the latest job postings and trends in the job market."
-                path="/postings"
+                path="postings"
                 image="/public/og/postings.avif"
             />
             {/* <SectionCard title="Job Postings"> */}

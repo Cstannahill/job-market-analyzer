@@ -10,7 +10,29 @@ import React from 'react';
  * Note: do not modify this constant here — change the environment variable
  * or Vite config when deploying to a different origin.
  */
-const BASE_URL = import.meta.env.FRONTEND_URL;
+const ENV_BASE_URL =
+    import.meta.env.VITE_FRONTEND_URL ??
+    import.meta.env.FRONTEND_URL ??
+    '';
+
+const BASE_URL =
+    ENV_BASE_URL ||
+    (typeof window !== 'undefined' && window.location?.origin
+        ? window.location.origin
+        : '');
+
+const sanitizePath = (value?: string) => {
+    if (value == null) return '';
+    return String(value).replace(/^\/+/, '');
+};
+
+const buildAbsoluteUrl = (path?: string) => {
+    if (!BASE_URL) return null;
+    const trimmedBase = BASE_URL.replace(/\/+$/, '');
+    const cleanPath = sanitizePath(path);
+    if (!cleanPath) return trimmedBase;
+    return `${trimmedBase}/${cleanPath}`;
+};
 
 /**
  * Props for the `Seo` component.
@@ -104,17 +126,19 @@ const Seo: React.FC<SeoProps> = ({
     noindex = false,
     children,
 }) => {
+    const canonicalUrl = buildAbsoluteUrl(path);
+
     return (
         <>
             <title>{title}</title>
             {description && <meta name="description" content={description} />}
-            {path && <link rel="canonical" href={`${BASE_URL}/${path}`} />}
+            {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
 
             {/* Open Graph */}
             <meta property="og:type" content={type} />
             <meta property="og:title" content={title} />
             {description && <meta property="og:description" content={description} />}
-            {path && <meta property="og:url" content={`${BASE_URL}/${path}`} />}
+            {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
             {image && <meta property="og:image" content={image} />}
 
             {/* Twitter */}

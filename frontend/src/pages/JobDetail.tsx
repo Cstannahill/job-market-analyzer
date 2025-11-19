@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { MetaPillContainer } from '@/components/postings/MetaPillContainer';
 import { cn } from '@/lib/utils';
 import { Layout } from '@/components/Layout';
+import Seo from '@/components/Seo';
 import CompanyBadgeSvgr from '@/components/postings/CompanyBadgeSvgr';
 import TechBadgeSvgr from '@/components/postings/TechBadgeSvgr';
 import { hasTechIcon } from '@/lib/utils/techBadgeHelpers';
@@ -93,9 +94,22 @@ const JobPostingDetail: React.FC = () => {
     );
 
     const techsWithIcons = posting.technologies?.filter(hasTechIcon) || [];
+    const metaDescriptionSource =
+        posting.job_description?.replace(/\s+/g, ' ').trim() ??
+        '';
+    const metaDescription =
+        metaDescriptionSource.length > 0
+            ? metaDescriptionSource.slice(0, 155)
+            : `Explore responsibilities, compensation, and requirements for ${posting.job_title} at ${posting.company_name}.`;
 
     return (
         <Layout>
+            <Seo
+                title={`${posting.job_title} at ${posting.company_name} – Job Market Analyzer`}
+                description={metaDescription}
+                path={`postings/${posting.jobId}`}
+                image="/public/og/postings.avif"
+            />
             <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-10 text-white sm:px-6 lg:px-12">
                 <div className="flex items-center justify-between">
                     <Button

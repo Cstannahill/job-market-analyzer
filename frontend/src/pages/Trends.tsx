@@ -71,9 +71,9 @@ export default function Trends() {
     return (
         <Layout>
             <Seo
-                title="Trends — Job Market Analyzer"
+                title="Trends - Job Market Analyzer"
                 description="Explore the latest trends in job skills and technologies."
-                path="/trends"
+                path="trends"
                 image="/public/og/trends.avif"
             />
             <SectionCard title="Trends">

@@ -185,7 +185,7 @@ export default function VerifyEmail() {
                 <Seo
                     title="Email Verified — Job Market Analyzer"
                     description="Your email has been successfully verified."
-                    path="/verify-email"
+                    path="verify-email"
                 />
                 <div className="flex min-h-screen items-center justify-center p-6">
                     <div className="w-full max-w-md text-center">
@@ -221,7 +221,7 @@ export default function VerifyEmail() {
             <Seo
                 title="Verify Email — Job Market Analyzer"
                 description="Verify your email address to complete registration."
-                path="/verify-email"
+                path="verify-email"
                 image="/public/og/verify.avif"
             />
             <div className="grid min-h-svh lg:grid-cols-2">

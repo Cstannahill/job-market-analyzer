@@ -9,9 +9,9 @@ const TopTech: React.FC = () => {
     return (
         <Layout>
             <Seo
-                title="Top Tech — Job Market Analyzer"
+                title="Top Tech – Job Market Analyzer"
                 description="Discover the top technologies shaping the job market."
-                path="/top-tech"
+                path="top-tech"
                 image="/public/og/top-tech.avif"
             />
             {/* <SectionCard title="Top Tech"> */}
