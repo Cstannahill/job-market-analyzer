@@ -5,6 +5,7 @@ import {
   GetCommand,
   ScanCommand,
 } from "@aws-sdk/lib-dynamodb";
+import type { JobStats } from "@job-market-analyzer/types";
 
 const SKILLS_TABLE = "job-postings-skills";
 const TECHNOLOGIES_TABLE = "job-postings-technologies";
@@ -15,15 +16,7 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 interface SkillCounts {}
 interface TechnologyCounts {}
-interface JobPostingStats {
-  id: string;
-  skillCounts: SkillCounts;
-  technologyCounts: TechnologyCounts;
-  totalPostings: number;
-  totalSkills: number;
-  totalTechnologies: number;
-  updatedAt: string;
-}
+type JobPostingStats = JobStats & { id: string };
 
 /**
  * Lambda handler for API Gateway

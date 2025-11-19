@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { Mail, FileText, CalendarClock, MapPin, FileType, Award, ChevronRight } from "lucide-react";
-import type { ResumeRecord } from "@/shared-types";
+import type { ResumeRecord } from "@job-market-analyzer/types";
 import Bullet from "@/assets/lists/24.svg";
 
 // --- small helpers ---

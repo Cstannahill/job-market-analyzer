@@ -7,7 +7,7 @@
 // } from '@tanstack/react-query';
 // import { getJobPostingsPage } from '@/services/jobPostingsService';
 // import { getJobPostingsStats } from '@/services/jobStatsService';
-// import type { BaseJobListing, JobStats } from '@/shared-types';
+// import type { BaseJobListing, JobStats } from '@job-market-analyzer/types';
 // import { JobPostingCard } from '@/components/postings/JobPostingCard';
 // // import { JobPostingsControls } from '@/components/postings/JobPostingsControls';
 // import { Spinner } from '@/components/ui/spinner';

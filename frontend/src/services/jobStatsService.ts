@@ -4,19 +4,13 @@ import type {
   JobStats,
   SkillStatItem,
   TechnologyStatItem,
-} from "@/shared-types";
+} from "@job-market-analyzer/types";
 const API_URL = import.meta.env.VITE_API_URL || "";
 export const getJobPostingsStats = async (): Promise<JobStats> => {
   try {
     const response = await axios.get(`${API_URL}/job-stats`);
 
-    let payload = {};
-
-    try {
-      payload = response.data.stats;
-    } catch (error) {
-      console.error("Failed to parse response data:", error);
-    }
+    let payload: unknown = response.data?.stats ?? response.data;
 
     // Unwrap Lambda proxy responses (statusCode/body)
     if (typeof payload === "object" && payload !== null) {
@@ -43,6 +37,18 @@ export const getJobPostingsStats = async (): Promise<JobStats> => {
       } catch {
         // leave as-is if not parseable
       }
+    }
+
+    if (
+      payload &&
+      typeof payload === "object" &&
+      "data" in (payload as Record<string, unknown>) &&
+      typeof (payload as Record<string, unknown>).data === "object"
+    ) {
+      payload = (payload as Record<string, unknown>).data as Record<
+        string,
+        unknown
+      >;
     }
 
     const p = (payload as Record<string, unknown>) || {};

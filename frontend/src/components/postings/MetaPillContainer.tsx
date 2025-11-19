@@ -1,7 +1,7 @@
 
 import { Wifi } from 'lucide-react';
 import { getCompanySizeBadgeColor, getIndustryBadgeColor } from '@/lib/postingsBadgeHelpers';
-import type { BaseJobListing } from '@/shared-types';
+import type { BaseJobListing } from '@job-market-analyzer/types';
 import { toProperCase } from '@/lib/stringHelpers';
 
 type MetaPillContainerProps = {

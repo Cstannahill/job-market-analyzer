@@ -1,5 +1,5 @@
 // src/features/trends-v2/TechCard.tsx
-import type { TopTechnologiesItem } from '@/shared-types/src/trendsv2';
+import type { TopTechnologiesItem } from '@job-market-analyzer/types/trendsv2';
 
 export default function TechCard({ item, onClick, selected }: {
     item: TopTechnologiesItem; onClick?: () => void; selected?: boolean;

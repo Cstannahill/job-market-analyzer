@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getUserResumes } from "@/services/resumeService";
 import { useAuthUser } from "@/stores/authStore";
-import type { GetUserResumesResponse, ResumeRecord } from "@/shared-types";
+import type { GetUserResumesResponse, ResumeRecord } from "@job-market-analyzer/types";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";

@@ -11,7 +11,8 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.902.0",
     "@aws-sdk/client-s3": "^3.901.0",
-    "@aws-sdk/lib-dynamodb": "^3.902.0"
+    "@aws-sdk/lib-dynamodb": "^3.902.0",
+    "@job-market-analyzer/types": "file:../../packages/shared-types"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.155",

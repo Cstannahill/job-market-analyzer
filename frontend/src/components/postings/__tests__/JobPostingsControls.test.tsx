@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, beforeEach, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { JobPostingsControls, type JobPostingsFilters } from '@/components/postings/JobPostingsControls';
-import type { TechnologyStatItem } from '@/shared-types';
+import type { TechnologyStatItem } from '@job-market-analyzer/types';
 
 vi.mock('@/components/postings/TechSearchCombobox', () => ({
   TechSearchCombobox: ({ onCommit }: { onCommit: (value: { tech: string | null }) => void }) => (

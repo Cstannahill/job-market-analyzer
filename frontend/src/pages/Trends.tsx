@@ -4,7 +4,7 @@ import { Layout } from '../components/Layout';
 import { Spinner } from '../components/ui/spinner';
 import { Card, CardContent, CardHeader } from '../components/ui/card';
 import { fetchTop, fetchSkill } from '../services/trendsService';
-import type { SkillTrend } from '@/shared-types';
+import type { SkillTrend } from '@job-market-analyzer/types';
 import SkillList from '../components/trends/SkillList';
 import SkillDetailPanel from '../components/trends/SkillDetailPanel';
 import SectionCard from '@/components/about/SectionCard';

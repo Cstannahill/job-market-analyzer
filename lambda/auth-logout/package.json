@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsup",
+    "zip": "tsup && rm -rf package-lock.json node_modules && npm install --omit=dev && node ../../zip.js . && npm install",
     "package": "npm run build && cd dist && zip -r ../lambda.zip .",
     "clean": "rm -rf dist lambda.zip"
   },

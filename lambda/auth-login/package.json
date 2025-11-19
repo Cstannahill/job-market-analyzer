@@ -5,13 +5,15 @@
   "main": "index.js",
   "scripts": {
     "build": "tsup",
+    "zip": "tsup && rm -rf package-lock.json node_modules && npm install --omit=dev && node ../../zip.js . && npm install",
     "package": "npm run build && cd dist && zip -r ../lambda.zip .",
     "clean": "rm -rf dist lambda.zip"
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.913.0",
     "@aws-sdk/client-dynamodb": "^3.913.0",
-    "@aws-sdk/lib-dynamodb": "^3.913.0"
+    "@aws-sdk/lib-dynamodb": "^3.913.0",
+    "@job-market-analyzer/types": "file:../../packages/shared-types"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.156",

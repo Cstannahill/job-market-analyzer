@@ -1,5 +1,3 @@
-// resume-record.ts
-
 /** ---------- Common enums & aliases ---------- */
 export type IsoDateString = string; // e.g., "2025-11-07T19:42:34.693Z"
 
@@ -20,7 +18,7 @@ export interface ResumeRecord {
   uploadInitiatedAt: IsoDateString;
   uploadedAt: IsoDateString;
   updatedAt: IsoDateString;
-  contentType: string; // e.g. "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  contentType: ContentType | string; // e.g. "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
   originalFileName: string;
   contactInfo: ContactInfo;
   education: ResumeEducationItem[];
@@ -159,19 +157,13 @@ export interface TechnicalSkill {
   kind?: "technical"; // optional discriminator; safe if you later merge lists
   name: string;
   level: SkillLevel;
-  evidenceLine: string;
+  evidenceLine?: string;
 }
 
 export interface SoftSkill {
   kind?: "soft"; // optional discriminator
   name: string;
-  evidenceLine: string;
-}
-
-export interface TopRole {
-  title: string;
-  why: string;
-  fitScore: number; // 0..100
+  evidenceLine?: string;
 }
 
 export interface Achievement {
@@ -236,17 +228,16 @@ export interface RecommendedStack {
 
 export interface TopRole {
   title: string;
-  level: string; // NEW: "Junior", "Mid", "Senior", "Lead"
   why: string;
   fitScore: number;
-  salaryRange: {
-    // NEW
-    median: number;
-    p75: number;
+  level?: string;
+  salaryRange?: {
+    median?: number;
+    p75?: number;
   };
-  jobCount: number; // NEW
-  requiredSkills: string[]; // NEW
-  niceToHave: string[]; // NEW
+  jobCount?: number;
+  requiredSkills?: string[];
+  niceToHave?: string[];
 }
 
 interface MarketAlignment {
@@ -273,7 +264,7 @@ export function parseUserIdFromPK(pk: string): string | null {
   return i >= 0 ? pk.slice(i + 1) : null;
 }
 
-export function normalizeContentType(contentType: string) {
+export function normalizeContentType(contentType: string): ContentType | "Unknown" {
   return contentType === "application/pdf"
     ? "PDF"
     : contentType ===
@@ -281,11 +272,11 @@ export function normalizeContentType(contentType: string) {
     ? "DOCX"
     : "Unknown";
 }
-export function mapResumeData(resumes: ResumeRecord[]) {
-  const normalizedResumes = resumes.map(
-    (d) => (d.contentType = normalizeContentType(d.contentType))
-  );
-  return normalizedResumes;
+export function mapResumeData(resumes: ResumeRecord[]): ResumeRecord[] {
+  return resumes.map((record) => ({
+    ...record,
+    contentType: normalizeContentType(record.contentType),
+  }));
 }
 /** Narrowers if you later store mixed skill arrays */
 export const isTechnical = (

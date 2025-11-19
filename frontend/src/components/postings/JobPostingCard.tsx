@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import type { BaseJobListing } from '@/shared-types';
+import type { BaseJobListing } from '@job-market-analyzer/types';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { toProperCase } from '@/lib/stringHelpers';
@@ -24,8 +24,10 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
         return monthDay;
     };
 
-
-    const techsWithIcons = posting.technologies.filter(hasTechIcon);
+    const technologies = posting.technologies ?? [];
+    const skills = posting.skills ?? [];
+    const companyName = posting.company_name ?? "Unknown company";
+    const techsWithIcons = technologies.filter(hasTechIcon);
 
     return (
         <Link
@@ -38,7 +40,7 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
                 <CardHeader style={{ padding: "0.25rem", margin: "0rem .25rem" }} className="job-card-header">
                     <div className="flex flex-row justify-around">
                         {/* <Badge className="company-badge col-6" aria-hidden> */}
-                        <CompanyBadgeSvgr name={posting.company_name.toLowerCase()} roundStyle="md" size={50} />
+                        <CompanyBadgeSvgr name={companyName.toLowerCase()} roundStyle="md" size={50} />
                         {/* </Badge> */}
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                             <p className="job-title">{posting.job_title.toProperCase()}</p>
@@ -93,14 +95,14 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
                             )}
                         </div>
 
-                        {posting.skills.length > 0 && (
+                        {skills.length > 0 && (
                             <div className="job-section">
 
                                 <div className=" flex flex-col justify-center tag-skills-section">
                                     <div className="flex flex-row items-center mb-1 tag-container-skills-row">
 
 
-                                        {posting.skills.slice(0, 2).map((skill, index) => (
+                                        {skills.slice(0, 2).map((skill, index) => (
                                             <TooltipProvider key={`${posting.jobId}-${skill}`} delayDuration={100}>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
@@ -116,7 +118,7 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
                                         ))}
                                     </div>
                                     <div className="flex flex-row items-center mb-1 tag-container-skills-row">
-                                        {posting.skills.length > 2 && posting.skills.slice(2, 5).map((skill, index) => (
+                                        {skills.length > 2 && skills.slice(2, 5).map((skill, index) => (
                                             <TooltipProvider key={`${posting.jobId}-${skill}`} delayDuration={100}>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>

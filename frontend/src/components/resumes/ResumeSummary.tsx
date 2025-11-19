@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import type { Insights } from "@/shared-types/src/resume";
+import type { Insights } from "@job-market-analyzer/types/resume";
 
 export const ResumeSummary = (insights: Insights) => {
     return (

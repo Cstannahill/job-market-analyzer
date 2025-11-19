@@ -4,6 +4,7 @@ import {
   ResendConfirmationCodeCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import type { EmailVerificationRequest } from "@job-market-analyzer/types/auth";
 
 /**
  * Email Verification Lambda
@@ -33,12 +34,6 @@ import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 const client = new CognitoIdentityProviderClient({});
 
 const CLIENT_ID = process.env.COGNITO_CLIENT_ID!;
-
-interface VerifyRequest {
-  email: string;
-  code: string;
-  action: "verify" | "resend";
-}
 
 interface ErrorResponse {
   error: string;
@@ -75,7 +70,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       };
     }
 
-    const body: VerifyRequest = JSON.parse(event.body);
+    const body: EmailVerificationRequest = JSON.parse(event.body);
 
     // Validate required fields
     if (!body.email || !body.action) {
@@ -134,7 +129,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
  * - Clear, actionable error messages for legitimate users
  */
 async function handleVerify(
-  body: VerifyRequest,
+  body: EmailVerificationRequest,
   headers: Record<string, string>
 ): Promise<any> {
   if (!body.code) {
@@ -238,7 +233,7 @@ async function handleVerify(
  * - Log resend attempts for abuse monitoring
  */
 async function handleResend(
-  body: VerifyRequest,
+  body: EmailVerificationRequest,
   headers: Record<string, string>
 ): Promise<any> {
   try {

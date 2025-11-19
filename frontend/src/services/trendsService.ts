@@ -5,7 +5,7 @@ import type {
   LambdaProxy,
   CommonPayload,
   ApiResponse,
-} from "@/shared-types";
+} from "@job-market-analyzer/types";
 
 const API_URL = import.meta.env.VITE_API_URL;
 

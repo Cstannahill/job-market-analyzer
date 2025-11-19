@@ -1,6 +1,6 @@
 // src/features/trends-v2/FiltersBar.tsx
 import { useState } from 'react';
-import type { Region, Period } from '@/shared-types/src/trendsv2';
+import type { Region, Period } from '@job-market-analyzer/types/trendsv2';
 
 type Props = {
     region: Region; period: Period;

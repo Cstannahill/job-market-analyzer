@@ -7,7 +7,7 @@ import {
   YAxis,
   Tooltip as ReTooltip,
 } from "recharts";
-import type { TechnologyDetailResponse } from "@/shared-types/src/trendsv2";
+import type { TechnologyDetailResponse } from "@job-market-analyzer/types/trendsv2";
 import { H2 } from "@/components/ui/typography";
 
 interface CoTech {

@@ -5,11 +5,13 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build": "tsup"
+    "build": "tsup",
+    "zip": "tsup && rm -rf package-lock.json node_modules && npm install --omit=dev && node ../../zip.js . && npm install"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.902.0",
-    "@aws-sdk/lib-dynamodb": "^3.902.0"
+    "@aws-sdk/lib-dynamodb": "^3.902.0",
+    "@job-market-analyzer/types": "file:../../packages/shared-types"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.155",

@@ -1,6 +1,6 @@
 import React, { type CSSProperties } from 'react';
 import { useLocation, useNavigate, useParams, Link } from 'react-router-dom';
-import type { BaseJobListing } from '@/shared-types';
+import type { BaseJobListing } from '@job-market-analyzer/types';
 import { ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -72,6 +72,8 @@ const JobPostingDetail: React.FC = () => {
         );
     }
 
+    const companyName = posting.company_name ?? "Unknown company";
+
     const sourceLink =
         posting.source_url && posting.source_url.trim() !== '' ? (
             <a
@@ -115,7 +117,7 @@ const JobPostingDetail: React.FC = () => {
                             </div>
 
                             <div style={{ padding: ".5rem 1rem", margin: "1rem 0" }} className="flex flex-wrap items-center gap-3 text-sm text-white/80">
-                                <span>{posting.company_name.toProperCase()}</span>
+                                <span>{companyName.toProperCase()}</span>
                                 <span className="text-white/40">·</span>
                                 <span>{posting.location || 'Location unknown'}</span>
                                 <span className="text-white/40">·</span>

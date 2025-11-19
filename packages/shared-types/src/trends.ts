@@ -7,11 +7,11 @@ export interface SkillTrend {
   seniority: string;
   type?: string;
   count: number;
-  relativeDemand: number;
-  remotePercentage: number;
+  relativeDemand?: number;
+  remotePercentage?: number;
   avgSalary?: number | null;
   lastUpdated?: string;
-  associatedRoles: string[];
-  cooccurringSkills: Record<string, number>;
-  topIndustries: string[];
+  associatedRoles?: string[];
+  cooccurringSkills?: Record<string, number>;
+  topIndustries?: string[];
 }

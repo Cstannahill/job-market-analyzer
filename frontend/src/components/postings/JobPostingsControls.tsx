@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import type { TechnologyStatItem } from '@/shared-types';
+import type { TechnologyStatItem } from '@job-market-analyzer/types';
 import {
     Select,
     SelectTrigger,

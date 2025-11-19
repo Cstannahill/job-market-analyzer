@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { type SkillTrend } from '@/shared-types';
+import { type SkillTrend } from '@job-market-analyzer/types';
 import { Card, CardContent } from '../ui/card';
 import {
     ResponsiveContainer,
