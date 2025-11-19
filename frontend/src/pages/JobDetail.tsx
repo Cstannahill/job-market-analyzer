@@ -107,7 +107,7 @@ const JobPostingDetail: React.FC = () => {
     return (
         <Layout>
             <Seo
-                title={`${posting.job_title} at ${companyName} – Job Market Analyzer`}
+                title={`${posting.job_title} at ${companyName} ï¿½ Job Market Analyzer`}
                 description={metaDescription}
                 path={`postings/${posting.jobId}`}
                 image="/public/og/postings.avif"
@@ -151,8 +151,8 @@ const JobPostingDetail: React.FC = () => {
                                             </h1>
 
                                         </div>
-                                        <div className="grid grid-cols-2 lg:grid-cols-7 justify-end">
-                                            <div className='col-start-2 lg:col-start-7'>
+                                        <div className="flex">
+                                            <div className='justify-end'>
                                                 <MetaPillContainer posting={posting} date={formatDate(posting.processed_date)} />
                                             </div>
                                         </div>
