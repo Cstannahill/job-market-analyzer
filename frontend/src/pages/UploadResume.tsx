@@ -7,9 +7,9 @@ const UploadResume: React.FC = () => {
     return (
         <Layout>
             <Seo
-                title="Upload Resume — Job Market Analyzer"
+                title="Upload Resume – Job Market Analyzer"
                 description="Upload your resume to analyze skills and compare with market trends."
-                path="/upload-resume"
+                path="resumes/upload"
                 image="/public/og/td.svg"
             />
             <h1>Upload Resume</h1>

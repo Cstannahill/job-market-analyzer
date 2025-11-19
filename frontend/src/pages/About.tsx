@@ -15,9 +15,9 @@ const About: React.FC = () => {
     return (
         <Layout>
             <Seo
-                title="About — Job Market Analyzer"
-                description="Learn how Job Market Analyzer collects, processes and exposes job-skill trend data."
-                path="/about"
+                title="About – Job Market Analyzer"
+                description="Learn how Job Market Analyzer collects, processes, and exposes job-skill trend data."
+                path="about"
                 image="/public/og/about.avif"
             />
             {/* Hero Section */}

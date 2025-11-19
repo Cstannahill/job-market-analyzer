@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { TrendsLayout } from '@/components/TrendsLayout';
 import { toWeek } from '@/lib/utils/dateUtils';
 import useIsMobile from '@/hooks/useIsMobile';
+import Seo from '@/components/Seo';
 
 
 const today = new Date();
@@ -83,6 +84,12 @@ export default function TrendsV2Page() {
     if (loading) {
         return (
             <TrendsLayout>
+                <Seo
+                    title="Technology Trends – Job Market Analyzer"
+                    description="Track rising technologies and regional demand signals across the job market."
+                    path="trends"
+                    image="/public/og/trends.avif"
+                />
                 <div className="flex flex-col items-center justify-center h-screen gap-4">
                     <Spinner className="size-8" />
                     <p className="text-slate-400">Loading Technology Trends...</p>
@@ -103,6 +110,12 @@ export default function TrendsV2Page() {
             sidebarContent={sidebarContent}
             sidebarTitle="Top Technologies"
         >
+            <Seo
+                title="Technology Trends – Job Market Analyzer"
+                description="Discover top and rising technologies along with demand, salaries, and co-occurring skill insights."
+                path="trends"
+                image="/public/og/trends.avif"
+            />
             <div className='container'>
                 {/* Filters - Full width */}
                 <div className="sticky top-20 sm:top-0 z-20 border-b border-white/5 bg-slate-900/40 backdrop-blur">
