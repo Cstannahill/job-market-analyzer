@@ -1,8 +1,7 @@
-import { StrictMode } from 'react';
+import { StrictMode, Suspense, lazy, type ComponentType } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import App from './App';
 import './index.css';
@@ -121,6 +120,21 @@ const queryClient = new QueryClient({
   },
 });
 
+type DevtoolsProps = {
+  initialIsOpen?: boolean;
+};
+
+const NoopDevtools: ComponentType<DevtoolsProps> = () => null;
+
+const ReactQueryDevtoolsLazy: ComponentType<DevtoolsProps> =
+  import.meta.env.DEV
+    ? lazy(() =>
+        import('@tanstack/react-query-devtools').then((module) => ({
+          default: module.ReactQueryDevtools,
+        })),
+      )
+    : NoopDevtools;
+
 /**
  * Root Render
  * 
@@ -168,15 +182,12 @@ createRoot(document.getElementById('root')!).render(
         </BrowserRouter>
       </ThemeProvider>
 
-      {/* React Query Devtools */}
-      {/* 
-        Only in development
-        - Inspect cache state
-        - Debug query lifecycle
-        - Manual cache manipulation
-        - Zero production bundle impact
-      */}
-      <ReactQueryDevtools initialIsOpen={false} />
+      {/* React Query Devtools (development only) */}
+      {import.meta.env.DEV && (
+        <Suspense fallback={null}>
+          <ReactQueryDevtoolsLazy initialIsOpen={false} />
+        </Suspense>
+      )}
     </QueryClientProvider>
   </StrictMode>
 );

@@ -169,7 +169,7 @@ export default function TechDetailPanel({
             Top Co-occurring
           </h5>
           <div className="h-[500px] lg:h-[90%]">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <BarChart
                 data={displayCo.slice(0, 10)}
                 layout="vertical"

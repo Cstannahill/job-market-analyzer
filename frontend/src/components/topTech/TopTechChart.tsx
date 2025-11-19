@@ -23,7 +23,7 @@ const TopTechChart: React.FC = () => {
         gcTime: 1000 * 60 * 30, // 30 minutes
         retry: 1,
     });
-    console.log('Job Postings Stats:', stats);
+    // console.log('Job Postings Stats:', stats);
     // const totalPostings = stats?.totalPostings || 0;
     // const totalTechnologies = stats?.totalTechnologies || 0;
     // const totalSkills = stats?.totalSkills || 0;
