@@ -96,7 +96,7 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
                         {posting.skills.length > 0 && (
                             <div className="job-section">
 
-                                <div className=" flex flex-col justify-center">
+                                <div className=" flex flex-col justify-center tag-skills-section">
                                     <div className="flex flex-row items-center mb-1 tag-container-skills-row">
 
 
@@ -121,7 +121,7 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <Badge key={index} className="tag tag-skill" variant="secondary">
-                                                            {toProperCase(skill).slice(0, 20)}
+                                                            {skill.length > 14 ? `${toProperCase(skill).slice(0, 14)}..` : toProperCase(skill)}
                                                         </Badge>
                                                     </TooltipTrigger>
                                                     <TooltipContent className="max-w-xs bg-stone-200">
