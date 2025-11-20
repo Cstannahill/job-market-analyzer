@@ -27,13 +27,13 @@ export default function FiltersBar({ region, period, weeks, onChange }: Props) {
             value={period ?? ""}
             onValueChange={(v) => onChange({ region, period: v as Period })}
         >
-            <SelectTrigger style={{ padding: "0 .5rem" }} className="w-[180px]" aria-label="Select time period">
+            <SelectTrigger style={{ padding: "0 .5rem" }} className="w-[180px] bg-card" aria-label="Select time period">
                 <SelectValue />
             </SelectTrigger>
             <SelectContent >
                 <SelectGroup>
                     <SelectLabel style={{ padding: "0 .5rem", margin: ".25rem .5rem" }}>Time Period</SelectLabel>
-                    {weeks && weeks.map(wk => <SelectItem style={{ padding: "0 .5rem", margin: ".25rem 0rem" }} value={wk ?? " "}>{wk}</SelectItem>)}
+                    {weeks && weeks.map(wk => <SelectItem key={wk} style={{ padding: "0 .5rem", margin: ".25rem 0rem" }} value={wk ?? " "}>{wk}</SelectItem>)}
                 </SelectGroup>
             </SelectContent>
         </Select>

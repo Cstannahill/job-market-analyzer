@@ -3,6 +3,7 @@ import { Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { useAuthInitialization } from '@/hooks/useAuthInitialization';
 import { useAuthInitialized } from '@/stores/authStore';
 import { ProtectedRoute } from '@/components/shared/ProtectedRoute';
+import ForgotPassword from '@/pages/ForgotPassword';
 
 // Lazy-loaded pages (route-level code splitting)
 const Home = lazy(() => import('@/pages/Home'));
@@ -114,6 +115,7 @@ function App() {
                 {/* ==================== AUTH ROUTES ==================== */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/verify-email" element={<VerifyEmail />} />
 
                 {/* ==================== PROTECTED ROUTES ==================== */}
@@ -128,7 +130,7 @@ function App() {
                     path="/resumes"
                     element={
                         <ProtectedRoute>
-                            <Outlet /> {/* renders <Outlet/> inside */}
+                            <Outlet />
                         </ProtectedRoute>
                     }
                 >

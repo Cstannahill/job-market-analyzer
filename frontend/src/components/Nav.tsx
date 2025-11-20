@@ -39,17 +39,17 @@ export const Nav: React.FC = () => {
             <div className="hidden md:flex mx-3 text-functional space-x-4">
                 <ul className="flex items-center list-none m-0 p-0 space-x-3">
                     {NavLinks.map((l) => (
-
-                        <NavLink
-                            key={l.to}
-                            to={l.to}
-                            end={l.to === '/'}
-                            className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
-                        >
-                            {l.icon}
-                            {l.label}
-                        </NavLink>
-
+                        <li key={l.to}>
+                            <NavLink
+                                key={l.to}
+                                to={l.to}
+                                end={l.to === '/'}
+                                className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
+                            >
+                                {l.icon}
+                                {l.label}
+                            </NavLink>
+                        </li>
 
 
                     ))}

@@ -7,6 +7,8 @@ import {
     SelectValue,
     SelectContent,
     SelectItem,
+    SelectLabel,
+    SelectGroup,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TechSearchCombobox, type TechSearchValue } from '@/components/postings/TechSearchCombobox';
@@ -133,7 +135,7 @@ export const JobPostingsControls: React.FC<JobPostingsControlsProps> = ({
     );
 
     const PaginationControls = (
-        <div className="lg:grid lg:grid-cols-3 sm:flex-row items-center gap-3 py-3 pagination-container justify-center">
+        <div className="lg:grid lg:grid-cols-3 flex flex-col items-center gap-3 py-3 pagination-container justify-center">
             {/* Navigation controls - centered */}
             <div className="flex items-center gap-3 justify-center lg:col-start-2">
                 <Button
@@ -150,8 +152,9 @@ export const JobPostingsControls: React.FC<JobPostingsControlsProps> = ({
                     aria-live="polite"
                 >
                     <span className="sr-only">Current page:</span>
-                    {`Page ${pageIndex} `}
-                    {totalPages ? <span className="text-xs ml-2">{` of ${totalPages}`}</span> : null}
+                    <p style={{ margin: "auto 0" }} className="align-middle items-center">
+                        {`Page ${pageIndex} `}
+                        {totalPages ? <span className="text-xs ml-2">{` of ${totalPages}`}</span> : null}</p>
                 </div>
 
                 <Button
@@ -166,27 +169,30 @@ export const JobPostingsControls: React.FC<JobPostingsControlsProps> = ({
 
             {/* Page size controls - centered below on mobile, beside on desktop */}
             <div className="flex items-center gap-3 lg:col-start-3">
-                <div className="text-sm text-white/60 whitespace-nowrap">Results per page</div>
+                <SelectGroup className="inline-flex items-center gap-2">
+                    <SelectLabel className="text-sm text-foreground whitespace-nowrap">Results per page</SelectLabel>
 
-                <Select
-                    value={String(pageSize)}
-                    onValueChange={(v) => onPageSizeChange(Number(v))}
-                >
-                    <SelectTrigger
-                        style={{ padding: "0 0 0 1rem" }}
-                        className="w-20 rounded-md text-sm font-medium bg-transparent border border-white/10 px-3 py-1 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400/20"
+                    <Select
+                        value={String(pageSize)}
+                        onValueChange={(v) => onPageSizeChange(Number(v))}
                     >
-                        <SelectValue />
-                    </SelectTrigger>
+                        <SelectTrigger
+                            aria-label="Select Page Size"
+                            style={{ padding: "0 0 0 1rem", border: "1px solid black" }}
+                            className="w-20 rounded-md text-sm font-medium bg-transparent border border-black px-3 py-1 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400/20"
+                        >
+                            <SelectValue />
+                        </SelectTrigger>
 
-                    <SelectContent style={{ padding: "0 1rem", width: "fit" }} className="bg-slate-800 text-white rounded-md shadow-lg">
-                        {pageSizeOptions.map((size) => (
-                            <SelectItem key={size} value={String(size)}>
-                                {size}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                        <SelectContent style={{ maxWidth: "calc(var(--spacing) * 20)" }} className="bg-slate-800 text-white rounded-md shadow-lg w-20">
+                            {pageSizeOptions.map((size) => (
+                                <SelectItem style={{ padding: "0 0 0 .5rem" }} key={size} value={String(size)}>
+                                    {size}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </SelectGroup>
             </div>
         </div>
     );
@@ -199,16 +205,17 @@ export const JobPostingsControls: React.FC<JobPostingsControlsProps> = ({
                 <div className="w-full grid gap-6 lg:grid-cols-3">
                     <div className="col-span-1 lg:col-span-2 lg:col-start-3 flex flex-col gap-4">
                         <div>
-                            <p className="text-xs uppercase tracking-wide text-white/60 mb-2">
+                            <p className="text-xs uppercase tracking-wide text-foreground mb-2">
                                 Work Arrangement
                             </p>
                             <div className="flex flex-wrap gap-4" role="group" aria-label="Work arrangement filters">
                                 {WORK_MODE_OPTIONS.map((option) => {
                                     const checkboxId = `work-mode-${option.value}`;
                                     return (
-                                        <div key={option.value} className="flex items-center gap-2 text-sm font-medium text-white/80">
+                                        <div key={option.value} className="flex items-center gap-2 text-sm font-medium text-foreground/80">
                                             <Checkbox
                                                 id={checkboxId}
+                                                className="bg-stone-600"
                                                 checked={filters.workModes.includes(option.value)}
                                                 onCheckedChange={(checked) => handleWorkModeToggle(option.value, checked)}
                                             />
@@ -220,16 +227,17 @@ export const JobPostingsControls: React.FC<JobPostingsControlsProps> = ({
                         </div>
 
                         <div>
-                            <p className="text-xs uppercase tracking-wide text-white/60 mb-2">
+                            <p className="text-xs uppercase tracking-wide text-foreground/60 mb-2">
                                 Seniority Level
                             </p>
                             <div className="flex flex-wrap gap-4" role="group" aria-label="Seniority level filters">
                                 {SENIORITY_OPTIONS.map((option) => {
                                     const checkboxId = `seniority-${option.value}`;
                                     return (
-                                        <div key={option.value} className="flex items-center gap-2 text-sm font-medium text-white/80">
+                                        <div key={option.value} className="flex items-center gap-2 text-sm font-medium text-foreground/80">
                                             <Checkbox
                                                 id={checkboxId}
+                                                className="bg-stone-600"
                                                 checked={filters.seniorityLevels.includes(option.value)}
                                                 onCheckedChange={(checked) => handleSeniorityToggle(option.value, checked)}
                                             />
