@@ -361,7 +361,7 @@ body {
 /* Results Info */
 .results-info {
   margin-bottom: 20px;
-  color: #6b7280;
+  color: var(--color-foreground);
   font-size: 0.875rem;
   text-align: center !important;
 }

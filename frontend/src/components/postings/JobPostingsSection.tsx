@@ -348,12 +348,13 @@ export const JobPostingsSection: React.FC = () => {
                     </Button>
 
                     <div
-                        className="relative px-4 py-1 rounded-lg text-sm font-semibold text-white bg-white/5 ring-1 ring-white/6 shadow-sm flex items-center justify-center min-w-[120px]"
+                        className="relative px-4 py-1 rounded-lg text-sm font-semibold text-foreground bg-white/5 ring-1 ring-white/6 shadow-sm flex items-center justify-center min-w-[120px]"
                         aria-live="polite"
                     >
                         <span className="sr-only">Current page:</span>
-                        {`Page ${pageIndex} `}
-                        {totalPages ? <span className="text-xs text-white/70 ml-2">{` of ${totalPages}`}</span> : null}
+                        <p style={{ margin: "auto 0" }} className="align-middle items-center">
+                            {`Page ${pageIndex} `}
+                            {totalPages ? <span className="text-xs ml-2">{` of ${totalPages}`}</span> : null}</p>
                     </div>
 
                     <Button
@@ -367,8 +368,10 @@ export const JobPostingsSection: React.FC = () => {
                 </div>
 
                 <div className="pagination-size flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
-                    <div className="text-sm text-white/60 whitespace-nowrap">Results per page</div>
+                    <div id='pagi-label' className="text-sm text-foreground whitespace-nowrap">Results per page</div>
                     <select
+                        aria-labelledby='pagi-label'
+                        aria-label="Select Page Size"
                         value={pageSize}
                         onChange={(e) => handlePageSizeChange(Number(e.target.value))}
                         className="pagination-size-select rounded-md text-sm font-medium bg-transparent border border-white/10 px-3 py-1"

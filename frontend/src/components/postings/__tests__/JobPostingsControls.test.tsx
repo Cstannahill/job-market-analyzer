@@ -33,6 +33,8 @@ vi.mock('@/components/ui/checkbox', () => ({
 }));
 
 vi.mock('@/components/ui/select', () => ({
+  SelectGroup: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  SelectLabel: ({ text }: { text: string }) => <label>{text}</label>,
   Select: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   SelectTrigger: ({ children }: { children: React.ReactNode }) => <button type="button">{children}</button>,
   SelectContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
