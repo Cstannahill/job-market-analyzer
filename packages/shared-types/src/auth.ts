@@ -47,3 +47,13 @@ export interface EmailVerificationRequest {
   action: EmailVerificationAction;
   code?: string;
 }
+
+export interface PasswordResetInitiateRequest {
+  email: string;
+}
+
+export interface ConfirmForgotPasswordRequest {
+  email: string;
+  code: string;
+  newPassword: string;
+}

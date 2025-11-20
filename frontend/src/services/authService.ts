@@ -23,6 +23,8 @@ import type {
   UserProfile,
   RegisterData,
   LoginData,
+  PasswordResetInitiateRequest,
+  ConfirmForgotPasswordRequest,
 } from "@job-market-analyzer/types/auth";
 
 const API_BASE_URL =
@@ -145,6 +147,53 @@ class AuthService {
    */
   public isAuthenticated(): boolean {
     return this.getAccessToken() !== null;
+  }
+
+  public async forgotPasswordInitiate(
+    data: PasswordResetInitiateRequest
+  ): Promise<void> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        const error = result as ApiError;
+        throw new Error(error.message || "Failed to initiate password reset");
+      }
+    } catch (error) {
+      console.error("Forgot password initiate error:", error);
+      throw error;
+    }
+  }
+
+  public async resetPassword(
+    data: ConfirmForgotPasswordRequest
+  ): Promise<void> {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/auth/forgot-password/confirm`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        const error = result as ApiError;
+        throw new Error(error.message || "Failed to reset password");
+      }
+    } catch (error) {
+      console.error("Password reset error:", error);
+      throw error;
+    }
   }
 
   /**
