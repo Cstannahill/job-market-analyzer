@@ -2,6 +2,10 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { devtools } from "zustand/middleware";
 import { authService, type UserProfile } from "@/services/authService";
+import type {
+  ConfirmForgotPasswordRequest,
+  PasswordResetInitiateRequest,
+} from "@job-market-analyzer/types";
 
 /**
  * Authentication Store Architecture
@@ -50,6 +54,8 @@ interface AuthState {
   initialize: () => Promise<void>;
   refreshUser: () => Promise<void>;
   logout: () => Promise<void>;
+  forgotPasswordInitiate: (data: PasswordResetInitiateRequest) => Promise<void>;
+  confirmPasswordReset: (data: ConfirmForgotPasswordRequest) => Promise<void>;
 
   // Utilities
   reset: () => void;
@@ -131,7 +137,34 @@ export const useAuthStore = create<AuthState>()(
         setInitialized: (initialized) => {
           set({ isInitialized: initialized }, false, "auth/setInitialized");
         },
+        forgotPasswordInitiate: async (email: PasswordResetInitiateRequest) => {
+          set({ loading: true }, false, "auth/forgotPassword/start");
 
+          try {
+            await authService.forgotPasswordInitiate(email);
+            // No state change needed; UI just shows “code sent” message.
+          } catch (error) {
+            console.error("Forgot password initiate failed:", error);
+            // Let caller handle error messaging
+            throw error;
+          } finally {
+            set({ loading: false }, false, "auth/forgotPassword/end");
+          }
+        },
+
+        confirmPasswordReset: async ({ email, code, newPassword }) => {
+          set({ loading: true }, false, "auth/resetPassword/start");
+
+          try {
+            await authService.resetPassword({ email, code, newPassword });
+            // Still not logging the user in automatically; they’ll log in with new password.
+          } catch (error) {
+            console.error("Password reset failed:", error);
+            throw error;
+          } finally {
+            set({ loading: false }, false, "auth/resetPassword/end");
+          }
+        },
         /**
          * Initialize Authentication
          *
@@ -405,4 +438,6 @@ export const useAuthActions = () =>
     refreshUser: state.refreshUser,
     logout: state.logout,
     reset: state.reset,
+    forgotPasswordInitiate: state.forgotPasswordInitiate,
+    confirmPasswordReset: state.confirmPasswordReset,
   }));
