@@ -152,6 +152,7 @@ export function TechSearchCombobox({
                     disabled={disabled}
                     variant="outline"
                     role="combobox"
+                    aria-label="Select technology"
                     aria-expanded={open}
                     style={{ padding: "0rem 1rem" }}
                     className={cn("justify-between", widthClass, className)}

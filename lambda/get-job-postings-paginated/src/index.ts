@@ -13,6 +13,7 @@ const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 interface JobPosting {
+  jobId?: string;
   Id?: string;
   id?: string;
   job_title?: string;
@@ -33,6 +34,10 @@ interface JobPosting {
   seniority_level?: string;
   skills?: string[] | string;
   technologies?: string[] | string;
+  source_url?: string;
+  job_board_source?: string;
+  jobBoardSource?: string;
+  sourceUrl?: string;
 }
 function encodeCursor(obj: unknown) {
   return Buffer.from(JSON.stringify(obj), "utf8").toString("base64");
@@ -83,7 +88,10 @@ const coerceOptionalString = (value: unknown): string | undefined => {
 };
 
 const toBaseJobListing = (job: JobPosting): BaseJobListing => {
-  const jobId = coerceString(job.Id ?? job.id ?? "", "unknown-job");
+  const jobId = coerceString(
+    job.jobId ?? job.Id ?? job.id ?? "",
+    "unknown-job"
+  );
   const jobTitle = coerceString(job.job_title ?? "", "Unknown role");
   const description = coerceString(job.job_description ?? job.description ?? "");
   const location = coerceString(job.location ?? "", "Unknown");
@@ -116,6 +124,10 @@ const toBaseJobListing = (job: JobPosting): BaseJobListing => {
     seniority_level: coerceOptionalString(job.seniority_level),
     skills: skills.length ? skills : undefined,
     technologies: technologies.length ? technologies : undefined,
+    source_url: coerceOptionalString(job.source_url ?? job.sourceUrl),
+    job_board_source: coerceOptionalString(
+      job.job_board_source ?? job.jobBoardSource
+    ),
   };
 };
 

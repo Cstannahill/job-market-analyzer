@@ -12,7 +12,7 @@ export function CellCard({
             <div className="text-xs text-slate-400">{title}</div>
             <div className="text-sm text-white font-mono">{count}</div>
             <div className="text-[11px] text-slate-400">
-                p50 ${(p50 ?? 0).toLocaleString()}
+                p50 <span className="font-bold">${(p50 ?? 0).toLocaleString()}</span>
             </div>
         </div>
     );

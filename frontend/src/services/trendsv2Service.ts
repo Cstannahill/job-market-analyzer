@@ -67,3 +67,8 @@ export async function getOverview(params: {
   u.searchParams.set("limit", String(limit));
   return j<TrendsOverviewResponse>(await fetch(u));
 }
+
+export async function getWeeks() {
+  const url = new URL(`${BASE}/v2/trends/weeks`);
+  return j<string[]>(await fetch(url));
+}

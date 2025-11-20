@@ -4,7 +4,7 @@ export const LandingCTA = () => {
     return (
         <div className="hero-cta flex justify-center">
             <div className="cta-card glass text-center p-4 rounded-2xl shadow-lg card-stylish">
-                <h4>Ready to explore the market?</h4>
+                <h2 className="text-shadow-white">Ready to explore the market?</h2>
                 <p>Dive deeper into job postings and skill trends</p>
                 <p>Sign up to gain free access to resume insights! </p>
                 <div className="cta-buttons flex flex-wrap justify-center gap-2 mt-2">
