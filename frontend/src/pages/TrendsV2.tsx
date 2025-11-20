@@ -1,91 +1,107 @@
-// src/features/trends-v2/TrendsV2Page.tsx
-import { useEffect, useMemo, useState } from 'react';
-import { getTop, getRising, getTechDetail } from '@/services/trendsv2Service';
-import FiltersBar from '@/components/trends-v2/FiltersBar';
-import TopList from '@/components/trends-v2/TopList';
-import RisingGrid from '@/components/trends-v2/RisingGrid';
-import TechDetailPanel from '@/components/trends-v2/TechDetailPanel';
-import type { Region, Period, TopTechnologiesItem, TechnologyDetailResponse, WeekPeriod } from '@job-market-analyzer/types/trendsv2';
-import { Spinner } from '@/components/ui/spinner';
-import { Skeleton } from '@/components/ui/skeleton';
-import { TrendsLayout } from '@/components/TrendsLayout';
-import { toWeek } from '@/lib/utils/dateUtils';
-import useIsMobile from '@/hooks/useIsMobile';
-import Seo from '@/components/Seo';
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import type {
+    Region,
+    Period,
+    TopTechnologiesItem,
+    TechnologyDetailResponse,
+    WeekPeriod,
+} from "@job-market-analyzer/types/trendsv2";
+import { Spinner } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toWeek } from "@/lib/utils/dateUtils";
+import Seo from "@/components/Seo";
+import { useTrendsV2Data } from "@/hooks/useTrendsV2Data";
+import {
+    TrendsV2Controls,
+} from "@/components/trends-v2/TrendsV2Controls";
+import type {
+    TechOption,
+    TechSearchValue,
+} from "@/components/postings/TechSearchCombobox";
 
+const RisingGrid = lazy(() => import("@/components/trends-v2/RisingGrid"));
+import TechDetailPanel from "@/components/trends-v2/TechDetailPanel";
+import { Layout } from "@/components/Layout";
 
 const today = new Date();
 const thisWeek: WeekPeriod = toWeek(today);
-const weekNumb = Number(thisWeek.split("W")[1]);
-const lastWeek = weekNumb - 1
-const trendWeek = thisWeek.split("W")[0] + "W" + lastWeek as WeekPeriod
+const weekNumber = Number(thisWeek.split("W")[1]);
+const lastWeek = weekNumber - 1;
+const trendWeek = `${thisWeek.split("W")[0]}W${lastWeek}` as WeekPeriod;
 const DEFAULT_REGION: Region = "GLOBAL";
 const DEFAULT_PERIOD: Period = trendWeek;
-console.log(thisWeek)
 
 export default function TrendsV2Page() {
-    const [region, setRegion] = useState<Region>(DEFAULT_REGION);
-    const [period, setPeriod] = useState<Period>(DEFAULT_PERIOD);
-    const isMobile = useIsMobile();
+    const {
+        region,
+        weeks,
+        setRegion,
+        period,
+        setPeriod,
+        top,
+        rising,
+        selected,
+        detail,
+        selectTech,
+        loading,
+        detailLoading,
+    } = useTrendsV2Data({
+        initialRegion: DEFAULT_REGION,
+        initialPeriod: DEFAULT_PERIOD,
+    });
 
-    const [top, setTop] = useState<TopTechnologiesItem[]>([]);
-    const [rising, setRising] = useState<TopTechnologiesItem[]>([]);
-    const [detail, setDetail] = useState<TechnologyDetailResponse | null>(null);
-    const [selected, setSelected] = useState<TopTechnologiesItem | null>(null);
-    const [loading, setLoading] = useState(false);
+    const [techSearch, setTechSearch] = useState<TechSearchValue>({
+        tech: null,
+        query: "",
+    });
+
     useEffect(() => {
-        let live = true;
-        (async () => {
-            setLoading(true);
-            try {
-                const [topData, risingData] = await Promise.all([
-                    getTop({ region, period, limit: 50 }),
-                    getRising({ region, period, limit: 18 }),
-                ]);
-                if (!live) return;
-                setTop(topData);
-                setRising(risingData);
-                // select first by default
-                if (topData[0]) {
-                    const det = await getTechDetail({ name: topData[0].skill_canonical, region, period });
-                    if (!live) return;
-                    setSelected(topData[0]);
-                    setDetail(det);
-                } else {
-                    setSelected(null);
-                    setDetail(null);
-                }
-            } finally {
-                if (live) setLoading(false);
-            }
-        })();
-        return () => { live = false; };
-    }, [region, period]);
+        setTechSearch({
+            tech: selected?.skill_canonical ?? null,
+            query: "",
+        });
+    }, [selected?.skill_canonical]);
 
-    async function pick(it: TopTechnologiesItem) {
-        setSelected(it);
-        setDetail(null);
-        const det = await getTechDetail({ name: it.skill_canonical, region, period });
-        setDetail(det);
-    }
+    useEffect(() => {
+        if (detailLoading) {
+            void import("@/components/trends-v2/CooccurringChart");
+        }
+    }, [detailLoading]);
 
-    // Prepare sidebar content
-    const sidebarContent = <TopList data={top} onSelect={pick} selected={selected} />;
-    const selectedSkill = selected?.skill_canonical ?? '';
-    const mobileOptions = useMemo(
-        () =>
-            top.map((item) => ({
-                label: `${item.skill_canonical} • Demand ${item.job_count ?? 0}`,
-                value: item.skill_canonical,
-            })),
-        [top]
-    );
+    const techOptions = useMemo<TechOption[]>(() => {
+        return top.map((item) => ({
+            value: item.skill_canonical,
+            label: item.skill_canonical,
+            count: item.job_count,
+        }));
+    }, [top]);
+
+    const handleFiltersChange = ({ region, period }: { region: Region; period: Period }) => {
+        setRegion(region);
+        setPeriod(period);
+    };
+
+    const handleTechCommit = (next: TechSearchValue) => {
+        setTechSearch(next);
+        if (next.tech) {
+            const match = top.find(
+                (item) => item.skill_canonical === next.tech
+            );
+            selectTech(match ?? top[0] ?? null);
+            return;
+        }
+        selectTech(top[0] ?? null);
+    };
+
+    const handleTechChange = (next: TechSearchValue) => {
+        setTechSearch(next);
+    };
 
     if (loading) {
         return (
-            <TrendsLayout>
+            <Layout>
                 <Seo
-                    title="Technology Trends – Job Market Analyzer"
+                    title="Technology Trends | Job Market Analyzer"
                     description="Track rising technologies and regional demand signals across the job market."
                     path="trends"
                     image="/public/og/trends.avif"
@@ -101,76 +117,101 @@ export default function TrendsV2Page() {
                         </div>
                     </div>
                 </div>
-            </TrendsLayout>
+            </Layout>
         );
     }
 
     return (
-        <TrendsLayout
-            sidebarContent={sidebarContent}
-            sidebarTitle="Top Technologies"
-        >
+        <Layout>
             <Seo
-                title="Technology Trends – Job Market Analyzer"
+                title="Technology Trends | Job Market Analyzer"
                 description="Discover top and rising technologies along with demand, salaries, and co-occurring skill insights."
                 path="trends"
                 image="/public/og/trends.avif"
             />
-            <div className='container'>
-                {/* Filters - Full width */}
-                <div className="sticky top-20 sm:top-0 z-20 border-b border-white/5 bg-slate-900/40 backdrop-blur">
-                    <div style={{ padding: ".25rem" }} className="flex justify-center py-3">
-                        <FiltersBar
-                            region={region}
-                            period={period}
-                            onChange={({ region, period }) => {
-                                setRegion(region);
-                                setPeriod(period);
-                            }}
-                        />
-                    </div>
-                    {isMobile && mobileOptions.length > 0 && (
-                        <div className="px-4 pb-3">
-                            <label className="text-xs uppercase tracking-wide text-slate-300 block mb-2">
-                                Select Technology
-                            </label>
-                            <select
-                                className="w-full rounded-lg bg-slate-900 text-white border border-white/15 px-3 py-2 text-sm"
-                                value={selectedSkill}
-                                onChange={(e) => {
-                                    const pickItem = top.find(
-                                        (t) => t.skill_canonical === e.target.value
-                                    );
-                                    if (pickItem) {
-                                        pick(pickItem);
-                                    }
-                                }}
-                            >
-                                {mobileOptions.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
-                                        {opt.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
-                </div>
+            <div>
+                <TrendsV2Controls
+                    region={region}
+                    weeks={weeks}
+                    period={period}
+                    onFiltersChange={handleFiltersChange}
+                    techValue={techSearch}
+                    onTechChange={handleTechChange}
+                    onTechCommit={handleTechCommit}
+                    techOptions={techOptions}
+                    disabled={!top.length}
+                />
 
-                {/* Main Content - Full width, no containers */}
                 <div className="p-6 space-y-6">
-                    {/* Rising Technologies Section */}
-                    <section className="rounded-lg bg-slate-900/50 border border-white/10 p-5">
+                    <RisingSection data={rising} />
+                    <DetailSection detail={detail} loading={detailLoading} />
 
-                        <RisingGrid data={rising} />
-                    </section>
 
-                    {/* Insights Panel */}
-                    <section className="rounded-lg bg-slate-900/50 border border-white/10 p-5">
-
-                        <TechDetailPanel data={detail} />
-                    </section>
                 </div>
             </div>
-        </TrendsLayout>
+        </Layout>
+    );
+}
+
+function RisingSection({ data }: { data: TopTechnologiesItem[] }) {
+    return (
+        <section className="rounded-lg bg-slate-900/50 border border-white/10 p-5 min-h-96">
+            <Suspense fallback={<RisingGridSkeleton />}>
+                <RisingGrid data={data} />
+            </Suspense>
+        </section>
+    );
+}
+
+function DetailSection({
+    detail,
+
+}: {
+    detail: TechnologyDetailResponse | null;
+    loading: boolean;
+}) {
+    return (
+        <section className="rounded-lg bg-slate-900/50 border border-white/10 p-5 min-h-144">
+            {/* {detail && !loading ? ( */}
+            <Suspense fallback={<DetailPanelSkeleton />}>
+                <TechDetailPanel data={detail} />
+            </Suspense>
+            {/* ) : (
+                <DetailPanelSkeleton loading={loading} />
+            )} */}
+        </section>
+    );
+}
+
+function RisingGridSkeleton() {
+    return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            {Array.from({ length: 6 }).map((_, idx) => (
+                <Skeleton key={`rise-${idx}`} className="h-28 w-full rounded-lg bg-white/5" />
+            ))}
+        </div>
+    );
+}
+
+function DetailPanelSkeleton({ loading = true }: { loading?: boolean }) {
+    return (
+        <div className="space-y-4 min-h-144">
+            <Skeleton className="h-8 w-64 mx-auto rounded-lg bg-white/5" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {Array.from({ length: 4 }).map((_, idx) => (
+                    <Skeleton key={`stat-${idx}`} className="h-20 w-full rounded-lg bg-white/5" />
+                ))}
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                <Skeleton className="h-72 w-full rounded-lg bg-white/5 lg:col-span-2" />
+                <Skeleton className="h-72 w-full rounded-lg bg-white/5" />
+            </div>
+            {loading && (
+                <div className="flex items-center justify-center pt-2 text-sm text-slate-400">
+                    <Spinner className="size-4 mr-2" />
+                    Loading insights
+                </div>
+            )}
+        </div>
     );
 }

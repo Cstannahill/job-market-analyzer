@@ -135,7 +135,10 @@ export const handler = async (event: ApiEvent): Promise<ApiResult> => {
       });
       return ok({ region, period, ...data });
     }
-
+    if (path.endsWith("/v2/trends/weeks")) {
+      const data = await getGlobalPeriods();
+      return ok(data);
+    }
     return bad("Invalid endpoint");
   } catch (err: any) {
     log(ctx, "error", "unhandled", { error: err?.message, stack: err?.stack });
@@ -668,9 +671,7 @@ function normalizeTrendRow(row: Record<string, any>): SkillTrendV2Item {
     industry_distribution: normalizeCountMap(row.industry_distribution),
     top_titles: normalizeCountMap(row.top_titles),
     job_count_change_pct: numberOrUndefined(row.job_count_change_pct),
-    median_salary_change_pct: numberOrUndefined(
-      row.median_salary_change_pct
-    ),
+    median_salary_change_pct: numberOrUndefined(row.median_salary_change_pct),
     trend_signal: row.trend_signal,
     dimension: row.dimension,
   };
@@ -731,18 +732,14 @@ const normalizeCountMap = (
         "value" in entry
       ) {
         const key = String((entry as Record<string, unknown>).key ?? "").trim();
-        const num = numberOrUndefined(
-          (entry as Record<string, unknown>).value
-        );
+        const num = numberOrUndefined((entry as Record<string, unknown>).value);
         if (key && num !== undefined) out[key] = num;
       } else if (typeof entry === "string") {
         out[entry] = (out[entry] ?? 0) + 1;
       }
     }
   } else if (typeof value === "object") {
-    for (const [key, val] of Object.entries(
-      value as Record<string, unknown>
-    )) {
+    for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
       const num = numberOrUndefined(val);
       if (key && num !== undefined) out[key] = num;
     }
@@ -750,3 +747,35 @@ const normalizeCountMap = (
 
   return Object.keys(out).length ? out : undefined;
 };
+
+async function getGlobalPeriods(): Promise<string[]> {
+  const periods: string[] = [];
+  let lastKey: Record<string, any> | undefined;
+
+  do {
+    const resp = await dynamo.send(
+      new QueryCommand({
+        TableName: "job-postings-totals",
+        IndexName: "RegionIndex",
+        KeyConditionExpression: "#region = :global",
+        ExpressionAttributeNames: {
+          "#region": "region",
+          "#period": "period",
+        },
+        ExpressionAttributeValues: {
+          ":global": "GLOBAL",
+        },
+        ProjectionExpression: "#period",
+        ExclusiveStartKey: lastKey,
+      })
+    );
+
+    for (const item of resp.Items ?? []) {
+      periods.push(item.period);
+    }
+
+    lastKey = resp.LastEvaluatedKey;
+  } while (lastKey);
+
+  return periods;
+}

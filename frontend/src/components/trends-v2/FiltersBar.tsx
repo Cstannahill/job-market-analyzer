@@ -1,30 +1,41 @@
 // src/features/trends-v2/FiltersBar.tsx
-import { useState } from 'react';
+// import { useState } from 'react';
 import type { Region, Period } from '@job-market-analyzer/types/trendsv2';
-
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 type Props = {
-    region: Region; period: Period;
+    region: Region;
+    period: Period;
+    weeks: string[];
     onChange: (v: { region: Region; period: Period }) => void;
 };
 
-export default function FiltersBar({ region, period, onChange }: Props) {
-    const [p, setP] = useState(period);
+export default function FiltersBar({ region, period, weeks, onChange }: Props) {
+    // const [p, setP] = useState(period);
 
     return (
-        <div className="flex flex-col sm:flex-row gap-3 items-center sm:items-end" >
-            <div>
-                <label className="block text-xs text-slate-400 mb-1">Period</label>
-                <input
-                    className="bg-slate-800/60 border border-slate-700 rounded-md px-3 py-2 text-slate-100"
-                    value={p} onChange={(e) => setP(e.target.value as Period)} placeholder="2025-W44 or 2025-11-08"
-                />
-            </div>
-            <button
-                className="btn rounded-md bg-indigo-600 text-white hover:bg-indigo-500 "
-                onClick={() => onChange({ region, period: p })}
-            >
-                Apply
-            </button>
-        </div>
+
+        <Select
+
+            value={period ?? ""}
+            onValueChange={(v) => onChange({ region, period: v as Period })}
+        >
+            <SelectTrigger style={{ padding: "0 .5rem" }} className="w-[180px]" aria-label="Select time period">
+                <SelectValue />
+            </SelectTrigger>
+            <SelectContent >
+                <SelectGroup>
+                    <SelectLabel style={{ padding: "0 .5rem", margin: ".25rem .5rem" }}>Time Period</SelectLabel>
+                    {weeks && weeks.map(wk => <SelectItem style={{ padding: "0 .5rem", margin: ".25rem 0rem" }} value={wk ?? " "}>{wk}</SelectItem>)}
+                </SelectGroup>
+            </SelectContent>
+        </Select>
     );
 }

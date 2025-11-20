@@ -1,14 +1,9 @@
 // src/features/trends-v2/TechDetailPanel.tsx
-import {
-  ResponsiveContainer,
-  XAxis,
-  BarChart,
-  Bar,
-  YAxis,
-  Tooltip as ReTooltip,
-} from "recharts";
+import { lazy, Suspense } from "react";
 import type { TechnologyDetailResponse } from "@job-market-analyzer/types/trendsv2";
 import { H2 } from "@/components/ui/typography";
+
+const CooccurringChart = lazy(() => import("./CooccurringChart"));
 
 interface CoTech {
   name: string;
@@ -117,9 +112,9 @@ export default function TechDetailPanel({
         <div className="xl:col-span-2 space-y-4">
           {/* By Work Mode - Now organized by seniority level */}
           <div className="rounded-lg p-4 bg-slate-800/30 border border-slate-700/30">
-            <h5 className="text-sm font-medium text-slate-200 mb-3 text-center">
+            <h3 style={{ fontSize: "1.1rem" }} className="text-sm font-medium text-slate-200 mb-3 text-center">
               By Work Mode & Seniority
-            </h5>
+            </h3>
             <div className="space-y-3">
               {sortedSeniorities.map((seniority) => (
                 <div key={seniority}>
@@ -147,9 +142,9 @@ export default function TechDetailPanel({
 
           {/* By Seniority Totals */}
           <div className="rounded-lg p-4 bg-slate-800/30 border border-slate-700/30">
-            <h5 className="text-sm font-medium text-slate-200 mb-3 text-center">
+            <h3 style={{ fontSize: "1.1rem" }} className="text-sm font-medium text-slate-200 mb-3 text-center">
               Seniority Distribution
-            </h5>
+            </h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {sn.map((w) => (
                 <Badge
@@ -165,55 +160,23 @@ export default function TechDetailPanel({
 
         {/* Right: Co-occurring Technologies */}
         <div className="rounded-lg p-5 bg-slate-800/30 border border-slate-700/30">
-          <h5 className="text-sm font-medium text-slate-200 mb-4 text-center">
+          <h3 style={{ fontSize: "1.1rem" }} className="text-sm font-medium text-slate-200 mb-4 text-center">
             Top Co-occurring
-          </h5>
+          </h3>
           <div className="h-[500px] lg:h-[90%]">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-              <BarChart
-                data={displayCo.slice(0, 10)}
-                layout="vertical"
-                margin={{ left: 10, right: 20, top: 10, bottom: 10 }}
-              >
-                <defs>
-                  <linearGradient id="barGrad" x1="0" x2="1" y1="0" y2="0">
-                    <stop offset="0%" stopColor="#7c3aed" stopOpacity={1} />
-                    <stop offset="100%" stopColor="#4f46e5" stopOpacity={1} />
-                  </linearGradient>
-                </defs>
-                <XAxis
-                  type="number"
-                  tick={{ fontSize: 12, fill: "#94a3b8" }}
-                  stroke="#334155"
-                />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  width={70}
-                  tick={{ fontSize: 11, fill: "#cbd5e1" }}
-                  stroke="#334155"
-                />
-                <ReTooltip
-                  contentStyle={{
-                    background: "#1e293b",
-                    border: "1px solid rgba(124,58,237,0.2)",
-                    borderRadius: "6px",
-                  }}
-                  itemStyle={{ color: "#e2e8f0" }}
-                  cursor={{ fill: "rgba(124,58,237,0.1)" }}
-                />
-                <Bar
-                  dataKey="value"
-                  fill="url(#barGrad)"
-                  radius={[0, 4, 4, 0]}
-                  maxBarSize={20}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            <Suspense fallback={<ChartSkeleton />}>
+              <CooccurringChart data={displayCo.slice(0, 10)} />
+            </Suspense>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function ChartSkeleton() {
+  return (
+    <div className="h-full w-full animate-pulse rounded-lg bg-slate-800/30 border border-slate-700/30" />
   );
 }
 
@@ -258,7 +221,7 @@ function Badge({
     >
       <div className="text-xs text-slate-400 truncate">{label}</div>
       <div className="text-base font-mono text-white font-semibold">{v}</div>
-      <div className="text-sm text-stone-400 truncate">{sub}</div>
+      <div className="text-sm text-stone-300 truncate">{sub}</div>
     </div>
   );
 }
