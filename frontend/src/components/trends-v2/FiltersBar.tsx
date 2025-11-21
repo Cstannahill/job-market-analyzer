@@ -1,5 +1,3 @@
-// src/features/trends-v2/FiltersBar.tsx
-// import { useState } from 'react';
 import type { Region, Period } from '@job-market-analyzer/types/trendsv2';
 import {
     Select,

@@ -14,27 +14,27 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
 
 export type TechOption = {
-    value: string;   // canonical tech name (e.g., "React", "Go")
-    label: string;   // display label (usually same as value)
-    count?: number;  // optional badge count
+    value: string;
+    label: string;
+    count?: number;
 };
 
 export type TechSearchValue = {
-    tech: string | null;   // selected tech (null = all)
-    query: string;         // free-text query
+    tech: string | null;
+    query: string;
 };
 
 type Props = {
     value: TechSearchValue;
     onChange: (next: TechSearchValue) => void;
-    onCommit?: (next: TechSearchValue) => void; // fire on select or Enter
+    onCommit?: (next: TechSearchValue) => void;
     options: TechOption[];
-    placeholder?: string;   // button placeholder
-    inputPlaceholder?: string; // input placeholder
+    placeholder?: string;
+    inputPlaceholder?: string;
     className?: string;
     disabled?: boolean;
     showCounts?: boolean;
-    widthClass?: string;    // e.g. "w-[280px]"
+    widthClass?: string;
     contentWidthClass?: string;
     maxVisible?: number;
 };
@@ -60,7 +60,6 @@ export function TechSearchCombobox({
 
 
 
-    // Keep local input in sync when parent value changes externally
     React.useEffect(() => {
         setInput(value.query ?? "");
     }, [value.query]);
@@ -73,17 +72,8 @@ export function TechSearchCombobox({
     const selectedLabel =
         value.tech ?? (value.query ? `Search: "${value.query}"` : null);
 
-    // const sorted = React.useMemo(() => {
-    //     // Stable sort: by count desc, then label asc
-    //     return [...options].sort((a, b) => {
-    //         const ca = a.count ?? -1, cb = b.count ?? -1;
-    //         if (cb !== ca) return cb - ca;
-    //         return a.label.localeCompare(b.label);
-    //     });
-    // }, [options]);
-
     const onPickAll = () => {
-        cancelDebounce();           // <-- add
+        cancelDebounce();
         setOpen(false);
         setInput("");
         const next = { tech: null, query: "" };
@@ -96,8 +86,8 @@ export function TechSearchCombobox({
         const next = { tech: t.value, query: "" };
         onChange(next);
         onCommit?.(next);
-        setOpen(false);              // <-- add
-        setInput("");                // <-- add
+        setOpen(false);
+        setInput("");
     };
 
     const onPressEnter = () => {
@@ -106,13 +96,12 @@ export function TechSearchCombobox({
         const next = { tech: null, query: q };
         onChange(next);
         onCommit?.(next);
-        setOpen(false);              // <-- add
-        // (keep input; or clear if you prefer) 
+        setOpen(false);
     };
 
     const onClear = (e: React.MouseEvent) => {
         e.stopPropagation();
-        cancelDebounce();                         // <-- important
+        cancelDebounce();
         const next = { tech: null, query: "" };
         onChange(next);
         onCommit?.(next);
@@ -121,7 +110,6 @@ export function TechSearchCombobox({
 
     const lower = input.trim().toLowerCase();
 
-    // pool: either top-level list or search matches
     const pool = lower
         ? options.filter(o =>
             o.label.toLowerCase().includes(lower) ||
@@ -129,14 +117,12 @@ export function TechSearchCombobox({
         )
         : options;
 
-    // sort: count desc, then label asc (same as you had)
     const countThenAlpha = (a: TechOption, b: TechOption) => {
         const ca = a.count ?? -1, cb = b.count ?? -1;
         if (cb !== ca) return cb - ca;
         return a.label.localeCompare(b.label);
     };
 
-    // take only the first N
     const display = [...pool].sort(countThenAlpha).slice(0, maxVisible);
 
     return (
@@ -144,7 +130,7 @@ export function TechSearchCombobox({
             open={open}
             onOpenChange={(o) => {
                 setOpen(o);
-                if (!o) cancelDebounce();   // <-- cancel when closing
+                if (!o) cancelDebounce();
             }}
         >
             <PopoverTrigger asChild>
@@ -193,7 +179,6 @@ export function TechSearchCombobox({
                     <CommandList>
                         <CommandEmpty>No matches.</CommandEmpty>
 
-                        {/* Action row: Search free text */}
                         {input.trim().length > 0 && (
                             <CommandGroup heading="Actions">
                                 <CommandItem

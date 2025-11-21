@@ -48,10 +48,8 @@ export const JobPostingsSection: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    // ---- NEW: single source of truth for filters
     const [filters, setFilters] = useState<Filters>(() => createDefaultFilters());
 
-    // ---- Back-compat local state (derived), so the rest of your UI remains unchanged
     const searchTerm = filters.query;
     const selectedTech = filters.tech ?? '__all__';
 
@@ -69,11 +67,10 @@ export const JobPostingsSection: React.FC = () => {
         enabled: !cachedStats,
         initialData: cachedStats,
     });
-
+    console.log("STATS COUNTS", stats?.technologies?.length)
     const serializedWorkModes = serializeFilterValues(filters.workModes);
     const serializedSeniorities = serializeFilterValues(filters.seniorityLevels);
 
-    // ---- KEY CHANGE: include filters in queryKey so cache partitions by selection
     const queryKey = [
         'job-postings',
         pageSize,
@@ -95,14 +92,12 @@ export const JobPostingsSection: React.FC = () => {
         queryKey,
         queryFn: async (context: QueryFunctionContext) => {
             const pageParam = context.pageParam as string | null | undefined;
-            // ---- KEY CHANGE: pass tech to the service only when present
             return getJobPostingsPage({
                 limit: pageSize,
                 lastKey: pageParam ?? undefined,
-                tech: filters.tech ?? undefined,   // <--- this switches Lambda path
+                tech: filters.tech ?? undefined,
                 workModes: filters.workModes,
                 seniorityLevels: filters.seniorityLevels,
-                // status?: keep your default in the service or pass it here if needed
             });
         },
         initialPageParam: null as string | null,
@@ -125,7 +120,6 @@ export const JobPostingsSection: React.FC = () => {
 
         let filtered = pageItems;
 
-        // Free-text search remains client-side
         if (filters.query) {
             const lower = filters.query.toLowerCase();
             filtered = filtered.filter((posting) => {
@@ -139,15 +133,11 @@ export const JobPostingsSection: React.FC = () => {
             });
         }
 
-        // Tech:
-        // If filters.tech is set, the server already returned only that tech; no need to filter again.
-        // If you still want belt-and-suspenders client filter, leave this block:
-        if (filters.tech === null ? false : true) {
-            // no-op; already filtered server-side
-        } else {
-            // legacy local tech filter for "__all__"
-            // (nothing to do)
-        }
+
+        // if (filters.tech === null ? false : true) {
+        // } else {
+
+        // }
 
         setFilteredPostings(filtered);
     }, [pageItems, filters]);
@@ -156,7 +146,6 @@ export const JobPostingsSection: React.FC = () => {
         ? Math.ceil(stats.totalPostings / pageSize)
         : undefined;
 
-    // When filters change, reset to page 1.
     useEffect(() => {
         setPageIndex(1);
     }, [filters, pageSize]);
@@ -212,11 +201,10 @@ export const JobPostingsSection: React.FC = () => {
         }
     };
 
-    // Kick page 1 on page-size change
     useEffect(() => {
         fetchPage(1).catch(() => { });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pageSize, filters.tech, serializedWorkModes, serializedSeniorities]); // include filters so first page is fetched when switching dataset
+    }, [pageSize, filters.tech, serializedWorkModes, serializedSeniorities]);
 
     useEffect(() => {
         if (!currentPage) return;
@@ -226,7 +214,6 @@ export const JobPostingsSection: React.FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentPage?.items?.length, currentPage?.lastKey]);
 
-    // ---- NEW: single handler to receive combobox commits from JobPostingsControls
     const handleFiltersCommit = (next: Filters) => {
         const techChanged = next.tech !== filters.tech;
         const workModesChanged = !haveSameItems(next.workModes, filters.workModes);
@@ -279,7 +266,6 @@ export const JobPostingsSection: React.FC = () => {
     return (
         <>
             <JobPostingsControls
-                // legacy props (derived) so you don’t have to refactor the control yet
                 searchTerm={searchTerm}
                 filters={filters}
                 onSearchChange={(q) =>
@@ -313,7 +299,6 @@ export const JobPostingsSection: React.FC = () => {
                     filters.seniorityLevels.length
                 )}
 
-                // ---- NEW: pass-through for the combobox (when you swap it in)
                 onFiltersCommit={handleFiltersCommit}
             />
 

@@ -33,7 +33,7 @@ export const RoadmapGrid: React.FC<{
                             )}
 
                             {/* decorative micro-illustration */}
-                            <div className="mt-6 h-12 w-full rounded-xl bg-gradient-to-r from-chart-1/5 to-chart-3/5 opacity-50" />
+                            <div className="mt-6 h-12 w-full rounded-xl bg-linear-to-r from-chart-1/5 to-chart-3/5 opacity-50" />
                         </CardContent>
                     </Card>
                 );

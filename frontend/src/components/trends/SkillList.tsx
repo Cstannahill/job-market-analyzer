@@ -1,4 +1,3 @@
-// SkillList.tsx
 import { type SkillTrend } from '@job-market-analyzer/types';
 import SkillCard from './SkillCardAlt';
 
@@ -13,7 +12,6 @@ export default function SkillList({ skills, onSelect, isSelected }: Props) {
         return <div className="text-sm text-slate-400">No skills found.</div>;
     }
 
-    // single-column vertical list — scroll handled by parent card
     return (
         <div className="flex flex-col divide-y divide-slate-800">
             {skills.map((s) => (

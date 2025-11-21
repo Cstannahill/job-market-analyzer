@@ -323,6 +323,81 @@ flowchart LR
   style LLM_Enrichment fill:#e0e7ff
 ```
 
+```mermaid
+graph TD
+    %% Styles
+    classDef compute fill:#f97316,stroke:#c2410c,stroke-width:2px,color:white;
+    classDef storage fill:#3b82f6,stroke:#1d4ed8,stroke-width:2px,color:white;
+    classDef ai fill:#a855f7,stroke:#7e22ce,stroke-width:2px,color:white;
+    classDef network fill:#10b981,stroke:#047857,stroke-width:2px,color:white;
+    classDef external fill:#64748b,stroke:#334155,stroke-width:2px,color:white;
+
+    subgraph Ingestion_Layer [Ingestion & Events]
+        Sources[Job Boards: Greenhouse, Lever]:::external
+        Scraper[Lambda: ingest-jobs]:::compute
+        RawBucket[(S3: job-postings-bucket)]:::storage
+        EB{EventBridge Bus}:::network
+    end
+
+    subgraph Processing_Layer [Normalization & AI]
+        NormLambda[Lambda: normalize-tables]:::compute
+        ResumeQueue[SQS: worker-process-resume]:::network
+        AILambda[Lambda: bedrock-ai-extractor]:::compute
+        Bedrock[AWS Bedrock Nova]:::ai
+    end
+
+    subgraph Storage_Layer [Persistence]
+        Dynamo[(DynamoDB Tables)]:::storage
+        Neon[(Neon Postgres)]:::storage
+        subgraph Tables
+            DT1[job-postings]
+            DT2[trends-v2]
+            DT3[skill-metadata]
+        end
+    end
+
+    subgraph API_Layer [Access & Presentation]
+        APIGW([API Gateway]):::network
+        Auth[Cognito Auth]:::network
+        StatsLambda[Lambda: calculate-job-stats]:::compute
+        SearchLambda[Lambda: get-job-postings]:::compute
+        Frontend[React/Vite on Amplify]:::external
+    end
+
+    %% Connections - Ingestion
+    Sources -->|Scrape Schedule| Scraper
+    Scraper -->|Raw JSON| RawBucket
+    RawBucket -->|S3 Put Event| EB
+
+    %% Connections - Processing
+    EB -->|Rule: New Posting| NormLambda
+    EB -->|Rule: Resume Upload| ResumeQueue
+
+    %% Normalization Flow
+    NormLambda -->|Upsert Normalized Data| Neon
+    NormLambda -->|Update Meta| Dynamo
+
+    %% AI Flow
+    ResumeQueue -->|Trigger| AILambda
+    AILambda <-->|Infer/Extract| Bedrock
+    AILambda -->|Save Role Fit/ROI| Dynamo
+
+    %% User Flow
+    Frontend <-->|Auth Token| Auth
+    Frontend -->|REST Requests| APIGW
+    APIGW -->|Route: /stats| StatsLambda
+    APIGW -->|Route: /jobs| SearchLambda
+
+    %% Data Retrieval
+    StatsLambda <-->|Aggregates| Neon
+    SearchLambda <-->|Fetch Items| Dynamo
+
+    %% Apply Styles within subgraphs
+    Dynamo --- DT1
+    Dynamo --- DT2
+    Dynamo --- DT3
+```
+
 Notes:
 
 - The diagram intentionally shows the full pipeline: ingestion, extraction (Textract + Comprehend), storage (DynamoDB), aggregation/trends, resume comparison, and the web dashboard.
@@ -334,59 +409,31 @@ Notes:
 This tree shows how the code maps to the architecture above. It represents the intended, completed layout (phase-complete):
 
 ```
-/ (repo root)
-├─ README.md
-├─ JobMarketAnalyzer.md
-├─ zip.js                # repo-level packaging script (creates lambda.zip)
-├─ package.json          # root devDependencies (archiver, build tooling)
-├─ lambda/
-│  ├─ get-job-postings/
-│  │  ├─ src/            # TypeScript sources for ingestion lambda
-│  │  ├─ dist/           # build output (ignored)
-│  │  └─ package.json    # scripts: build, package -> node ../../zip.js .
-│  ├─ skill-extractor/
-│  │  ├─ src/            # extraction logic (Comprehend integration)
-│  │  ├─ dist/
-│  │  └─ package.json
-│  ├─ skill-extractor-algo/
-│  │  ├─ src/            # optional alternate algorithmic extractor
-│  │  ├─ dist/
-│  │  └─ package.json
-│  └─ ... other lambdas
-├─ frontend/
-│  ├─ src/               # React + shadcn components, pages
-│  ├─ public/
-│  ├─ package.json
-│  └─ vite.config.ts
-└─ .gitignore
-```
-
-Mapping notes:
-
-- `lambda/*/src` implements the Lambdas shown in the diagram (ingest, aggregator, resume extractor, read APIs).
-- `frontend/` is the React dashboard served through Amplify or CloudFront.
-- `zip.js` is the centralized packer used by per-lambda `package` scripts.
-
-## Updated Tree
-
-```bash
-npx tree-node-cli -I ".github|.vscode|node_modules|assets|icons|public|dist|packages|package-lock.json"
-```
-
-```
-/job-market-analyzer
+job-market-analyzer
 ├── README.md
+├── api
+│   ├── http-api
+│   │   ├── samconfig.toml
+│   │   └── template.yaml
+│   ├── rest-api
+│   │   ├── samconfig.toml
+│   │   └── template.yaml
+│   └── sqs-jobs-api
+│       ├── samconfig.toml
+│       └── template.yaml
 ├── frontend
 │   ├── README.md
 │   ├── components.json
 │   ├── e2e
+│   │   ├── lighthouse-all.js
 │   │   ├── run-with-dev.js
-│   │   ├── screenshot-all.mjs
+│   │   ├── screenshot-all.js
 │   │   ├── trends.run.mjs
 │   │   └── trends.spec.mjs
 │   ├── eslint.config.js
 │   ├── index.html
 │   ├── package.json
+│   ├── screenshots
 │   ├── scripts
 │   │   ├── screenshot.js
 │   │   └── trends-parse-test.mjs
@@ -403,6 +450,8 @@ npx tree-node-cli -I ".github|.vscode|node_modules|assets|icons|public|dist|pack
 │   │   │   ├── ParticleBackground.tsx
 │   │   │   ├── Seo.tsx
 │   │   │   ├── ThemeProvider.tsx
+│   │   │   ├── TrendsLayout.tsx
+│   │   │   ├── TrendsMobileLayout.tsx
 │   │   │   ├── about
 │   │   │   │   ├── FeatureCard.tsx
 │   │   │   │   ├── FeatureHero.tsx
@@ -410,6 +459,8 @@ npx tree-node-cli -I ".github|.vscode|node_modules|assets|icons|public|dist|pack
 │   │   │   │   ├── RoadmapGrid.tsx
 │   │   │   │   ├── SectionCard.tsx
 │   │   │   │   └── StackPanel.tsx
+│   │   │   ├── auth
+│   │   │   │   └── ForgotPassword.tsx
 │   │   │   ├── landing
 │   │   │   │   ├── LandingCTA.tsx
 │   │   │   │   ├── LandingHero.tsx
@@ -417,25 +468,38 @@ npx tree-node-cli -I ".github|.vscode|node_modules|assets|icons|public|dist|pack
 │   │   │   ├── login
 │   │   │   │   └── LoginForm.tsx
 │   │   │   ├── postings
+│   │   │   │   ├── CompanyBadgeSvgr.tsx
 │   │   │   │   ├── JobPostingCard.tsx
 │   │   │   │   ├── JobPostingsControls.tsx
 │   │   │   │   ├── JobPostingsSection.tsx
 │   │   │   │   ├── MetaPillContainer.tsx
 │   │   │   │   ├── TechBadge.tsx
 │   │   │   │   ├── TechBadgeSvgr.tsx
-│   │   │   │   └── UpdatedJobsPostings.tsx
+│   │   │   │   ├── TechSearchCombobox.tsx
+│   │   │   │   ├── UpdatedJobsPostings.tsx
+│   │   │   │   └── __tests__
+│   │   │   │       ├── JobPostingCard.test.tsx
+│   │   │   │       ├── JobPostingsControls.test.tsx
+│   │   │   │       └── TechSearchCombobox.test.tsx
 │   │   │   ├── register
 │   │   │   │   └── RegisterForm.tsx
-│   │   │   ├── resume
+│   │   │   ├── resumes
 │   │   │   │   ├── ResumeExperience.tsx
 │   │   │   │   ├── ResumeInsights.tsx
 │   │   │   │   ├── ResumeSummary.tsx
 │   │   │   │   ├── ResumeTechnologies.tsx
-│   │   │   │   └── ResumeUploader.tsx
+│   │   │   │   ├── ResumeUploader.tsx
+│   │   │   │   ├── ResumeUploaderV2.tsx
+│   │   │   │   └── manageResumes
+│   │   │   │       ├── ManageResumes.tsx
+│   │   │   │       └── ResumeCard.tsx
 │   │   │   ├── shared
 │   │   │   │   ├── AuthCard.tsx
+│   │   │   │   ├── MotionDraw.tsx
+│   │   │   │   ├── MotionLogo.tsx
 │   │   │   │   ├── ProtectedRoute.tsx
-│   │   │   │   └── StatsCard.tsx
+│   │   │   │   ├── StatsCard.tsx
+│   │   │   │   └── logos.ts
 │   │   │   ├── topTech
 │   │   │   │   └── TopTechChart.tsx
 │   │   │   ├── trends
@@ -448,56 +512,97 @@ npx tree-node-cli -I ".github|.vscode|node_modules|assets|icons|public|dist|pack
 │   │   │   │   ├── SkillList.tsx
 │   │   │   │   ├── SkillListOld.tsx
 │   │   │   │   └── trends.test.ts
+│   │   │   ├── trends-v2
+│   │   │   │   ├── CellCard.tsx
+│   │   │   │   ├── CooccurringChart.tsx
+│   │   │   │   ├── FiltersBar.tsx
+│   │   │   │   ├── RisingGrid.tsx
+│   │   │   │   ├── TechCard.tsx
+│   │   │   │   ├── TechDetailPanel.tsx
+│   │   │   │   ├── TopList.tsx
+│   │   │   │   └── TrendsV2Controls.tsx
 │   │   │   └── ui
+│   │   │       ├── accordion.tsx
 │   │   │       ├── badge.tsx
 │   │   │       ├── button.tsx
 │   │   │       ├── card.tsx
+│   │   │       ├── checkbox.tsx
+│   │   │       ├── collapsible.tsx
+│   │   │       ├── command.tsx
+│   │   │       ├── dialog.tsx
+│   │   │       ├── dropdown-menu.tsx
 │   │   │       ├── field.tsx
 │   │   │       ├── input.tsx
 │   │   │       ├── label.tsx
+│   │   │       ├── pagination.tsx
+│   │   │       ├── popover.tsx
+│   │   │       ├── progress.tsx
+│   │   │       ├── scroll-area.tsx
 │   │   │       ├── select.tsx
 │   │   │       ├── separator.tsx
 │   │   │       ├── sheet.tsx
+│   │   │       ├── sidebar.tsx
 │   │   │       ├── skeleton.tsx
 │   │   │       ├── spinner.tsx
+│   │   │       ├── tabs.tsx
+│   │   │       ├── tooltip.tsx
 │   │   │       └── typography.tsx
 │   │   ├── contexts
 │   │   │   ├── AuthContext.tsx
 │   │   │   └── ThemeContext.tsx
 │   │   ├── hooks
+│   │   │   ├── use-mobile.ts
 │   │   │   ├── useAuthInitialization.ts
+│   │   │   ├── useDebouncedCallback.ts
 │   │   │   ├── useIsMobile.ts
-│   │   │   └── useTheme.ts
+│   │   │   ├── useTheme.ts
+│   │   │   └── useTrendsV2Data.ts
 │   │   ├── index.css
 │   │   ├── lib
 │   │   │   ├── postingsBadgeHelpers.ts
 │   │   │   ├── stringHelpers.ts
+│   │   │   ├── trends.ts
+│   │   │   ├── utils
+│   │   │   │   ├── __tests__
+│   │   │   │   │   └── techBadgeHelpers.test.ts
+│   │   │   │   ├── companyHelpers.ts
+│   │   │   │   ├── dateUtils.ts
+│   │   │   │   ├── experienceDuration.ts
+│   │   │   │   └── techBadgeHelpers.ts
 │   │   │   └── utils.ts
 │   │   ├── main.tsx
 │   │   ├── pages
 │   │   │   ├── About.tsx
+│   │   │   ├── ForgotPassword.tsx
 │   │   │   ├── Home.tsx
+│   │   │   ├── JobDetail.tsx
+│   │   │   ├── JobPostingDetail.tsx
 │   │   │   ├── Login.tsx
+│   │   │   ├── ManageResumes.tsx
 │   │   │   ├── Postings.tsx
 │   │   │   ├── Register.tsx
 │   │   │   ├── TopTech.tsx
 │   │   │   ├── Trends.tsx
+│   │   │   ├── TrendsV2.tsx
 │   │   │   ├── UploadResume.tsx
 │   │   │   └── VerifyEmail.tsx
 │   │   ├── services
+│   │   │   ├── __tests__
+│   │   │   │   ├── authService.test.ts
+│   │   │   │   ├── jobPostingsNeonService.test.ts
+│   │   │   │   ├── jobPostingsService.test.ts
+│   │   │   │   ├── jobStatsService.test.ts
+│   │   │   │   ├── resumeService.test.ts
+│   │   │   │   ├── trendsService.test.ts
+│   │   │   │   └── trendsv2Service.test.ts
 │   │   │   ├── authService.ts
+│   │   │   ├── jobPostingsNeonService.ts
 │   │   │   ├── jobPostingsService.ts
 │   │   │   ├── jobStatsService.ts
 │   │   │   ├── resumeService.ts
-│   │   │   └── trendsService.ts
+│   │   │   ├── trendsService.ts
+│   │   │   └── trendsv2Service.ts
 │   │   ├── setupTests.ts
-│   │   ├── shared-types
-│   │   │   ├── index.ts
-│   │   │   └── src
-│   │   │       ├── jobs.ts
-│   │   │       ├── lambda.ts
-│   │   │       ├── resume.ts
-│   │   │       └── trends.ts
 │   │   ├── stores
 │   │   │   ├── authStore.ts
 │   │   │   └── useJobPostingsStore.ts
@@ -512,17 +617,20 @@ npx tree-node-cli -I ".github|.vscode|node_modules|assets|icons|public|dist|pack
 │   │   │   ├── icon-svg.css
 │   │   │   ├── job-postings.css
 │   │   │   ├── landing.css
+│   │   │   ├── list-bullets.css
 │   │   │   ├── mobile-insights.css
 │   │   │   ├── nav.css
 │   │   │   ├── pagination.css
 │   │   │   ├── remote-pill.css
+│   │   │   ├── responsive-fixes.css
 │   │   │   ├── resume.css
 │   │   │   ├── section-card.css
 │   │   │   ├── stats-cards.css
 │   │   │   ├── tech-bar.css
 │   │   │   ├── tech-chart.css
 │   │   │   ├── tokens.css
-│   │   │   └── trends.css
+│   │   │   ├── trends.css
+│   │   │   └── typography.css
 │   │   ├── test-typings.d.ts
 │   │   ├── test-utils
 │   │   │   └── resize.ts
@@ -536,127 +644,110 @@ npx tree-node-cli -I ".github|.vscode|node_modules|assets|icons|public|dist|pack
 │   ├── vite.config.ts
 │   └── vitest.config.ts
 ├── lambda
-│   ├── aggregate-skill-trends
-│   │   ├── README.md
+│   ├── aggregate-skill-trends-v2
+│   │   ├── aggregate-skill-trends-v2.zip
 │   │   ├── lambda.zip
+│   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── src
-│   │   │   └── index.ts
-│   │   ├── tsconfig.json
-│   │   └── tsup.config.ts
-│   ├── auth-get-current-user
-│   │   ├── lambda.zip
-│   │   ├── package.json
-│   │   ├── src
-│   │   │   └── index.ts
-│   │   ├── tsconfig.json
-│   │   └── tsup.config.ts
-│   ├── auth-login
-│   │   ├── lambda.zip
-│   │   ├── package.json
-│   │   ├── src
-│   │   │   └── index.ts
-│   │   ├── tsconfig.json
-│   │   └── tsup.config.ts
-│   ├── auth-logout
-│   │   ├── lambda.zip
-│   │   ├── package.json
-│   │   ├── src
-│   │   │   └── index.ts
-│   │   ├── tsconfig.json
-│   │   └── tsup.config.ts
-│   ├── auth-register
-│   │   ├── lambda.zip
-│   │   ├── package.json
-│   │   ├── src
-│   │   │   └── index.ts
-│   │   ├── tsconfig.json
-│   │   └── tsup.config.ts
-│   ├── auth-verify-email
-│   │   ├── lambda.zip
-│   │   ├── package.json
-│   │   ├── src
-│   │   │   └── index.ts
-│   │   ├── tsconfig.json
-│   │   └── tsup.config.ts
-│   ├── bedrock-ai-extractor
-│   │   ├── lambda.zip
-│   │   ├── package.json
-│   │   ├── src
-│   │   │   └── index.ts
-│   │   ├── tsconfig.json
-│   │   └── tsup.config.ts
-│   ├── calculate-job-stats
-│   │   ├── lambda.zip
-│   │   ├── package.json
-│   │   ├── src
+│   │   │   ├── compute
+│   │   │   │   ├── buckets.ts
+│   │   │   │   ├── momentum.ts
+│   │   │   │   └── stats.ts
+│   │   │   ├── ddb.ts
 │   │   │   ├── index.ts
-│   │   │   └── jobs.ts
+│   │   │   ├── lib
+│   │   │   │   └── salaryAnchors.ts
+│   │   │   └── normalizers
+│   │   │       ├── location.ts
+│   │   │       ├── salary.ts
+│   │   │       └── skills.ts
 │   │   ├── tsconfig.json
 │   │   └── tsup.config.ts
-│   ├── clean-jobs-bucket
-│   │   ├── lambda.zip
+│   ├── auth
+│   │   ├── auth-forgot-password
+│   │   │   ├── auth-forgot-password.zip
+│   │   │   ├── package-lock.json
+│   │   │   ├── package.json
+│   │   │   ├── src
+│   │   │   │   └── index.ts
+│   │   │   ├── tsconfig.json
+│   │   │   └── tsup.config.ts
+│   │   ├── auth-get-current-user
+│   │   │   ├── auth-get-current-user.zip
+│   │   │   ├── lambda.zip
+│   │   │   ├── package-lock.json
+│   │   │   ├── package.json
+│   │   │   ├── src
+│   │   │   │   └── index.ts
+│   │   │   ├── tsconfig.json
+│   │   │   └── tsup.config.ts
+│   │   ├── auth-login
+│   │   │   ├── auth-login.zip
+│   │   │   ├── lambda.zip
+│   │   │   ├── package-lock.json
+│   │   │   ├── package.json
+│   │   │   ├── src
+│   │   │   │   └── index.ts
+│   │   │   ├── tsconfig.json
+│   │   │   └── tsup.config.ts
+│   │   ├── auth-logout
+│   │   │   ├── auth-logout.zip
+│   │   │   ├── lambda.zip
+│   │   │   ├── package-lock.json
+│   │   │   ├── package.json
+│   │   │   ├── src
+│   │   │   │   └── index.ts
+│   │   │   ├── tsconfig.json
+│   │   │   └── tsup.config.ts
+│   │   ├── auth-register
+│   │   │   ├── auth-register.zip
+│   │   │   ├── lambda.zip
+│   │   │   ├── package-lock.json
+│   │   │   ├── package.json
+│   │   │   ├── src
+│   │   │   │   └── index.ts
+│   │   │   ├── tsconfig.json
+│   │   │   └── tsup.config.ts
+│   │   ├── auth-reset-password
+│   │   │   ├── auth-reset-password.zip
+│   │   │   ├── package-lock.json
+│   │   │   ├── package.json
+│   │   │   ├── src
+│   │   │   │   └── index.ts
+│   │   │   ├── tsconfig.json
+│   │   │   └── tsup.config.ts
+│   │   └── auth-verify-email
+│   │       ├── auth-verify-email.zip
+│   │       ├── lambda.zip
+│   │       ├── package-lock.json
+│   │       ├── package.json
+│   │       ├── src
+│   │       │   └── index.ts
+│   │       ├── tsconfig.json
+│   │       └── tsup.config.ts
+│   ├── calculate-job-stats
+│   │   ├── calculate-job-stats.zip
+│   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── src
 │   │   │   └── index.ts
 │   │   ├── tsconfig.json
 │   │   └── tsup.config.ts
 │   ├── cognito-post-confirmation
+│   │   ├── cognito-post-confirmation.zip
 │   │   ├── lambda.zip
+│   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── src
 │   │   │   └── index.ts
 │   │   ├── tsconfig.json
 │   │   └── tsup.config.ts
 │   ├── compare-resume-id
+│   │   ├── compare-resume-id.zip
 │   │   ├── lambda.zip
-│   │   ├── package.json
-│   │   ├── src
-│   │   │   ├── aiService.ts
-│   │   │   ├── calibrator.ts
-│   │   │   ├── cors.ts
-│   │   │   ├── dbService.ts
-│   │   │   ├── docx.ts
-│   │   │   ├── extractors.ts
-│   │   │   ├── fileProcessor.ts
-│   │   │   ├── index.ts
-│   │   │   ├── preflight.ts
-│   │   │   ├── s3Service.ts
-│   │   │   ├── sanitizers.ts
-│   │   │   └── types.ts
-│   │   ├── tsconfig.json
-│   │   └── tsup.config.ts
-│   ├── compare-resume-id.zip
-│   ├── get-job-postings
-│   │   ├── lambda.zip
-│   │   ├── package.json
-│   │   ├── src
-│   │   │   └── index.ts
-│   │   ├── tsconfig.json
-│   │   └── tsup.config.ts
-│   ├── get-job-postings-paginated
-│   │   ├── lambda.zip
-│   │   ├── package.json
-│   │   ├── src
-│   │   │   └── index.ts
-│   │   ├── tsconfig.json
-│   │   └── tsup.config.ts
-│   ├── get-job-postings-stats
-│   │   ├── lambda.zip
-│   │   ├── package.json
-│   │   ├── src
-│   │   │   └── index.ts
-│   │   ├── tsconfig.json
-│   │   └── tsup.config.ts
-│   ├── get-skill-trends
-│   │   ├── README.md
-│   │   ├── lambda.zip
-│   │   ├── package.json
-│   │   ├── src
-│   │   │   └── index.ts
-│   │   ├── tsconfig.json
-│   │   └── tsup.config.ts
-│   ├── get-user-resumes
+│   │   ├── old-compare-lambda.zip
+│   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── src
 │   │   │   ├── cors.ts
@@ -664,8 +755,73 @@ npx tree-node-cli -I ".github|.vscode|node_modules|assets|icons|public|dist|pack
 │   │   │   └── preflight.ts
 │   │   ├── tsconfig.json
 │   │   └── tsup.config.ts
+│   ├── get-job-postings-paginated
+│   │   ├── get-job-postings-paginated.zip
+│   │   ├── lambda.zip
+│   │   ├── package-lock.json
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   ├── index.ts
+│   │   │   └── utils.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── get-job-postings-paginated-neon
+│   │   ├── package-lock.json
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   └── index.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── get-job-postings-stats
+│   │   ├── get-job-postings-stats.zip
+│   │   ├── lambda.zip
+│   │   ├── package-lock.json
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   └── index.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── get-job-processing-status
+│   │   ├── get-job-processing-status.zip
+│   │   ├── lambda.zip
+│   │   ├── package-lock.json
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   ├── cors.ts
+│   │   │   ├── index.ts
+│   │   │   └── preflight.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── get-trends-v2
+│   │   ├── get-trends-v2.zip
+│   │   ├── lambda.zip
+│   │   ├── package-lock.json
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   ├── index.ts
+│   │   │   ├── logging.ts
+│   │   │   ├── pivot.ts
+│   │   │   └── utils.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
+│   ├── get-user-resumes
+│   │   ├── get-user-resumes.zip
+│   │   ├── lambda.zip
+│   │   ├── package-lock.json
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   ├── cors.ts
+│   │   │   ├── index.ts
+│   │   │   └── utils.ts
+│   │   ├── tsconfig.json
+│   │   └── tsup.config.ts
 │   ├── ingest-jobs
 │   │   ├── README.md
+│   │   ├── ingest-jobs-11-10-25_17-20.zip
+│   │   ├── ingest-jobs.zip
+│   │   ├── job-market-analyzer-types-0.1.0.tgz
+│   │   ├── lambda.zip
+│   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── samconfig.toml
 │   │   ├── src
@@ -677,8 +833,10 @@ npx tree-node-cli -I ".github|.vscode|node_modules|assets|icons|public|dist|pack
 │   │   │   │   ├── types.ts
 │   │   │   │   └── usajobs.ts
 │   │   │   ├── company-slugs.json
+│   │   │   ├── find-slugs.md
 │   │   │   ├── index.ts
 │   │   │   ├── lib
+│   │   │   │   ├── dateHelpers.ts
 │   │   │   │   ├── dedupe.test.ts
 │   │   │   │   ├── dedupe.ts
 │   │   │   │   ├── devFilter.ts
@@ -691,575 +849,136 @@ npx tree-node-cli -I ".github|.vscode|node_modules|assets|icons|public|dist|pack
 │   │   ├── template.yaml
 │   │   ├── tsconfig.json
 │   │   └── tsup.config.ts
-│   ├── job-posting-aggregator
-│   │   ├── lambda.zip
+│   ├── normalize-tables
+│   │   ├── normalize-tables.zip
+│   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── src
-│   │   │   ├── adapters.ts
+│   │   │   ├── companiesMap.ts
+│   │   │   ├── config.ts
+│   │   │   ├── dynamoService.ts
 │   │   │   ├── index.ts
-│   │   │   └── types.ts
+│   │   │   ├── neonService.ts
+│   │   │   ├── normalizer.ts
+│   │   │   ├── types.ts
+│   │   │   └── utils.ts
 │   │   ├── tsconfig.json
 │   │   └── tsup.config.ts
-│   ├── normalize-tables
+│   ├── openrouter-ai-enhancement-from-table
+│   │   ├── openRouterModels
+│   │   │   ├── README.md
+│   │   │   ├── deepseek-chat-v3.1.json
+│   │   │   ├── gemini-2.0-flash-exp.json
+│   │   │   ├── gpt-oss-20b.json
+│   │   │   ├── kat-coder-pro.json
+│   │   │   ├── llama-3.3-70b-instruct.json
+│   │   │   ├── llama-4-maverick.json
+│   │   │   ├── llama-4-scout.json
+│   │   │   ├── qwen-2.5-72b-instruct.json
+│   │   │   └── qwen3-coder.json
+│   │   ├── openrouter-ai-enhancement-from-table.zip
+│   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── src
-│   │   │   └── index.ts
+│   │   │   ├── aiService.ts
+│   │   │   ├── dbService.ts
+│   │   │   ├── index.ts
+│   │   │   ├── keyHelper.ts
+│   │   │   ├── keyManagement.ts
+│   │   │   ├── logging.ts
+│   │   │   ├── tokenLogger.ts
+│   │   │   ├── types.ts
+│   │   │   └── utils.ts
 │   │   ├── tsconfig.json
 │   │   └── tsup.config.ts
 │   ├── resume-presigned-url
 │   │   ├── lambda.zip
+│   │   ├── package-lock.json
 │   │   ├── package.json
+│   │   ├── resume-presigned-url.zip
 │   │   ├── src
 │   │   │   ├── dynamoService.ts
 │   │   │   └── index.ts
 │   │   ├── tsconfig.json
 │   │   └── tsup.config.ts
-│   └── skill-extractor-ai
-│       ├── lambda.zip
+│   └── worker-process-resume
+│       ├── package-lock.json
 │       ├── package.json
 │       ├── src
-│       │   └── index.ts
+│       │   ├── aiService.ts
+│       │   ├── arrayHelpers.ts
+│       │   ├── bedrockTokenLogger.ts
+│       │   ├── calibrator.ts
+│       │   ├── cors.ts
+│       │   ├── dateHelpers.ts
+│       │   ├── dbService.ts
+│       │   ├── docx.ts
+│       │   ├── extractors.ts
+│       │   ├── fileHelpers.ts
+│       │   ├── fileProcessor.ts
+│       │   ├── index.ts
+│       │   ├── logging.ts
+│       │   ├── preflight.ts
+│       │   ├── s3Service.ts
+│       │   ├── sanitizers.ts
+│       │   ├── techNormalizer.ts
+│       │   ├── techTrends.ts
+│       │   ├── techTrendsDbService.ts
+│       │   ├── techTrendsHelpers.ts
+│       │   ├── tokenLogger.ts
+│       │   ├── types.ts
+│       │   └── utils.ts
 │       ├── tsconfig.json
-│       └── tsup.config.ts
-├── output.json
+│       ├── tsup.config.ts
+│       └── worker-process-resume.zip
+├── package-lock.json
 ├── package.json
+├── packages
+│   └── shared-types
+│       ├── job-market-analyzer-types-0.1.0.tgz
+│       ├── package.json
+│       ├── src
+│       │   ├── auth.ts
+│       │   ├── canonical-job.ts
+│       │   ├── index.ts
+│       │   ├── jobs.ts
+│       │   ├── lambda.ts
+│       │   ├── resume-query.ts
+│       │   ├── resume-record.ts
+│       │   ├── resume.ts
+│       │   ├── trends.ts
+│       │   └── trendsv2.ts
+│       └── tsconfig.json
+├── portfolio
 ├── scripts
+│   ├── backfill-processed-day.ts
 │   ├── buildLambdas.js
+│   ├── delete-jobs.ts
+│   ├── backfill-processed-day.ts
+│   ├── buildLambdas.js
+│   ├── backfill-processed-day.ts
+│   ├── backfill-processed-day.ts
+│   ├── backfill-processed-day.ts
+│   ├── buildLambdas.js
+│   ├── delete-jobs.ts
+│   ├── fix-remote-status.ts
+│   ├── fix-skill-canonical-lowercase.ts
+│   ├── job-tech-index.py
+│   ├── jtindex.py
+│   ├── migrate-job-board-source-to-neon.ts
+│   ├── migrate-job-board-source.ts
+│   ├── migrate-source-url-to-neon.ts
+│   ├── migrate-source-url.ts
 │   ├── packageLambdas.js
 │   ├── playwright
+│   ├── reconcile-skill-display-and-dupes.ts
 │   ├── skillsandtech.py
 │   └── status.py
 └── zip.js
 ```
 
-```json
-{
-  "technologies": [
-    {
-      "canonical": "TypeScript",
-      "aliases": [],
-      "category": "language",
-      "confidence": 1,
-      "evidence": [
-        {
-          "quote": "Full-stack developer with 3 years of experience building applications and APIs in TypeScript",
-          "char_start": 40,
-          "char_end": 51
-        }
-      ],
-      "notes": "Explicitly mentioned in the summary"
-    },
-    {
-      "canonical": "JavaScript",
-      "aliases": [],
-      "category": "language",
-      "confidence": 1,
-      "evidence": [
-        {
-          "quote": "Skilled across React, Next.js, and modern backend frameworks such as FastAPI and .NET Core.",
-          "char_start": 52,
-          "char_end": 67
-        }
-      ],
-      "notes": "Implied by usage in React and Next.js"
-    },
-    {
-      "canonical": "Python",
-      "aliases": [],
-      "category": "language",
-      "confidence": 1,
-      "evidence": [
-        {
-          "quote": "Full-stack developer with 3 years of experience building applications and APIs in TypeScript, C#, and Python.",
-          "char_start": 52,
-          "char_end": 73
-        }
-      ],
-      "notes": "Explicitly mentioned in the summary"
-    },
-    {
-      "canonical": "C#",
-      "aliases": ["CSharp"],
-      "category": "language",
-      "confidence": 1,
-      "evidence": [
-        {
-          "quote": "Skilled across React, Next.js, and modern backend frameworks such as FastAPI and .NET Core.",
-          "char_start": 52,
-          "char_end": 74
-        }
-      ],
-      "notes": "Implied by usage in .NET Core"
-    },
-    {
-      "canonical": "React",
-      "aliases": [],
-      "category": "framework",
-      "confidence": 1,
-      "evidence": [
-        {
-          "quote": "Skilled across React, Next.js, and modern backend frameworks such as FastAPI and .NET Core.",
-          "char_start": 52,
-          "char_end": 58
-        }
-      ],
-      "notes": "Explicitly mentioned in the summary"
-    },
-    {
-      "canonical": "Next.js",
-      "aliases": [],
-      "category": "framework",
-      "confidence": 1,
-      "evidence": [
-        {
-          "quote": "Skilled across React, Next.js, and modern backend frameworks such as FastAPI and .NET Core.",
-          "char_start": 59,
-          "char_end": 66
-        }
-      ],
-      "notes": "Explicitly mentioned in the summary"
-    },
-    {
-      "canonical": "FastAPI",
-      "aliases": [],
-      "category": "framework",
-      "confidence": 1,
-      "evidence": [
-        {
-          "quote": "Skilled across React, Next.js, and modern backend frameworks such as FastAPI and .NET Core.",
-          "char_start": 70,
-          "char_end": 79
-        }
-      ],
-      "notes": "Explicitly mentioned in the summary"
-    },
-    {
-      "canonical": ".NET Core",
-      "aliases": [".NET"],
-      "category": "framework",
-      "confidence": 1,
-      "evidence": [
-        {
-          "quote": "Skilled across React, Next.js, and modern backend frameworks such as FastAPI and .NET Core.",
-          "char_start": 79,
-          "char_end": 90
-        }
-      ],
-      "notes": "Explicitly mentioned in the summary"
-    },
-    {
-      "canonical": "PostgreSQL",
-      "aliases": ["PG", "Postgres"],
-      "category": "database",
-      "confidence": 1,
-      "evidence": [
-        {
-          "quote": "Used PostgreSQL (Prisma ORM) and Inngest for background processing.",
-          "char_start": 188,
-          "char_end": 201
-        }
-      ],
-      "notes": "Explicitly mentioned in the experience section"
-    },
-    {
-      "canonical": "AWS",
-      "aliases": [],
-      "category": "cloud",
-      "confidence": 1,
-      "evidence": [
-        {
-          "quote": "Architected serverless data pipeline processing 1000+ job postings daily using AWS Lambda, EventBridge, DynamoDB, and S3",
-          "char_start": 220,
-          "char_end": 223
-        }
-      ],
-      "notes": "Explicitly mentioned in the experience section"
-    },
-    {
-      "canonical": "Docker",
-      "aliases": [],
-      "category": "devops",
-      "confidence": 1,
-      "evidence": [
-        {
-          "quote": "DevOps & Systems: Linux (Ubuntu, WSL2), Docker, Bash, Zsh, GitHub Actions, IaC (SAM, CDK)",
-          "char_start": 380,
-          "char_end": 386
-        }
-      ],
-      "notes": "Explicitly mentioned in the technical skills section"
-    },
-    {
-      "canonical": "Git",
-      "aliases": [],
-      "category": "tooling",
-      "confidence": 1,
-      "evidence": [
-        {
-          "quote": "Dev Tools: Git, GitHub, GitHub CLI, Postman, Vite, npm, pnpm, pip, VS Code, curl, jq",
-          "char_start": 406,
-          "char_end": 409
-        }
-      ],
-      "notes": "Explicitly mentioned in the technical skills section"
-    },
-    {
-      "canonical": "Linux",
-      "aliases": [],
-      "category": "devops",
-      "confidence": 1,
-      "evidence": [
-        {
-          "quote": "DevOps & Systems: Linux (Ubuntu, WSL2), Docker, Bash, Zsh, GitHub Actions, IaC (SAM, CDK)",
-          "char_start": 387,
-          "char_end": 392
-        }
-      ],
-      "notes": "Explicitly mentioned in the technical skills section"
-    }
-  ],
-  "soft_skills": [
-    {
-      "name": "agile ceremonies",
-      "confidence": 1,
-      "evidence": [
-        {
-          "quote": "daily standups, weekly retrospectives, basic sprint planning",
-          "char_start": 410,
-          "char_end": 424
-        }
-      ],
-      "notes": "Mentioned in the technical skills section"
-    },
-    {
-      "name": "cross-functional collaboration",
-      "confidence": 0.9,
-      "evidence": [
-        {
-          "quote": "Mentored peers and contributed to business-critical projects during the program.",
-          "char_start": 560,
-          "char_end": 580
-        }
-      ],
-      "notes": "Inferred from bootcamp experience"
-    }
-  ],
-  "stack_combinations": [
-    {
-      "name": "React + TypeScript + AWS",
-      "components": ["React", "TypeScript", "AWS"],
-      "primary_use": "full-stack web app",
-      "evidence": [
-        {
-          "quote": "Developed React + TypeScript dashboard with authentication (AWS Cognito)",
-          "char_start": 200,
-          "char_end": 215
-        }
-      ],
-      "rationale": "Explicitly used together in a project",
-      "confidence": 1
-    },
-    {
-      "name": "Next.js + FastAPI + PostgreSQL",
-      "components": ["Next.js", "FastAPI", "PostgreSQL"],
-      "primary_use": "full-stack web app",
-      "evidence": [
-        {
-          "quote": "Built with Next.js 15 (App Router) and FastAPI for structured document parsing.",
-          "char_start": 280,
-          "char_end": 300
-        }
-      ],
-      "rationale": "Explicitly used together in a project",
-      "confidence": 1
-    }
-  ],
-  "inferences": {
-    "probable_roles": ["Full-Stack Engineer"],
-    "seniority_signals": ["led team"],
-    "domains": ["web development"],
-    "evidence": [
-      {
-        "quote": "Full-stack developer with 3 years of experience",
-        "char_start": 30,
-        "char_end": 47
-      }
-    ]
-  },
-  "reasoning": "Based on the combination of technologies and roles mentioned in the resume."
-}
-```
+Mapping notes:
 
-````
-
-
-
-# id name
-
-    8e0f3b84-0112-4c45-9164-50624b36ff73	Docker
-
-1 e743962c-028c-4f6c-87e0-15502f583887 TypeScript
-2 509fa552-b11f-4a2d-ace1-0d41e0f8a382 PostgreSQL
-3 b86de665-7467-4891-95e6-65dd9d112a27 React
-4 43524566-f57d-48dc-bec3-e2cf8d60e74a Node.js
-5 07fc61f4-895d-4675-a4e1-4bec494405a8 Go
-6 ed8bc5cb-95ad-4958-a65f-90b4b35cfe9d Kubernetes
-7 48a77c94-f51b-47e0-b975-a99eb13f42b1 React Native
-8 792689ac-c25c-46b4-9fb5-757f44393d30 MySQL
-1 cafe3ad1-48af-4a5f-a28f-f1bad7ab2263 AWS
-2 2c069c99-8a13-42d4-9d2a-d0a0c2f34e40 GCP
-3 e68a6b14-737b-4d98-929b-80ca17494d7a Azure
-
-
-```json
-const input = { // ConverseRequest
-  modelId: "STRING_VALUE", // required
-  messages: [ // Messages
-    { // Message
-      role: "user" || "assistant", // required
-      content: [ // ContentBlocks // required
-        { // ContentBlock Union: only one key present
-          text: "STRING_VALUE",
-          image: { // ImageBlock
-            format: "png" || "jpeg" || "gif" || "webp", // required
-            source: { // ImageSource Union: only one key present
-              bytes: new Uint8Array(), // e.g. Buffer.from("") or new TextEncoder().encode("")
-              s3Location: { // S3Location
-                uri: "STRING_VALUE", // required
-                bucketOwner: "STRING_VALUE",
-              },
-            },
-          },
-          document: { // DocumentBlock
-            format: "pdf" || "csv" || "doc" || "docx" || "xls" || "xlsx" || "html" || "txt" || "md",
-            name: "STRING_VALUE", // required
-            source: { // DocumentSource Union: only one key present
-              bytes: new Uint8Array(), // e.g. Buffer.from("") or new TextEncoder().encode("")
-              s3Location: {
-                uri: "STRING_VALUE", // required
-                bucketOwner: "STRING_VALUE",
-              },
-              text: "STRING_VALUE",
-              content: [ // DocumentContentBlocks
-                { // DocumentContentBlock Union: only one key present
-                  text: "STRING_VALUE",
-                },
-              ],
-            },
-            context: "STRING_VALUE",
-            citations: { // CitationsConfig
-              enabled: true || false, // required
-            },
-          },
-          video: { // VideoBlock
-            format: "mkv" || "mov" || "mp4" || "webm" || "flv" || "mpeg" || "mpg" || "wmv" || "three_gp", // required
-            source: { // VideoSource Union: only one key present
-              bytes: new Uint8Array(), // e.g. Buffer.from("") or new TextEncoder().encode("")
-              s3Location: {
-                uri: "STRING_VALUE", // required
-                bucketOwner: "STRING_VALUE",
-              },
-            },
-          },
-          toolUse: { // ToolUseBlock
-            toolUseId: "STRING_VALUE", // required
-            name: "STRING_VALUE", // required
-            input: "DOCUMENT_VALUE", // required
-            type: "server_tool_use",
-          },
-          toolResult: { // ToolResultBlock
-            toolUseId: "STRING_VALUE", // required
-            content: [ // ToolResultContentBlocks // required
-              { // ToolResultContentBlock Union: only one key present
-                json: "DOCUMENT_VALUE",
-                text: "STRING_VALUE",
-                image: {
-                  format: "png" || "jpeg" || "gif" || "webp", // required
-                  source: {//  Union: only one key present
-                    bytes: new Uint8Array(), // e.g. Buffer.from("") or new TextEncoder().encode("")
-                    s3Location: {
-                      uri: "STRING_VALUE", // required
-                      bucketOwner: "STRING_VALUE",
-                    },
-                  },
-                },
-                document: {
-                  format: "pdf" || "csv" || "doc" || "docx" || "xls" || "xlsx" || "html" || "txt" || "md",
-                  name: "STRING_VALUE", // required
-                  source: {//  Union: only one key present
-                    bytes: new Uint8Array(), // e.g. Buffer.from("") or new TextEncoder().encode("")
-                    s3Location: {
-                      uri: "STRING_VALUE", // required
-                      bucketOwner: "STRING_VALUE",
-                    },
-                    text: "STRING_VALUE",
-                    content: [
-                      {//  Union: only one key present
-                        text: "STRING_VALUE",
-                      },
-                    ],
-                  },
-                  context: "STRING_VALUE",
-                  citations: {
-                    enabled: true || false, // required
-                  },
-                },
-                video: {
-                  format: "mkv" || "mov" || "mp4" || "webm" || "flv" || "mpeg" || "mpg" || "wmv" || "three_gp", // required
-                  source: {//  Union: only one key present
-                    bytes: new Uint8Array(), // e.g. Buffer.from("") or new TextEncoder().encode("")
-                    s3Location: "<S3Location>",
-                  },
-                },
-              },
-            ],
-            status: "success" || "error",
-            type: "STRING_VALUE",
-          },
-          guardContent: { // GuardrailConverseContentBlock Union: only one key present
-            text: { // GuardrailConverseTextBlock
-              text: "STRING_VALUE", // required
-              qualifiers: [ // GuardrailConverseContentQualifierList
-                "grounding_source" || "query" || "guard_content",
-              ],
-            },
-            image: { // GuardrailConverseImageBlock
-              format: "png" || "jpeg", // required
-              source: { // GuardrailConverseImageSource Union: only one key present
-                bytes: new Uint8Array(), // e.g. Buffer.from("") or new TextEncoder().encode("")
-              },
-            },
-          },
-          cachePoint: { // CachePointBlock
-            type: "default", // required
-          },
-          reasoningContent: { // ReasoningContentBlock Union: only one key present
-            reasoningText: { // ReasoningTextBlock
-              text: "STRING_VALUE", // required
-              signature: "STRING_VALUE",
-            },
-            redactedContent: new Uint8Array(), // e.g. Buffer.from("") or new TextEncoder().encode("")
-          },
-          citationsContent: { // CitationsContentBlock
-            content: [ // CitationGeneratedContentList
-              { // CitationGeneratedContent Union: only one key present
-                text: "STRING_VALUE",
-              },
-            ],
-            citations: [ // Citations
-              { // Citation
-                title: "STRING_VALUE",
-                sourceContent: [ // CitationSourceContentList
-                  { // CitationSourceContent Union: only one key present
-                    text: "STRING_VALUE",
-                  },
-                ],
-                location: { // CitationLocation Union: only one key present
-                  web: { // WebLocation
-                    url: "STRING_VALUE",
-                    domain: "STRING_VALUE",
-                  },
-                  documentChar: { // DocumentCharLocation
-                    documentIndex: Number("int"),
-                    start: Number("int"),
-                    end: Number("int"),
-                  },
-                  documentPage: { // DocumentPageLocation
-                    documentIndex: Number("int"),
-                    start: Number("int"),
-                    end: Number("int"),
-                  },
-                  documentChunk: { // DocumentChunkLocation
-                    documentIndex: Number("int"),
-                    start: Number("int"),
-                    end: Number("int"),
-                  },
-                },
-              },
-            ],
-          },
-        },
-      ],
-    },
-  ],
-  system: [ // SystemContentBlocks
-    { // SystemContentBlock Union: only one key present
-      text: "STRING_VALUE",
-      guardContent: {//  Union: only one key present
-        text: {
-          text: "STRING_VALUE", // required
-          qualifiers: [
-            "grounding_source" || "query" || "guard_content",
-          ],
-        },
-        image: {
-          format: "png" || "jpeg", // required
-          source: {//  Union: only one key present
-            bytes: new Uint8Array(), // e.g. Buffer.from("") or new TextEncoder().encode("")
-          },
-        },
-      },
-      cachePoint: {
-        type: "default", // required
-      },
-    },
-  ],
-  inferenceConfig: { // InferenceConfiguration
-    maxTokens: Number("int"),
-    temperature: Number("float"),
-    topP: Number("float"),
-    stopSequences: [ // NonEmptyStringList
-      "STRING_VALUE",
-    ],
-  },
-  toolConfig: { // ToolConfiguration
-    tools: [ // Tools // required
-      { // Tool Union: only one key present
-        toolSpec: { // ToolSpecification
-          name: "STRING_VALUE", // required
-          description: "STRING_VALUE",
-          inputSchema: { // ToolInputSchema Union: only one key present
-            json: "DOCUMENT_VALUE",
-          },
-        },
-        systemTool: { // SystemTool
-          name: "STRING_VALUE", // required
-        },
-        cachePoint: "<CachePointBlock>",
-      },
-    ],
-    toolChoice: { // ToolChoice Union: only one key present
-      auto: {},
-      any: {},
-      tool: { // SpecificToolChoice
-        name: "STRING_VALUE", // required
-      },
-    },
-  },
-  guardrailConfig: { // GuardrailConfiguration
-    guardrailIdentifier: "STRING_VALUE", // required
-    guardrailVersion: "STRING_VALUE", // required
-    trace: "enabled" || "disabled" || "enabled_full",
-  },
-  additionalModelRequestFields: "DOCUMENT_VALUE",
-  promptVariables: { // PromptVariableMap
-    "<keys>": { // PromptVariableValues Union: only one key present
-      text: "STRING_VALUE",
-    },
-  },
-  additionalModelResponseFieldPaths: [ // AdditionalModelResponseFieldPaths
-    "STRING_VALUE",
-  ],
-  requestMetadata: { // RequestMetadata
-    "<keys>": "STRING_VALUE",
-  },
-  performanceConfig: { // PerformanceConfiguration
-    latency: "standard" || "optimized",
-  },
-};
-````
-
-```
-
-
-```
+- `lambda/*/src` implements the Lambdas shown in the diagram (ingest, aggregator, resume extractor, read APIs).
+- `frontend/` is the React dashboard served through Amplify or CloudFront.
+- `zip.js` is the centralized packer used by per-lambda `package` scripts.

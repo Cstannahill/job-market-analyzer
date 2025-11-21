@@ -35,35 +35,29 @@ const SENIORITY_OPTIONS: { label: string; value: SeniorityLevelFilter }[] = [
 ];
 
 export interface JobPostingsControlsProps {
-    // Search state
     searchTerm: string;
     onSearchChange: (value: string) => void;
     searchPlaceholder?: string;
     filters: JobPostingsFilters;
 
-    // Technology filter state
     selectedTech: string;
     onTechChange: (value: string) => void;
     techCounts?: TechnologyStatItem[] | undefined;
 
-    // Pagination state
     pageIndex: number;
     totalPages?: number;
     pageSize: number;
     pageSizeOptions?: number[];
     onPageSizeChange: (size: number) => void;
 
-    // Pagination actions
     onPreviousPage: () => void;
     onNextPage: () => void;
 
-    // Pagination control state
     isPreviousDisabled: boolean;
     isNextDisabled: boolean;
     isLoading?: boolean;
     nextButtonLabel?: string;
 
-    // Clear filters
     onClearFilters: () => void;
     showClearFilters: boolean;
     onFiltersCommit: (next: JobPostingsFilters) => void;

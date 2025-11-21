@@ -17,8 +17,8 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 interface ForgotPasswordFormProps {
-    redirectTo?: string; // Optional redirect path after reset
-    onSuccess?: () => void; // Optional callback after successful reset
+    redirectTo?: string;
+    onSuccess?: () => void;
 }
 
 type Step = "REQUEST" | "CONFIRM";
@@ -37,8 +37,6 @@ export const ForgotPasswordForm = ({
     const [message, setMessage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loadingState, setLoadingState] = useState(false);
-
-    // --- Validation ---
 
     const validateEmailStep = (): boolean => {
         if (!email.trim()) {
@@ -78,8 +76,6 @@ export const ForgotPasswordForm = ({
 
         return true;
     };
-
-    // --- Submit handler that branches based on step ---
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();

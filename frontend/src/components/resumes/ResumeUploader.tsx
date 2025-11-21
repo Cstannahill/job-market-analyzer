@@ -1,9 +1,9 @@
-// ResumeUploaderModern.tsx
+//
 import React, { useEffect, useRef, useState } from "react";
 import { uploadResume, type UploadStatus } from "@/services/resumeService";
 import type { CompareResult, ExperienceItem } from "@job-market-analyzer/types";
 
-// shadcn/ui imports — change paths if your project places them elsewhere
+
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ const ACCEPTED_TYPES = [
     "application/pdf",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
-const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+const MAX_BYTES = 10 * 1024 * 1024;
 
 function formatBytes(n: number) {
     if (n < 1024) return n + " bytes";
@@ -41,7 +41,6 @@ export default function ResumeUploader() {
     const [error, setError] = useState<string | null>(null);
     const [collapsed, setCollapsed] = useState<boolean>(false);
 
-    // auto-collapse when result arrives (you can change to manual if preferred)
     useEffect(() => {
         if (result && status !== "uploading" && status !== "processing") {
             setCollapsed(true);
@@ -53,10 +52,6 @@ export default function ResumeUploader() {
         if (!ACCEPTED_TYPES.includes(f.type)) return "Unsupported file type";
         return null;
     };
-
-    // function handlePick() {
-    //     inputRef.current?.click();
-    // }
 
     function handleFile(f: File | null) {
         setError(null);
@@ -143,7 +138,6 @@ export default function ResumeUploader() {
         }
     };
 
-    // Compact uploader shown after analysis; keeps quick actions
     const CompactUploader = (
         <Card className="w-full mb-4 resume-card">
             <CardHeader>
@@ -204,7 +198,7 @@ export default function ResumeUploader() {
                 {/* file card */}
                 <div className="mt-4">
                     {file ? (
-                        <Card className="relative resume-card"> {/* ensure positioned parent */}
+                        <Card className="relative resume-card">
                             <CardHeader>
                                 <CardTitle>File</CardTitle>
                             </CardHeader>
@@ -215,7 +209,6 @@ export default function ResumeUploader() {
                                         <div className="text-sm text-muted">{file.type || "unknown"} • {formatBytes(file.size)}</div>
                                     </div>
 
-                                    {/* keep actions in a fixed-width container so they cannot overflow */}
                                     <div className="flex items-center gap-3 shrink-0">
                                         {(status === "uploading" || status === "processing") ? (
                                             <div className="flex items-center gap-2">
@@ -248,7 +241,6 @@ export default function ResumeUploader() {
                                         Remove
                                     </button>
                                 </div>
-                                {/* optional small controls here if needed */}
                             </CardFooter>
                         </Card>
                     ) : (

@@ -4,20 +4,17 @@ import React, { type JSX, useState, useEffect } from "react";
 
 export type ModuleShape = { default?: string; ReactComponent?: React.ComponentType<React.SVGProps<SVGSVGElement>> };
 
-// Lazy load modules
 const moduleLoaders = import.meta.glob('/src/assets/companyIcons/*.{svg,SVG}', {
     eager: false,
     import: 'default'
 }) as Record<string, () => Promise<string>>;
 
-// Cache for loaded icons
 const iconCache = new Map<string, string>();
 
 function normalizeLookup(name: string) {
     const lower = name.toLowerCase();
     if (lower === "ci&t") return "cit";
 
-    // Special cases - consolidated for readability
     const specialCases: Record<string, string> = {
         'andurilindustries': 'anduril-industries',
         "ciandt": "cit",
@@ -34,14 +31,12 @@ function normalizeLookup(name: string) {
 
     if (specialCases[lower]) return specialCases[lower];
 
-    // Pattern-based special cases
     if (lower.includes("brillio")) return "brillio"
     if (lower.includes("quizlet")) return "quizlet2";
     if (lower.includes("gitlab")) return "gitlab";
     if (lower.includes("housecall")) return "housecall-pro"
 
 
-    // Default normalization
     return name
         .toLowerCase()
         .replace(/^c#$/, "csharp")
@@ -49,10 +44,6 @@ function normalizeLookup(name: string) {
         .replace(/-+/g, "-")
         .replace(/(^-|-$)/g, "");
 }
-
-// const checkNameLength = (name: string) => {
-//     return name.length > 15 && (name.includes("-") || name.includes(" "));
-// }
 
 const mapNameColumnRows = (namePart: string, index: number): JSX.Element => {
     return (<div className="flex-row" key={index}>{toProperCase(namePart)}</div>);
@@ -80,14 +71,12 @@ export default function CompanyBadgeSvgr({
     const iconPath = `/src/assets/companyIcons/${key}.svg`;
 
     useEffect(() => {
-        // Check cache first
         if (iconCache.has(key)) {
             setIconUrl(iconCache.get(key)!);
             setLoading(false);
             return;
         }
 
-        // Load icon dynamically
         const loader = moduleLoaders[iconPath];
         if (loader) {
             loader().then((url) => {
@@ -102,10 +91,8 @@ export default function CompanyBadgeSvgr({
         }
     }, [key, iconPath]);
 
-    // Fix dynamic Tailwind classes - use style prop instead
     const sizeStyle = { width: size, height: size };
 
-    // Map roundStyle to actual Tailwind classes
     const roundClasses = {
         'none': 'rounded-none',
         '2xs': 'rounded-sm',
@@ -130,13 +117,11 @@ export default function CompanyBadgeSvgr({
             aria-label={name}
         >
             {loading ? (
-                // Loading skeleton
                 <div
                     className={`${roundClasses[roundStyle]} inline-flex items-center bg-zinc-800 p-1.5 shadow-sm animate-pulse`}
                     style={sizeStyle}
                 />
             ) : iconUrl ? (
-                // Render loaded icon
                 <div className={`${roundClasses[roundStyle]} inline-flex text-black items-center bg-white/5 p-1.5 shadow-sm`}>
                     <div
                         className={`${roundClasses[roundStyle]} flex items-center justify-center bg-white/10`}
@@ -151,7 +136,6 @@ export default function CompanyBadgeSvgr({
                     </div>
                 </div>
             ) : (
-                // Fallback: letter circle
                 <div
                     style={sizeStyle}
                     className={`${roundClasses[roundStyle]} flex items-center justify-center bg-stone-300 text-sm`}

@@ -50,7 +50,6 @@ export default function SkillCard({ skill, onClick, isSelected }: Props) {
             setActive(false);
         }
     }, [isSelected, skill.id]);
-    // Title cleaning + proper-case rules (keep short names uppercase)
     const raw = String(skill.skill ?? '');
     let title = raw.includes('#') ? raw.split('#').pop() || raw : raw;
     if (title.length > 3) title = toProperCase(title);
@@ -64,7 +63,6 @@ export default function SkillCard({ skill, onClick, isSelected }: Props) {
             className={activeClass}
         >
             <div className="bg-slate-900/70 backdrop-blur-sm rounded-lg px-4 py-4 min-h-full">
-                {/* HEADER: title + demand (single row) */}
                 <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
                         <h4
@@ -98,7 +96,6 @@ export default function SkillCard({ skill, onClick, isSelected }: Props) {
                         </div>
                     </div>
 
-                    {/* Demand lives here in the header row (shrink-0 keeps it compact) */}
                     <div className="shrink-0 text-right flex flex-col items-end">
                         <div className="text-[11px] text-slate-400">Demand</div>
                         <div className="mt-1 text-lg sm:text-xl font-mono font-semibold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-indigo-300">
@@ -107,7 +104,6 @@ export default function SkillCard({ skill, onClick, isSelected }: Props) {
                     </div>
                 </div>
 
-                {/* TAGS / INDUSTRIES / EXTRA META */}
                 {industries.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-2">
                         {industries.slice(0, 4).map((t) => (

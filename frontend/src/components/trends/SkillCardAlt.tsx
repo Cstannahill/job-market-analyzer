@@ -39,7 +39,6 @@ export default function SkillCard({ skill, onClick, isSelected }: SkillCardProps
     const regionLabel = skill.region || 'global';
     const seniorityLabel = skill.seniority || 'all';
 
-    // Title cleaning + proper-case rules (keep short names uppercase)
     const raw = String(skill.skill ?? '');
     let title = raw.includes('#') ? raw.split('#').pop() || raw : raw;
     if (title.length > 3) title = toProperCase(title);

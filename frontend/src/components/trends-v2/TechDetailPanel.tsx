@@ -1,4 +1,3 @@
-// src/features/trends-v2/TechDetailPanel.tsx
 import { lazy, Suspense } from "react";
 import type { TechnologyDetailResponse } from "@job-market-analyzer/types/trendsv2";
 import { H2 } from "@/components/ui/typography";
@@ -67,7 +66,6 @@ export default function TechDetailPanel({
 
   const displayCo: DisplayCoTech[] = co.map((ct) => formatTechName(ct));
 
-  // Group work_mode data by seniority for better display
   const workModeBySeniority = wm.reduce(
     (acc, item) => {
       if (!acc[item.seniority]) {
@@ -106,11 +104,8 @@ export default function TechDetailPanel({
         />
       </div>
 
-      {/* Work Mode & Seniority + Co-occurring - Better proportions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Left: Work Mode & Seniority - Takes 2 columns on XL screens */}
         <div className="xl:col-span-2 space-y-4">
-          {/* By Work Mode - Now organized by seniority level */}
           <div className="rounded-lg p-4 bg-slate-800/30 border border-slate-700/30">
             <h3 style={{ fontSize: "1.1rem" }} className="text-sm font-medium text-slate-200 mb-3 text-center">
               By Work Mode & Seniority

@@ -4,13 +4,11 @@ import { normalizeLookup } from "@/lib/utils/techBadgeHelpers";
 
 export type ModuleShape = { default?: string; ReactComponent?: React.ComponentType<React.SVGProps<SVGSVGElement>> };
 
-// Lazy load modules
 const moduleLoaders = import.meta.glob('/src/assets/icons/*.{svg,SVG}', {
     eager: false,
     import: 'default'
 }) as Record<string, () => Promise<string>>;
 
-// Cache for loaded icons
 const iconCache = new Map<string, string>();
 
 
@@ -42,14 +40,12 @@ export default function TechBadgeSvgr({
     const iconPath = `/src/assets/icons/${key}.svg`;
 
     useEffect(() => {
-        // Check cache first
         if (iconCache.has(key)) {
             setIconUrl(iconCache.get(key)!);
             setLoading(false);
             return;
         }
 
-        // Load icon dynamically
         const loader = moduleLoaders[iconPath];
         if (loader) {
             loader().then((url) => {
@@ -64,10 +60,8 @@ export default function TechBadgeSvgr({
         }
     }, [key, iconPath]);
 
-    // Fix dynamic Tailwind classes - use style prop instead
     const sizeStyle = { width: size, height: size };
 
-    // Map roundStyle to actual Tailwind classes
     const roundClasses = {
         'none': 'rounded-none',
         '2xs': 'rounded-sm',
@@ -91,13 +85,11 @@ export default function TechBadgeSvgr({
             aria-label={name}
         >
             {loading ? (
-                // Loading skeleton
                 <div
                     className={`${roundClasses[roundStyle]} inline-flex items-center bg-gray-200 p-1.5 shadow-sm animate-pulse`}
                     style={sizeStyle}
                 />
             ) : iconUrl ? (
-                // Render loaded icon
                 <div className={`${roundClasses[roundStyle]} inline-flex text-black items-center bg-white/5 p-1.5 shadow-sm`}>
                     <div
                         className={`${roundClasses[roundStyle]} flex items-center justify-center bg-white/10`}
@@ -112,7 +104,6 @@ export default function TechBadgeSvgr({
                     </div>
                 </div>
             ) : (
-                // Fallback: letter circle
                 <div
                     style={sizeStyle}
                     className={`${roundClasses[roundStyle]} flex items-center justify-center bg-stone-300 text-sm`}
