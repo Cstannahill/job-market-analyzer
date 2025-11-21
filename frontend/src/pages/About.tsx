@@ -1,4 +1,3 @@
-// src/pages/About.tsx
 import React from "react";
 import { Layout } from "../components/Layout";
 import Seo from '@/components/Seo';
@@ -60,10 +59,6 @@ const About: React.FC = () => {
             {/* Data Pipeline Overview */}
             <SectionCard title="Data Pipeline Overview">
 
-                {/* Use a single-column layout on small screens, and a two-column layout on lg+
-                    PipelineWithDiagram spans full width above the StackPanel on small screens.
-                    On large screens we keep a two-column layout where the diagram is on the left
-                    and the stack/principles are on the right. */}
                 <div className="grid gap-6">
                     <div className="w-full">
                         <PipelineWithDiagram
@@ -77,7 +72,6 @@ const About: React.FC = () => {
                         />
                     </div>
 
-                    {/* On large screens show stack panel next to the diagram; use grid columns */}
                     <div className="w-full lg:flex lg:justify-center lg:items-start lg:gap-6">
                         <div className="lg:w-2/3 xl:w-1/2">
                             <StackPanel

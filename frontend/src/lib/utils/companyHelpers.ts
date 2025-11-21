@@ -26,7 +26,7 @@ export function getCompanyIconColor(company: string): string {
       hyphName += `-${np}`;
     }
   });
-  return COMPANY_ICON_COLORS[hyphName] || "#ffffff"; // Gray fallback
+  return COMPANY_ICON_COLORS[hyphName] || "#ffffff";
 }
 
 export const formatCompanyName = (name: string) => {

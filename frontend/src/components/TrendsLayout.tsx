@@ -1,4 +1,4 @@
-// src/components/TrendsLayout.tsx
+
 import React, { type ReactNode } from 'react';
 import { Header } from './HeaderAlt';
 import { Sidebar, SidebarProvider, SidebarTrigger, SidebarContent, useSidebar } from '@/components/ui/sidebar';
@@ -9,10 +9,6 @@ type Props = {
     sidebarTitle?: string;
 };
 
-/**
- * Layout for Trends page following shadcn/ui sidebar documentation.
- * SidebarProvider wraps Sidebar and main as siblings.
- */
 export const TrendsLayout: React.FC<Props> = ({
     children,
     sidebarContent,

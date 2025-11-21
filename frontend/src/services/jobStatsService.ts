@@ -12,19 +12,17 @@ export const getJobPostingsStats = async (): Promise<JobStats> => {
 
     let payload: unknown = response.data?.stats ?? response.data;
 
-    // Unwrap Lambda proxy responses (statusCode/body)
     if (typeof payload === "object" && payload !== null) {
       const proxy = payload as Record<string, unknown>;
       if ("statusCode" in proxy && typeof proxy.body === "string") {
         try {
           payload = JSON.parse(proxy.body as string);
-        } catch {
-          // fall through
+        } catch (err) {
+          console.error(err);
         }
       }
     }
 
-    // Some lambdas return { success: true, data: "<json string>" }
     if (
       payload &&
       typeof payload === "object" &&
@@ -34,8 +32,8 @@ export const getJobPostingsStats = async (): Promise<JobStats> => {
         payload = JSON.parse(
           (payload as Record<string, unknown>).data as string
         );
-      } catch {
-        // leave as-is if not parseable
+      } catch (err) {
+        console.error(err);
       }
     }
 
@@ -62,9 +60,7 @@ export const getJobPostingsStats = async (): Promise<JobStats> => {
       if (typeof v2 === "string") return Number(v2) || fallback;
       return fallback;
     };
-    // Helper: parse DynamoDB-style list items into stat items.
-    // Dynamo shape examples:
-    // { M: { count: { N: "463" }, id: { S: "python" } } }
+
     const parseDynamoStatList = (
       val: unknown
     ): Array<{ id: string; name?: string; count: number }> => {
@@ -79,7 +75,6 @@ export const getJobPostingsStats = async (): Promise<JobStats> => {
         if (!maybeM || typeof maybeM !== "object") continue;
         const m = maybeM as Record<string, unknown>;
 
-        // Extract id
         let rawId: unknown = undefined;
         if (
           m["id"] &&
@@ -101,7 +96,6 @@ export const getJobPostingsStats = async (): Promise<JobStats> => {
           rawId = m["ID"];
         }
 
-        // Extract count
         let rawCount: unknown = undefined;
         if (
           m["count"] &&
@@ -129,8 +123,6 @@ export const getJobPostingsStats = async (): Promise<JobStats> => {
       return out;
     };
 
-    // Try multiple keys: backend may return 'technologyCounts' as map or
-    // 'technologies' as a DynamoDB-style list. Prefer list parsing when present.
     const rawTechnologiesList =
       (p["technologies"] as unknown[]) ??
       (p["technologyCounts"] as unknown[]) ??
@@ -139,7 +131,6 @@ export const getJobPostingsStats = async (): Promise<JobStats> => {
 
     const technologiesParsed = parseDynamoStatList(rawTechnologiesList);
 
-    // Build a map name -> count for downstream use
     const technologyCounts: Record<string, number> = {};
     if (technologiesParsed && technologiesParsed.length > 0) {
       technologiesParsed.forEach((t) => {
@@ -147,7 +138,6 @@ export const getJobPostingsStats = async (): Promise<JobStats> => {
           (technologyCounts[t.id] || 0) + (Number(t.count) || 0);
       });
     } else {
-      // Fallback: if backend returned a plain map like { python: 123, js: 456 }
       const technologyCountsRaw =
         (p["technologyCounts"] as Record<string, number> | undefined) ||
         (p["technology_counts"] as Record<string, number> | undefined) ||
@@ -159,13 +149,7 @@ export const getJobPostingsStats = async (): Promise<JobStats> => {
     }
 
     const totalPostings = extractNumber("totalPostings", "total_postings", 0);
-    // const totalTechnologies = extractNumber(
-    //   "totalTechnologies",
-    //   "total_technologies",
-    //   Object.keys(technologyCounts).length
-    // );
 
-    // Parse skills from DynamoDB-style list or fallback to map
     const rawSkillsList =
       (p["skills"] as unknown[]) ??
       (p["skillCounts"] as unknown[]) ??
@@ -187,7 +171,6 @@ export const getJobPostingsStats = async (): Promise<JobStats> => {
       ? ((pData as Record<string, unknown>).items as unknown[])
       : undefined;
 
-    // Narrow rawItems to BaseJobListing[] if possible
     let items: BaseJobListing[] | undefined = undefined;
     if (rawItems && Array.isArray(rawItems)) {
       items = rawItems
@@ -209,7 +192,6 @@ export const getJobPostingsStats = async (): Promise<JobStats> => {
       if (items?.length === 0) items = undefined;
     }
 
-    // Build typed arrays using base types from shared-types
     const skillsArray: SkillStatItem[] =
       skillsParsed && skillsParsed.length > 0
         ? (skillsParsed.map((s) => ({
@@ -262,9 +244,6 @@ export const getJobPostingsStats = async (): Promise<JobStats> => {
       (p["updated_at"] as string) ??
       new Date().toISOString();
 
-    // Build a strict JobStats object using the shared types.
-    // Prefer explicit totals from the payload when available; otherwise
-    // compute deterministic totals from the counts maps (number of distinct keys).
     const computedTotalTechnologies = Object.keys(technologyCounts).length;
     const computedTotalSkills = skillCounts
       ? Object.keys(skillCounts).length

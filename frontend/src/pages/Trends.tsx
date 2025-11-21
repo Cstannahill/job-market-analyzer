@@ -1,4 +1,3 @@
-// Trends.tsx
 import { useEffect, useState, useRef } from 'react';
 import { Layout } from '../components/Layout';
 import { Spinner } from '../components/ui/spinner';

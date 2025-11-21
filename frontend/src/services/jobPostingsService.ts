@@ -1,10 +1,7 @@
 import axios from "axios";
 
-// Replace this with your actual API Gateway URL
 const API_URL = import.meta.env.VITE_API_URL || "";
 import type { BaseJobListing } from "@job-market-analyzer/types";
-
-// Extended model for new table fields
 
 export interface ApiResponse {
   success: boolean;
@@ -12,25 +9,21 @@ export interface ApiResponse {
   data: BaseJobListing[];
 }
 
-/**
- * Fetch all job postings from the API
- */
 const parseSalaryRange = (s: string | undefined | null) => {
   if (!s) return { min: null, max: null, currency: null };
   const trimmed = String(s).trim();
-  // Try to detect currency symbol (USD $, £, €, etc.) or trailing currency code
+
   const currencyMatch =
     trimmed.match(/\b([A-Z]{3})\b/) || trimmed.match(/(\$|£|€|¥)/);
   const currency = currencyMatch ? currencyMatch[0] : null;
 
-  // Find numbers with optional commas and decimals
   const nums = Array.from(
     trimmed.matchAll(/([0-9]{1,3}(?:[,\d]*)(?:\.\d)?)/g)
   ).map((m) => m[0].replace(/,/g, ""));
   const parsed = nums.map((n) => Number(n)).filter((n) => !isNaN(n));
   if (parsed.length === 0) return { min: null, max: null, currency };
   if (parsed.length === 1) return { min: parsed[0], max: parsed[0], currency };
-  // assume first two are min/max
+
   return {
     min: Math.min(parsed[0], parsed[1]),
     max: Math.max(parsed[0], parsed[1]),
@@ -67,9 +60,10 @@ const normalizeArray = (v: unknown): string[] => {
             .filter(Boolean)
             .map((x) => String(x));
         }
-        if (typeof parsed === "object") return Object.values(parsed).map(String);
-      } catch {
-        // not JSON, fallthrough
+        if (typeof parsed === "object")
+          return Object.values(parsed).map(String);
+      } catch (err) {
+        console.error(err);
       }
     }
     const splitOn = [",", "|", ";"].find((token) => trimmed.includes(token));
@@ -118,8 +112,9 @@ const toBaseJobListing = (raw: RawJobRow): BaseJobListing => {
         ""
     ) || "unknown-job";
   const job_title =
-    coerceString(raw.job_title ?? raw.title ?? raw.jobTitle ?? "Unknown role") ||
-    "Unknown role";
+    coerceString(
+      raw.job_title ?? raw.title ?? raw.jobTitle ?? "Unknown role"
+    ) || "Unknown role";
   const job_description = coerceString(
     raw.job_description ?? raw.description ?? ""
   );
@@ -205,9 +200,7 @@ const toBaseJobListing = (raw: RawJobRow): BaseJobListing => {
     salary_min,
     salary_max,
     salary_currency: salary_currency ?? undefined,
-    seniority_level: coerceOptionalString(
-      raw.seniority_level ?? raw.seniority
-    ),
+    seniority_level: coerceOptionalString(raw.seniority_level ?? raw.seniority),
     skills: skills.length ? skills : undefined,
     status: coerceOptionalString(raw.status),
     technologies: technologies.length ? technologies : undefined,
@@ -224,19 +217,17 @@ export const getJobPostings = async (): Promise<BaseJobListing[]> => {
 
     let payload = response.data;
 
-    // Lambda proxy-style responses sometimes come wrapped with statusCode/body
     if (typeof payload === "object" && payload !== null) {
       const proxy = payload as Record<string, unknown>;
       if ("statusCode" in proxy && typeof proxy.body === "string") {
         try {
           payload = JSON.parse(proxy.body as string);
-        } catch {
-          // fall through and handle as-is
+        } catch (err) {
+          console.error(err);
         }
       }
     }
 
-    // New table-backed API may return rows in a `items` or `data` array, or raw array
     const pObj =
       typeof payload === "object" && payload !== null
         ? (payload as Record<string, unknown>)
@@ -270,10 +261,6 @@ export const getJobPostings = async (): Promise<BaseJobListing[]> => {
   }
 };
 
-/**
- * Fetch a single page of job postings from the API using server-side pagination.
- * Returns items, count, and a lastKey token (base64) to fetch the next page.
- */
 export const getJobPostingsPage = async (opts?: {
   limit?: number;
   lastKey?: string | null;
@@ -305,7 +292,6 @@ export const getJobPostingsPage = async (opts?: {
       try {
         payload = JSON.parse(proxy.body as string);
       } catch (e) {
-        // ignore parse errors and use raw body
         console.warn("Failed to parse proxy body as JSON", e);
       }
     }
@@ -320,9 +306,7 @@ export const getJobPostingsPage = async (opts?: {
 
   const items: BaseJobListing[] = (itemsRaw as unknown[])
     .map((row) =>
-      row && typeof row === "object"
-        ? toBaseJobListing(row as RawJobRow)
-        : null
+      row && typeof row === "object" ? toBaseJobListing(row as RawJobRow) : null
     )
     .filter((row): row is BaseJobListing => row !== null);
 

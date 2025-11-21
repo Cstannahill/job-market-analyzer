@@ -26,28 +26,23 @@ type JobEnvelope = {
   jobId: string;
   status: JobStatus;
   error?: string;
-  // what your worker stores on the job record:
-  result?: CompareResult; // preferred (no extra fetch)
-  // OR a pointer if you chose to store only a reference:
+
+  result?: CompareResult;
+
   resumePointer?: { PK: string; SK: string };
 };
 
 function mapJobToCompareResult(job: JobEnvelope): CompareResult | null {
-  // Back-compat mapping to your old shape:
-  // pending/processing -> "processing"
-  // succeeded -> "complete"
-  // failed -> "failed"
   if (job.status === "succeeded" && job.result) {
     return { ...job.result, status: "complete" as const };
   }
   if (job.status === "failed") {
-    // minimal payload to keep old consumers happy
     return {
       status: "failed",
       error: job.error ?? "Processing failed",
     } as Record<string, string>;
   }
-  // queued/pending/processing/running
+
   return { status: "processing" } as Record<string, string>;
 }
 
@@ -81,7 +76,6 @@ export async function uploadResume(opts: {
   setProgress(0);
 
   try {
-    // 1) Get presigned URL
     const presignedRes = await fetch(`${apiBase}/resumes/upload`, {
       method: "POST",
       headers: {
@@ -103,7 +97,7 @@ export async function uploadResume(opts: {
       key: string;
     };
     console.log(url, key, userId);
-    // 2) Upload file to S3 with progress
+
     await new Promise<void>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open("PUT", url, true);
@@ -131,7 +125,6 @@ export async function uploadResume(opts: {
       xhr.send(file);
     });
 
-    // 3) Enqueue async job (instead of synchronously “compare”)
     setStatus("processing");
     console.log(userId, "FROM RESUME SERVICE");
     const enqueueRes = await fetch(`${jobQApiBase}/jobs`, {
@@ -151,13 +144,11 @@ export async function uploadResume(opts: {
     }
     const { jobId } = (await enqueueRes.json()) as { jobId: string };
 
-    // 4) Poll job status until done (202 pattern)
     let attempt = 0;
-    const maxAttempts = 120; // ~4 min at 2s interval; adjust to your model speed
-    let delayMs = 2000; // fixed or use backoff below
+    const maxAttempts = 120;
+    let delayMs = 2000;
 
-    // optional: exponential backoff
-    const nextDelay = (n: number) => Math.min(8000, 1500 + n * 250); // cap @ 8s
+    const nextDelay = (n: number) => Math.min(8000, 1500 + n * 250);
 
     const poll = async (): Promise<void> => {
       attempt++;
@@ -169,7 +160,6 @@ export async function uploadResume(opts: {
           }
         );
 
-        // Treat 404 as "not yet materialized"
         if (!res.ok && res.status !== 404) {
           const text = await res.text().catch(() => "");
           throw new Error(
@@ -180,12 +170,8 @@ export async function uploadResume(opts: {
         if (res.ok) {
           const job = (await res.json()) as JobEnvelope;
 
-          // If you didn’t store the full result on the job, but a pointer:
-          // optionally fetch it here and build a CompareResult from it.
           if (job.status === "succeeded" && !job.result && job.resumePointer) {
-            // Example of pointer follow-up (only if you want it):
-            // const resume = await fetchResumeByPointer(job.resumePointer);
-            // job.result = convertResumeToCompareResult(resume);
+            // Unused
           }
 
           const legacy = mapJobToCompareResult(job);
@@ -203,7 +189,7 @@ export async function uploadResume(opts: {
               );
               return;
             }
-            // processing
+
             setStatus("processing");
           }
         }

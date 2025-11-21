@@ -1,5 +1,3 @@
-// src/pages/Login.tsx
-// import Star from "@/assets/star2.avif";
 import DataRiver from "@/assets/dr3.avif"
 import Seo from '@/components/Seo';
 import { Layout } from '@/components/Layout';

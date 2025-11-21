@@ -1,12 +1,10 @@
-// Color mapping for company sizes
 export const COMPANY_SIZE_COLORS: Record<string, string> = {
-  Startup: "#3B82F6", // Blue
-  Medium: "#10B981", // Green
-  Large: "#F59E0B", // Amber
-  Enterprise: "#8B5CF6", // Purple
+  Startup: "#3B82F6",
+  Medium: "#10B981",
+  Large: "#F59E0B",
+  Enterprise: "#8B5CF6",
 };
 
-// Color mapping for industries
 export const INDUSTRY_COLORS: Record<string, string> = {
   technology:
     "linear-gradient(90deg,rgba(42, 123, 155, 1) 0%, rgba(87, 136, 199, 1) 50%, rgba(3, 52, 105, 1) 100%)",
@@ -115,17 +113,11 @@ export const INDUSTRY_COLORS: Record<string, string> = {
   "algorithmic-trading": "#FBBF24",
 };
 
-/**
- * Get the badge color for a company size
- */
 export function getCompanySizeBadgeColor(size: string | null): string {
   if (!size) return "#9CA3AF"; // Gray fallback
   return COMPANY_SIZE_COLORS[size] || "#9CA3AF";
 }
 
-/**
- * Get the badge color for an industry
- */
 export function getIndustryBadgeColor(industry: string): string {
   const normIndustry = industry.toLowerCase().split(" ");
   let hyphName = "";
@@ -139,9 +131,6 @@ export function getIndustryBadgeColor(industry: string): string {
   return INDUSTRY_COLORS[hyphName] || "#9CA3AF"; // Gray fallback
 }
 
-/**
- * Get all unique company sizes from the data
- */
 export function getAllCompanySizes(
   data: Array<{ company_size: string | null; industry: string }>
 ): string[] {
@@ -154,9 +143,6 @@ export function getAllCompanySizes(
   return Array.from(sizes).sort();
 }
 
-/**
- * Get all unique industries from the data
- */
 export function getAllIndustries(
   data: Array<{ company_size: string | null; industry: string }>
 ): string[] {
@@ -167,9 +153,6 @@ export function getAllIndustries(
   return Array.from(industries).sort();
 }
 
-/**
- * Create a badge component config
- */
 export interface BadgeConfig {
   label: string;
   color: string;
@@ -192,9 +175,6 @@ export function createBadgeConfig(
   };
 }
 
-/**
- * Helper to get inline style for a meta-pill
- */
 export function getMetaPillStyle(
   value: string | null | undefined,
   type: "size" | "industry"

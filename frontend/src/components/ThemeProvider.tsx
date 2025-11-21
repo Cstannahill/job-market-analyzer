@@ -18,17 +18,17 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const root = document.documentElement;
         const body = document.body;
 
-        // Explicitly toggle only the 'dark' class (Tailwind only needs 'dark').
+
         root.classList.toggle('dark', theme === 'dark');
         body.classList.toggle('dark', theme === 'dark');
 
-        // Optional: set a data attribute for alternative styling or third-party libs
+
         root.setAttribute('data-theme', theme);
 
         try {
             localStorage.setItem('theme', theme);
-        } catch {
-            /* ignore */
+        } catch (err) {
+            console.error(err)
         }
     }, [theme]);
 

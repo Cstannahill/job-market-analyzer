@@ -8,28 +8,7 @@ import Nexus from '@/assets/dr3.avif';
 import Seo from '@/components/Seo';
 import { Layout } from '@/components/Layout';
 
-/**
- * Email Verification Page
- * 
- * Architectural Responsibilities:
- * - Captures 6-digit verification code from user
- * - Provides code resend mechanism with rate limiting UI
- * - Transitions verified users to login flow
- * - Handles edge cases (expired codes, invalid attempts)
- * 
- * State Management Strategy:
- * - Email passed via navigation state (secure, ephemeral)
- * - Verification code never persisted (security)
- * - Resend cooldown prevents abuse
- * - Success state triggers auto-navigation
- * 
- * User Experience Design:
- * - Clear instructions with email confirmation
- * - Real-time validation feedback
- * - Countdown timer for resend (prevents spam)
- * - Loading states prevent duplicate submissions
- * - Success animation before redirect
- */
+
 
 interface LocationState {
     email?: string;
@@ -38,7 +17,6 @@ interface LocationState {
 
 const API_BASE_URL = import.meta.env.VITE_AUTH_API_URL;
 
-// Resend cooldown period (seconds)
 const RESEND_COOLDOWN = 60;
 
 export default function VerifyEmail() {
@@ -46,25 +24,21 @@ export default function VerifyEmail() {
     const location = useLocation();
     const state = location.state as LocationState;
 
-    // Redirect if no email provided
     useEffect(() => {
         if (!state?.email) {
             navigate('/register', { replace: true });
         }
     }, [state, navigate]);
 
-    // Form state
     const [code, setCode] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
 
-    // Resend state
     const [resending, setResending] = useState(false);
     const [resendCooldown, setResendCooldown] = useState(0);
     const [resendMessage, setResendMessage] = useState('');
 
-    // Countdown timer for resend button
     useEffect(() => {
         if (resendCooldown > 0) {
             const timer = setTimeout(() => {
@@ -74,10 +48,6 @@ export default function VerifyEmail() {
         }
     }, [resendCooldown]);
 
-    /**
-     * Validate verification code format
-     * Cognito sends 6-digit numeric codes
-     */
     const validateCode = (): boolean => {
         const codeRegex = /^\d{6}$/;
         if (!codeRegex.test(code)) {
@@ -87,9 +57,6 @@ export default function VerifyEmail() {
         return true;
     };
 
-    /**
-     * Handle verification code submission
-     */
     const handleVerify = async (e: FormEvent) => {
         e.preventDefault();
         setError('');
@@ -119,10 +86,10 @@ export default function VerifyEmail() {
                 throw new Error(result.message || 'Verification failed');
             }
 
-            // Success - show confirmation then navigate
+
             setSuccess(true);
 
-            // Auto-navigate to login after 2 seconds
+
             setTimeout(() => {
                 navigate('/login', {
                     state: {
@@ -134,15 +101,12 @@ export default function VerifyEmail() {
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Verification failed';
             setError(errorMessage);
-            setCode(''); // Clear code on error
+            setCode('');
         } finally {
             setLoading(false);
         }
     };
 
-    /**
-     * Handle resend verification code
-     */
     const handleResend = async () => {
         if (resendCooldown > 0) return;
 
@@ -178,7 +142,7 @@ export default function VerifyEmail() {
         }
     };
 
-    // Success state UI
+
     if (success) {
         return (
             <Layout>
@@ -215,7 +179,7 @@ export default function VerifyEmail() {
         );
     }
 
-    // Verification form UI
+
     return (
         <Layout>
             <Seo

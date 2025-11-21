@@ -98,7 +98,7 @@ export default function SkillCard({ skill, onClick, isSelected }: Props) {
 
                     <div className="shrink-0 text-right flex flex-col items-end">
                         <div className="text-[11px] text-slate-400">Demand</div>
-                        <div className="mt-1 text-lg sm:text-xl font-mono font-semibold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-indigo-300">
+                        <div className="mt-1 text-lg sm:text-xl font-mono font-semibold text-transparent bg-clip-text bg-linear-to-r from-purple-300 to-indigo-300">
                             {Number(skill.count ?? 0)}
                         </div>
                     </div>
@@ -109,7 +109,7 @@ export default function SkillCard({ skill, onClick, isSelected }: Props) {
                         {industries.slice(0, 4).map((t) => (
                             <span
                                 key={t}
-                                className="inline-block text-[11px] text-slate-100 bg-white/5 px-2 py-0.5 rounded-md max-w-[10rem] truncate"
+                                className="inline-block text-[11px] text-slate-100 bg-white/5 px-2 py-0.5 rounded-md max-w-40 truncate"
                                 title={t}
                             >
                                 {t}
