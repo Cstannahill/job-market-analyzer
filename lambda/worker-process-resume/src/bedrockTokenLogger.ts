@@ -1,4 +1,3 @@
-// bedrockTokenLogger.ts
 import {
   BedrockRuntimeClient,
   CountTokensCommand,
@@ -19,7 +18,6 @@ function getClient(region?: string): BedrockRuntimeClient {
   return clientCache[r];
 }
 
-// Base shapes
 type UserOrAssistant = "user" | "assistant";
 export type TextBlock = { text: string };
 export type ConverseMessage = {
@@ -27,7 +25,6 @@ export type ConverseMessage = {
   content: TextBlock[];
 };
 
-// Deep-readonly versions that we accept from callers
 type ROTextBlock = Readonly<{ text: string }>;
 type ROConverseMessage = Readonly<{
   role: UserOrAssistant;
@@ -35,9 +32,9 @@ type ROConverseMessage = Readonly<{
 }>;
 
 export interface CountConverseParams {
-  modelId: string; // e.g. "amazon.nova-pro-v1:0"
-  messages: ReadonlyArray<ROConverseMessage>; // accept readonly deeply
-  system?: ReadonlyArray<ROTextBlock>; // accept readonly deeply
+  modelId: string;
+  messages: ReadonlyArray<ROConverseMessage>;
+  system?: ReadonlyArray<ROTextBlock>;
   region?: string;
 }
 
@@ -47,7 +44,6 @@ export async function countConverseTokens(
 ): Promise<number> {
   const br = getClient(p.region);
 
-  // Copy into mutable arrays that match the SDK types
   const messages: BrMessage[] = p.messages.map((m) => ({
     role: m.role,
     content: m.content.map((c) => ({ text: c.text })),
@@ -77,7 +73,7 @@ export async function preflightLog(opts: {
   region?: string;
   messages: ReadonlyArray<ROConverseMessage>;
   system?: ReadonlyArray<ROTextBlock>;
-  tag?: string; // e.g., batch id
+  tag?: string;
 }) {
   const inputTokens = await countConverseTokens({
     modelId: opts.modelId,
@@ -103,7 +99,6 @@ export async function preflightLog(opts: {
   return inputTokens;
 }
 
-// Tiny helper if you want a strongly-typed message builder:
 export function userMessage(text: string): ROConverseMessage {
   return { role: "user", content: [{ text }] };
 }

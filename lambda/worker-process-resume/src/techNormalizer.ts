@@ -1,5 +1,3 @@
-// normalizers/skills.ts
-// Technologies / tools aliases (frameworks, DBs, clouds, languages…)
 const TECH_ALIASES: Record<string, string> = {
   "react.js": "React",
   reactjs: "React",
@@ -23,10 +21,8 @@ const TECH_ALIASES: Record<string, string> = {
   "c#": "C#",
   gcp: "Google Cloud",
   "azure devops": "Azure DevOps",
-  // extend as encountered
 };
 
-// Soft skills / competencies (communication, leadership…) – keep conservative
 const SKILL_ALIASES: Record<string, string> = {
   comm: "Communication",
   "communication skills": "Communication",
@@ -48,7 +44,6 @@ export function canonicalizeSoftSkill(raw: string[]): string[] {
 
 export type AggDim = "technology" | "skill" | "both";
 
-/** Returns the primary set we’ll aggregate on (per env). */
 export function selectPrimarySet(
   techs: string[],
   softSkills: string[],
@@ -56,7 +51,7 @@ export function selectPrimarySet(
 ): string[] {
   if (dim === "technology") return techs;
   if (dim === "skill") return softSkills;
-  return dedupe([...techs, ...softSkills]); // both
+  return dedupe([...techs, ...softSkills]);
 }
 
 function normalize(s: string) {

@@ -1,4 +1,3 @@
-// Hard cap fields to reduce tokens / content-length; adjust as needed
 export function truncate(s: string | undefined, max = 4000) {
   if (!s) return s;
   return s.length > max ? s.slice(0, max) : s;
@@ -16,13 +15,13 @@ export const nowMs = () => Date.now();
 
 export const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
-export const now = () => Date.now(); // always number
+export const now = () => Date.now();
 
-export const dt = (start: number) => Date.now() - start; // always number
+export const dt = (start: number) => Date.now() - start;
 
-export const dtStr = (start: number) => `${dt(start)}ms`; // always string
+export const dtStr = (start: number) => `${dt(start)}ms`;
 
-export const keyCooldowns: Record<string, number> = {}; // key -> timestamp when usable again
+export const keyCooldowns: Record<string, number> = {};
 
 export function yyyymmdd(date: Date): string {
   const year = date.getUTCFullYear();

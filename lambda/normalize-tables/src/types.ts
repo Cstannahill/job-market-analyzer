@@ -1,7 +1,5 @@
-/*  UTILITY TYPES  */
 export type Nullable<T> = T | null | undefined;
 
-/*  DYNAMO TYPES  */
 export type DynamoStringAttribute = {
   S: string;
 };
@@ -29,7 +27,6 @@ export type DynamoJobPosting = BaseJobListing & {
   [key: string]: unknown;
 };
 
-/*  NEON ENUM TYPES  */
 export type RemoteStatus = "hybrid" | "not_specified" | "on_site" | "remote";
 export type CompanySize =
   | "startup"
@@ -39,8 +36,6 @@ export type CompanySize =
   | "enterprise";
 export type JobSource = "greenhouse" | "lever" | "usajobs" | "muse" | "unknown";
 export type SeniorityLevel = "junior" | "mid" | "senior" | "lead" | "executive";
-
-/*  NEON TYPES  */
 
 export type CompanyNeon = {
   id: string;
@@ -83,7 +78,6 @@ export type JobNeon = {
   yearsExpReq: string | null;
 };
 
-/*  NORMALIZER OUTPUT TYPES */
 export type NewCompanyRecord = {
   name: string;
   size: CompanySize | null;

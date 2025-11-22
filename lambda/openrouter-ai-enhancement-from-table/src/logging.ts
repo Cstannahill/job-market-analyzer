@@ -1,5 +1,4 @@
-const LOG_LEVEL = (process.env.LOG_LEVEL || "info").toLowerCase(); // "debug" | "info" | "warn" | "error"
-
+const LOG_LEVEL = (process.env.LOG_LEVEL || "info").toLowerCase();
 export function logDebug(...a: any[]) {
   if (LOG_LEVEL === "debug") console.log("[DEBUG]", ...a);
 }

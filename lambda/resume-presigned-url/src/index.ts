@@ -16,8 +16,7 @@ const ALLOWED_TYPES = new Set([
 ]);
 function buildCorsHeaders(origin?: string) {
   const allowedOrigin =
-    origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]; // fallback (localhost)
-
+    origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
   return {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": allowedOrigin,
@@ -59,7 +58,7 @@ export const handler = async (event: any) => {
       const currentCount = await countUserResumes(userId);
       if (currentCount >= MAX_RESUMES_PER_USER) {
         return {
-          statusCode: 409, // Conflict (quota reached)
+          statusCode: 409,
           headers,
           body: JSON.stringify({
             error:
@@ -79,7 +78,7 @@ export const handler = async (event: any) => {
       s3Key: key,
       contentType: contentType,
       uploadInitiatedAt: new Date().toISOString(),
-      ttl: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // 24 hours TTL
+      ttl: Math.floor(Date.now() / 1000) + 24 * 60 * 60,
     });
 
     const command = new PutObjectCommand({

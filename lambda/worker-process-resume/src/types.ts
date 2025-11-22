@@ -17,7 +17,12 @@ export type Experience = Partial<ResumeExperienceItem>;
 
 export type ResumeBaseItem = Pick<
   ResumeRecord,
-  "PK" | "SK" | "status" | "originalFileName" | "contentType" | "uploadInitiatedAt"
+  | "PK"
+  | "SK"
+  | "status"
+  | "originalFileName"
+  | "contentType"
+  | "uploadInitiatedAt"
 > & {
   s3Key: string;
   ttl: number;
@@ -77,8 +82,6 @@ export interface EnrichedSkillData {
   by_seniority: SeniorityData;
 }
 
-// SKILL NORMALIZATION AND HELPERS
-// Literal unions for consistency
 export type TechCategory =
   | "language"
   | "framework"
@@ -92,41 +95,41 @@ export type TechCategory =
   | "other";
 
 export interface Evidence {
-  quote: string; // ≤160 chars from resume
-  char_start: number; // index into provided resume slice
-  char_end: number; // index into provided resume slice
+  quote: string;
+  char_start: number;
+  char_end: number;
 }
 
 export interface TechnologyItem {
-  canonical: string; // e.g., "TypeScript"
-  aliases: string[]; // e.g., ["TS"]
+  canonical: string;
+  aliases: string[];
   category: TechCategory;
-  confidence: number; // 0.0–1.0
-  evidence: Evidence[]; // >=1
-  notes: string; // brief rationale; can be ""
+  confidence: number;
+  evidence: Evidence[];
+  notes: string;
 }
 
 export interface SoftSkillItem {
-  name: string; // e.g., "cross-functional collaboration"
-  confidence: number; // 0.0–1.0
-  evidence: Evidence[]; // >=1
-  notes: string; // brief rationale; can be ""
+  name: string;
+  confidence: number;
+  evidence: Evidence[];
+  notes: string;
 }
 
 export interface StackCombination {
-  name: string; // e.g., "React + TypeScript + AWS"
-  components: string[]; // canonical technology names
-  primary_use: string; // e.g., "full-stack web app"
-  evidence: Evidence[]; // >=1
-  rationale: string; // why inferred (grounded)
-  confidence: number; // 0.0–1.0
+  name: string;
+  components: string[];
+  primary_use: string;
+  evidence: Evidence[];
+  rationale: string;
+  confidence: number;
 }
 
 export interface Inferences {
-  probable_roles: string[]; // e.g., ["Full-Stack Engineer"]
-  seniority_signals: string[]; // e.g., ["led team", "on-call"]
-  domains: string[]; // e.g., ["fintech", "healthtech"]
-  evidence: Evidence[]; // >=1
+  probable_roles: string[];
+  seniority_signals: string[];
+  domains: string[];
+  evidence: Evidence[];
 }
 
 export interface SkillNormalizationResult {
@@ -134,5 +137,5 @@ export interface SkillNormalizationResult {
   soft_skills: SoftSkillItem[];
   stack_combinations: StackCombination[];
   inferences: Inferences;
-  reasoning: string; // brief explanation of tricky normalizations / uncertainties
+  reasoning: string;
 }

@@ -1,5 +1,4 @@
-// lambdas/aggregate-skill-trends-v2/compute/buckets.ts
-export type Day = `${number}-${string}-${string}`; // YYYY-MM-DD
+export type Day = `${number}-${string}-${string}`;
 export type Week = `${number}-W${number}`;
 
 export function toDay(d: Date): Day {
@@ -10,12 +9,11 @@ export function toDay(d: Date): Day {
 }
 
 export function toWeek(d: Date): Week {
-  // ISO week (Mon-start)
   const dd = new Date(
     Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())
   );
-  const dayNum = (dd.getUTCDay() + 6) % 7; // Mon=0..Sun=6
-  dd.setUTCDate(dd.getUTCDate() - dayNum + 3); // Thu of this week
+  const dayNum = (dd.getUTCDay() + 6) % 7;
+  dd.setUTCDate(dd.getUTCDate() - dayNum + 3);
   const firstThu = new Date(Date.UTC(dd.getUTCFullYear(), 0, 4));
   const week =
     1 + Math.round(((dd.getTime() - firstThu.getTime()) / 86400000 - 3) / 7);
@@ -23,7 +21,6 @@ export function toWeek(d: Date): Week {
 }
 
 export function weekDates(week: Week): Day[] {
-  // Return 7 *UTC* dates (Mon..Sun) for the ISO week
   const [yStr, wStr] = week.split("-W");
   const y = Number(yStr),
     w = Number(wStr);

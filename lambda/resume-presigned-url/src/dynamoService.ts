@@ -12,7 +12,12 @@ const dynamo = new DynamoDBClient({ region: REGION });
 
 export type ResumeItem = Pick<
   ResumeRecord,
-  "PK" | "SK" | "status" | "originalFileName" | "contentType" | "uploadInitiatedAt"
+  | "PK"
+  | "SK"
+  | "status"
+  | "originalFileName"
+  | "contentType"
+  | "uploadInitiatedAt"
 > & {
   s3Key: string;
   ttl: number;
@@ -37,7 +42,7 @@ export const countUserResumes = async (userId: string): Promise<number> => {
         ":skPrefix": { S: "RESUME#" },
       },
       Select: "COUNT",
-      ConsistentRead: true, // helps right after prior writes
+      ConsistentRead: true,
     })
   );
   return resp.Count ?? 0;

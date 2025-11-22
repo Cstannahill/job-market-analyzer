@@ -22,12 +22,6 @@ export async function getTechnologyDetail(opts: {
 }) {
   const { tech, region, period, ctx } = opts;
   const cleanTech = tech.toLowerCase();
-  // console.log(tech, region, period);
-  // log(ctx, "debug", "detail.query.start", {
-  //   tech: canonical(cleanTech),
-  //   region,
-  //   period,
-  // });
 
   const res = await dynamo.send(
     new QueryCommand({
@@ -43,53 +37,21 @@ export async function getTechnologyDetail(opts: {
       String(x.region).toUpperCase() === region && String(x.period) === period
   );
 
-  // log(ctx, "debug", "detail.rows", {
-  //   total: res.Count,
-  //   afterFilter: rows.length,
-  //   preview: preview(rows, [
-  //     "skill_canonical",
-  //     "region",
-  //     "period",
-  //     "work_mode",
-  //     "seniority",
-  //     "job_count",
-  //     "salary_median",
-  //   ]),
-  // });
-
-  // Find summary row (All, All)
   let summary =
     rows.find((r) => r.work_mode === "All" && r.seniority === "All") ?? null;
 
   if (!summary && rows.length) {
-    // log(ctx, "warn", "detail.no-all-row", {
-    //   tech,
-    //   haveModes: [...new Set(rows.map((r) => r.work_mode))],
-    //   haveSeniority: [...new Set(rows.map((r) => r.seniority))],
-    // });
-    // summary = synthesizeSummary(rows);
-    // log(ctx, "debug", "detail.synthesized", {
-    //   summary: pick(summary, [
-    //     "work_mode",
-    //     "seniority",
-    //     "job_count",
-    //     "salary_median",
-    //     "regional_share",
-    //   ]),
-    // });
   }
 
-  // Group by work_mode x seniority for proper breakdown
   const byWorkModeSeniority = groupBy(
     rows.filter((r) => r.work_mode !== "All" && r.seniority !== "All"),
     (r) => `${r.work_mode}|${r.seniority}`
   );
 
-  // Create work_mode breakdown with seniority levels
   const by_work_mode = Array.from(byWorkModeSeniority.entries())
     .map(([key, list]) => {
       const [work_mode, seniority] = key.split("|");
-      const row = list[0]; // Should only be one row per combination
+      const row = list[0];
 
       return {
         work_mode,
@@ -103,14 +65,12 @@ export async function getTechnologyDetail(opts: {
       };
     })
     .sort((a, b) => {
-      // Sort by work_mode first, then by job_count desc
       if (a.work_mode !== b.work_mode) {
         return a.work_mode.localeCompare(b.work_mode);
       }
       return (b.job_count ?? 0) - (a.job_count ?? 0);
     });
 
-  // Aggregate by seniority level across all work modes
   const bySeniority = groupBy(
     rows.filter((r) => r.seniority !== "All"),
     (r) => r.seniority
@@ -120,7 +80,6 @@ export async function getTechnologyDetail(opts: {
     .map(([level, list]) => {
       const totalJobs = sum(list, "job_count");
 
-      // Use weighted median for more accurate salary representation
       const salaryData = list
         .filter((r) => typeof r.salary_median === "number" && r.job_count > 0)
         .map((r) => ({ value: r.salary_median, weight: r.job_count }));
@@ -134,14 +93,6 @@ export async function getTechnologyDetail(opts: {
       };
     })
     .sort((a, b) => (b.job_count ?? 0) - (a.job_count ?? 0));
-
-  // log(ctx, "info", "detail.out", {
-  //   tech,
-  //   rows: rows.length,
-  //   hasSummary: !!summary,
-  //   by_work_mode_entries: by_work_mode.length,
-  //   by_seniority_entries: by_seniority.length,
-  // });
 
   return {
     summary,

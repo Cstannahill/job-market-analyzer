@@ -26,10 +26,9 @@ export async function getS3Object(
     }
     const buffer = Buffer.concat(chunks);
     if (key.toLowerCase().endsWith(".pdf")) {
-      // Save PDF to a temp file
       const tempPath = path.join(os.tmpdir(), path.basename(key));
       await fs.promises.writeFile(tempPath, buffer);
-      return { filePath: tempPath }; // return path for multipart upload
+      return { filePath: tempPath };
     }
     return buffer;
   } catch (err: any) {

@@ -4,7 +4,7 @@ const ALLOWED_ORIGINS = [
 ];
 
 export function buildCorsHeaders(origin?: string) {
-  const effectiveOrigin = origin ?? ALLOWED_ORIGINS[0]; // default if undefined
+  const effectiveOrigin = origin ?? ALLOWED_ORIGINS[0];
   const allowedOrigin = ALLOWED_ORIGINS.includes(effectiveOrigin)
     ? effectiveOrigin
     : ALLOWED_ORIGINS[0];

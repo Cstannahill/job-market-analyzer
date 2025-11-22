@@ -1,4 +1,3 @@
-// lambdas/aggregate-skill-trends-v2/compute/stats.ts
 export function zeroPad(n: number, width = 6) {
   return String(n).padStart(width, "0");
 }

@@ -1,4 +1,3 @@
-// lambdas/aggregate-skill-trends-v2/ddb.ts
 import {
   BatchWriteCommand,
   DynamoDBDocumentClient,
@@ -17,7 +16,6 @@ export async function batchWriteAll(
         [table]: slice.map((Item) => ({ PutRequest: { Item } })),
       },
     };
-    // retry on Unprocessed
     for (let attempts = 0; attempts < 5; attempts++) {
       const res = await doc.send(new BatchWriteCommand(req as any));
       const un = res.UnprocessedItems?.[table];

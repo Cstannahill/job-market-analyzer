@@ -41,13 +41,12 @@ export async function processFile(key: string) {
   const resumeId = resumeBaseItem.SK;
   const fileName = resumeBaseItem.originalFileName;
   const fileType = resumeBaseItem.contentType;
-  // 1️⃣ Determine file type
+
   const extension = fileName.split(".").pop()?.toLowerCase() || "";
   console.log(extension);
   let text = "";
   let experience: any[] = [];
   if (isPdf(extension, fileType)) {
-    // Read file and encode to base64
     const fileBuf = await normalizeS3PayloadToBuffer(s3Object);
     const base64Content = fileBuf.toString("base64");
     try {
@@ -108,7 +107,6 @@ export async function processFile(key: string) {
       ? `${totalMonths} months`
       : `${(totalMonths / 12).toFixed(1)} years`;
 
-  // Replace the raw list with the enriched one
   experience = enrichedExperience;
 
   const isLocalTemp = (x: unknown): x is { filePath: string } =>
@@ -151,7 +149,6 @@ export async function processFile(key: string) {
   console.log("Resume item updated in database:", updatedResumeItem);
   console.log("Generating insights for resume ID:", resumeId);
 
-  // New Section
   const techDetails = [];
   let canonTech: string[] = [];
   try {
@@ -166,7 +163,6 @@ export async function processFile(key: string) {
         tech: canonTech[i],
         region: "GLOBAL",
         period: toWeek(new Date()),
-        // ctx: ctx,
       });
       log(undefined, "info", "detail.done", {
         tech: canonTech[i],
@@ -198,7 +194,7 @@ export async function processFile(key: string) {
   console.log(`Tech details Tech Array Length: ${techDetails.length} \n
     Tech Details Array Items: ${JSON.stringify(techDetails)}
     `);
-  // END NEW SECTION
+
   const userTopTech = topByJobCount(techDetails, techDetails.length);
   console.log(`User Top Tech Array Length: ${userTopTech.length} \n
     User Top Tech Items: ${JSON.stringify(userTopTech)}
@@ -220,7 +216,7 @@ export async function processFile(key: string) {
   console.log("Full resume item prepared:", fullResumeItem);
   await insertResumeWithInsights(fullResumeItem, insightsItem);
   console.log("Resume with insights inserted into database.");
-  // 5️⃣ Return summary
+
   return {
     resumeId,
     contactInfo,

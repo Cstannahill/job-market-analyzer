@@ -5,23 +5,19 @@ const TABLE = process.env.KEY_USAGE_TABLE || "open-router-keys-status";
 
 const ddb = new DynamoDBClient({ region: REGION });
 
-/** UTC day-of-year (1..366) */
 function getUtcDayOfYear(d = new Date()): number {
   const start = Date.UTC(d.getUTCFullYear(), 0, 1);
   const now = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
   return Math.floor((now - start) / 86400000) + 1;
 }
 
-/** Integer, sortable: YEAR*1000 + DOY  (e.g. 2025314) */
 function getPkForToday(): number {
   const d = new Date();
   const yr = d.getUTCFullYear();
   const doy = getUtcDayOfYear(d);
   return yr * 1000 + doy;
-  // If you insist on "just DOY" (314), return `doy` instead.
 }
 
-/** Increment usage counter for a given key slot (1..5). Returns the new count for that key. */
 export async function incrementKeyUsage(
   keySlot: 1 | 2 | 3 | 4 | 5
 ): Promise<number> {
@@ -34,7 +30,6 @@ export async function incrementKeyUsage(
   const cmd = new UpdateItemCommand({
     TableName: TABLE,
     Key: { PK: { N: String(pk) } },
-    // Ensure Day/Year are set once; atomically ADD 1 to KeyN
     UpdateExpression: `
       SET #Year = if_not_exists(#Year, :yr),
           #Day  = if_not_exists(#Day,  :doy)
@@ -60,10 +55,6 @@ export async function incrementKeyUsage(
   return newVal ? Number(newVal) : 0;
 }
 
-/**
- * Record the first 429 for this key today by storing the count at the time of the rate limit.
- * This writes Key{slot}RateLimit only if it isn't already set.
- */
 export async function markRateLimitFirstHit(
   keySlot: 1 | 2 | 3 | 4 | 5,
   countAt429: number
@@ -74,7 +65,6 @@ export async function markRateLimitFirstHit(
   const cmd = new UpdateItemCommand({
     TableName: TABLE,
     Key: { PK: { N: String(pk) } },
-    // Only set once; if already present, do nothing
     UpdateExpression: `SET #RL = if_not_exists(#RL, :val)`,
     ExpressionAttributeNames: { "#RL": rlName },
     ExpressionAttributeValues: { ":val": { N: String(countAt429) } },

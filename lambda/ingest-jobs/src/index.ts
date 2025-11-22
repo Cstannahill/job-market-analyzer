@@ -1,7 +1,6 @@
-// ingest-jobs/src/index.ts
 import { DynamoDBClient, BatchGetItemCommand } from "@aws-sdk/client-dynamodb";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { adapters } from "./adapters/index.js"; // registry: muse, greenhouse, lever, usajobs
+import { adapters } from "./adapters/index.js";
 import type { CanonicalJobPosting } from "@job-market-analyzer/types/canonical-job";
 import { upsertMerge } from "./lib/upsert.js";
 import { runAdapters } from "./lib/runAdapters.js";
@@ -18,7 +17,7 @@ console.log("Loaded company slugs:", {
   greenhouse: companySlugs.greenhouse?.length || 0,
   lever: companySlugs.lever?.length || 0,
 });
-// ---------- env ----------
+
 const TABLE = mustEnv("JOBS_TABLE");
 const ADAPTERS = (process.env.ADAPTERS || "muse")
   .split(",")
@@ -27,33 +26,29 @@ const ADAPTERS = (process.env.ADAPTERS || "muse")
 const SINCE_DAYS = Number(process.env.SINCE_DAYS || 14);
 const COMPANY_SLUGS = process.env.COMPANY_SLUGS
   ? process.env.COMPANY_SLUGS.split(",").map((s) => s.trim())
-  : ALL_SLUGS; // fallback to our verified list
+  : ALL_SLUGS;
 
-// compute since ISO for adapters that can use it
 const sinceISO = new Date(
   Date.now() - SINCE_DAYS * 24 * 60 * 60 * 1000
 ).toISOString();
 
-// optional S3 archiving (we only archive new/changed)
 const ARCHIVE_BUCKET = process.env.ARCHIVE_S3_BUCKET || "";
 const ARCHIVE_POLICY = (process.env.ARCHIVE_POLICY || "new") as
   | "none"
   | "new"
   | "changed"
-  | "all"; // none|new|changed|all
+  | "all";
 
-// ---------- clients ----------
 const ddb = new DynamoDBClient({});
 const s3 = new S3Client({});
 
-// ---------- structured logger (lightweight) ----------
 const log = (
   level: "info" | "warn" | "error" | "debug",
   msg: string,
   extra?: Record<string, unknown>
 ) => {
   const entry = { level, msg, ts: new Date().toISOString(), ...extra };
-  // CloudWatch is happy with JSON lines
+
   console.log(JSON.stringify(entry));
 };
 
@@ -63,7 +58,6 @@ function mustEnv(name: string): string {
   return v;
 }
 
-// Batch existence lookup for (PK,SK) pairs
 async function batchGetExists(
   hashes: string[]
 ): Promise<Map<string, { descriptionSig?: string }>> {
@@ -88,7 +82,6 @@ async function batchGetExists(
   return out;
 }
 
-// Optional archive writer
 async function archiveIfNeeded(
   p: CanonicalJobPosting,
   existed: boolean,
@@ -117,7 +110,6 @@ async function archiveIfNeeded(
   return true;
 }
 
-// Lambda entry
 export const handler = async () => {
   const runId = Math.random().toString(36).slice(2, 8);
   const start = Date.now();
@@ -143,11 +135,9 @@ export const handler = async () => {
     };
   }
 
-  // 2) Existence check (Dynamo) — dedupe-before-archive
   const hashes = fetched.map((x) => x.postingHash);
   const existMap = await batchGetExists(hashes);
 
-  // 3) Split into new/changed vs existing
   const newOrChanged: CanonicalJobPosting[] = [];
   let unchanged = 0;
 
@@ -165,7 +155,6 @@ export const handler = async () => {
     }
   }
 
-  // 4) Upsert + optional archive
   let upserts = 0,
     archived = 0;
   for (const p of newOrChanged) {

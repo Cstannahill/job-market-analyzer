@@ -8,13 +8,12 @@ import { isDevRole } from "../lib/devFilter.js";
 const MUSE_API_KEY = process.env.MUSE_API_KEY || "";
 const BASE = "https://www.themuse.com/api/public/jobs";
 
-// The Muse fields we care about
 type MuseJob = {
   id: number;
-  name: string; // title
+  name: string;
   locations: Array<{ name: string }>;
-  contents: string; // html
-  publication_date?: string; // ISO
+  contents: string;
+  publication_date?: string;
   company?: { name?: string };
 };
 
@@ -62,7 +61,7 @@ export const museAdapter: SourceAdapter = {
     const totalPages = Math.min(first.page_count, maxPages);
 
     const mapJob = (j: MuseJob): CanonicalJobPosting | null => {
-      if (!isDevRole(j.name)) return null; // dev filter
+      if (!isDevRole(j.name)) return null;
       if (
         sinceTs &&
         j.publication_date &&

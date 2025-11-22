@@ -4,51 +4,38 @@ function sanitizeJsonString(s: string): string {
 
   let out = s;
 
-  // 1) Replace smart quotes and similar Unicode punctuation with plain ASCII equivalents
-  out = out.replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'"); // single smart quotes -> '
-  out = out.replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"'); // double smart quotes -> "
-  out = out.replace(/\u2013|\u2014/g, "-"); // en-dash/em-dash -> hyphen
-  // Remove any zero-width or control characters that can break parsing
+  out = out.replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'");
+  out = out.replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"');
+  out = out.replace(/\u2013|\u2014/g, "-");
+
   out = out.replace(/[\u200B-\u200F\uFEFF]/g, "");
 
-  // 2) If the model included code fences, strip them
   out = out.replace(/^\s*```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "");
 
-  // 3) Remove trailing commas before } or ]
-  //    Example: {"a":1,}  -> {"a":1}
   out = out.replace(/,\s*(?=([}\]]))/g, "");
 
-  // 4) Occasionally models print object commas on their own line or duplicate commas.
-  //    Replace any sequence of ",\s*,+" with a single comma
   out = out.replace(/,\s*,+/g, ",");
 
-  // 5) Trim whitespace
   out = out.trim();
 
   return out;
 }
 
 export function sanitizeAndParseJson(raw: string): any {
-  // Fast path: raw parse (works for good JSON obj or array)
   try {
     return JSON.parse(raw);
-  } catch (e) {
-    // continue
-  }
+  } catch (e) {}
 
-  // Try cleaned JSON
   const cleaned = sanitizeJsonString(raw);
   try {
     return JSON.parse(cleaned);
   } catch (e2) {
-    // Try extracting either first {...} or [...] block
     const match = cleaned.match(/(\{[\s\S]*?\}|\[[\s\S]*?\])/);
     if (match) {
       const candidate = sanitizeJsonString(match[0]);
       try {
         return JSON.parse(candidate);
       } catch (e3) {
-        // Last-ditch: try JSON5 which accepts trailing commas, single quotes, etc.
         try {
           return JSON5.parse(candidate);
         } catch (e4) {
@@ -62,7 +49,6 @@ export function sanitizeAndParseJson(raw: string): any {
         }
       }
     } else {
-      // No JSON-like block found; attempt JSON5 on cleaned full text
       try {
         return JSON5.parse(cleaned);
       } catch (e5) {
@@ -85,7 +71,6 @@ export function extractFirstBalancedJson(text: string): string | null {
   while (i < len) {
     const ch = text[i];
 
-    // find first opening brace or bracket
     if (ch !== "{" && ch !== "[") {
       i++;
       continue;
@@ -125,17 +110,13 @@ export function extractFirstBalancedJson(text: string): string | null {
         if (c === closing) {
           depth--;
           if (depth === 0) {
-            // found matching close; return substring from i..j (inclusive)
             return text.slice(i, j + 1);
           }
           continue;
         }
-        // other chars - ignore
       }
     }
 
-    // if we get here, couldn't find a matching close for this opening char;
-    // start searching for next opening char after i
     i++;
   }
 
@@ -145,11 +126,11 @@ export function extractFirstBalancedJson(text: string): string | null {
 export function cleanDocxText(text: string): string {
   return text
     .replace(/\r\n/g, "\n")
-    .replace(/\n{2,}/g, "\n\n") // collapse extra blank lines
-    .replace(/\s{2,}/g, " ") // remove excessive spacing
-    .replace(/•/g, "\n•") // ensure bullets start new lines
-    .replace(/(EXPERIENCE)/i, "\n\n$1\n") // isolate key headers
-    .replace(/([A-Z][A-Za-z]+ [A-Z][A-Za-z]+)(\s+)([A-Z][A-Za-z]+)/g, "$1\n$3") // split names/roles
+    .replace(/\n{2,}/g, "\n\n")
+    .replace(/\s{2,}/g, " ")
+    .replace(/•/g, "\n•")
+    .replace(/(EXPERIENCE)/i, "\n\n$1\n")
+    .replace(/([A-Z][A-Za-z]+ [A-Z][A-Za-z]+)(\s+)([A-Z][A-Za-z]+)/g, "$1\n$3")
     .trim();
 }
 
@@ -167,8 +148,8 @@ export function removeUndefinedDeep(obj: any): any {
 }
 
 export function stripFencesAndBOM(s: string): string {
-  let t = s.replace(/^\uFEFF/, ""); // BOM
-  // strip ```json ... ``` or ``` ... ```
+  let t = s.replace(/^\uFEFF/, "");
+
   t = t.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
   return t;
 }
@@ -201,27 +182,23 @@ export function extractFirstJson(s: string): string {
       if (depth === 0) return s.slice(start, i + 1);
     }
   }
-  return s; // fallback; let JSON.parse throw
+  return s;
 }
 
 /** Handles plain JSON or a JSON-string that itself contains JSON. */
 export function parsePossiblyDoubleEncodedJson(s: string): any {
-  // 1) direct parse
   try {
     const first = JSON.parse(s);
     if (typeof first === "string") {
-      // 2) second parse if it was a JSON string holding JSON
       try {
         return JSON.parse(first);
       } catch {
-        // sometimes models escape only quotes; try unescape-lite then parse
         const unescaped = first.replace(/\\"/g, '"');
         return JSON.parse(unescaped);
       }
     }
     return first;
   } catch (e1) {
-    // Try balanced extraction then parse
     const cand = extractFirstJson(s);
     const second = JSON.parse(cand);
     if (typeof second === "string") {

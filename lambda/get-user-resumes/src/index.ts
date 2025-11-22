@@ -1,4 +1,3 @@
-// get-user-resumes.ts
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
@@ -6,19 +5,16 @@ import {
   QueryCommand,
   QueryCommandInput,
 } from "@aws-sdk/lib-dynamodb";
-import { buildCorsHeaders } from "./cors.js"; // your helper (ESM path) ← uses allowed origins
+import { buildCorsHeaders } from "./cors.js";
 import { coerceInsights } from "./utils.js";
 import type { ResumeRecord } from "@job-market-analyzer/types/resume-record";
 
-// ----------------------
-// Config (adjust as needed)
-// ----------------------
 const CONFIG = {
   TABLE_NAME: process.env.RESUMES_TABLE ?? "Resumes",
-  // GSI where partition key is userId (e.g., GSI1PK = userId). Rename if your index differs.
+
   USERID_GSI_NAME: process.env.USERID_GSI_NAME ?? "GSI_ByUserId",
   USERID_GSI_PK: process.env.USERID_GSI_PK ?? "PK",
-  // Optional: page size cap for safety
+
   DEFAULT_LIMIT: Number(process.env.DEFAULT_LIMIT ?? "5"),
 };
 
@@ -30,10 +26,8 @@ const doc = DynamoDBDocumentClient.from(ddb, {
 type GetUserResumesRequestBody = {
   userId?: string;
   limit?: number;
-  nextToken?: string; // serialized LastEvaluatedKey
+  nextToken?: string;
 };
-
-// Narrow if you have a schema
 
 function parseJson<T>(raw: string | null | undefined): T | null {
   if (!raw) return null;
@@ -75,9 +69,6 @@ export const handler = async (
     };
   }
 
-  // CORS via your helper  ← :contentReference[oaicite:2]{index=2}
-
-  // Build query against the userId GSI
   const pk = `USER#${userId}`;
 
   const queryInput: QueryCommandInput = {
@@ -91,7 +82,6 @@ export const handler = async (
       ":pk": pk,
       ":sk": "RESUME#",
     },
-    // ScanIndexForward: false, // newest first if SK encodes time
   };
   console.log(queryInput);
   try {
@@ -135,8 +125,3 @@ export const handler = async (
     };
   }
 };
-
-
-
-
-

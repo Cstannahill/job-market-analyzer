@@ -2,7 +2,7 @@ import type { EnrichedSkillData } from "./types.js";
 
 export type TechStat = {
   technology: string;
-  job_count?: number; // some items may not have it
+  job_count?: number;
   [k: string]: any;
 };
 

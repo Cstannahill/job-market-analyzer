@@ -4,7 +4,6 @@ export function chunk<T>(arr: T[], size = 100): T[][] {
   return out;
 }
 
-// Build the exact SK we store (re-usable)
 export function makeSK(
   region: string,
   seniority: string,
@@ -14,11 +13,10 @@ export function makeSK(
   return `${region}#${seniority}#${work_mode}#${period}`;
 }
 export function previousPeriod(p: string) {
-  // "YYYY-W##" or "YYYY-MM-DD"
   if (/^\d{4}-W\d{2}$/.test(p)) {
     const [y, w] = p.split("-W").map(Number);
     if (w > 1) return `${y}-W${String(w - 1).padStart(2, "0")}`;
-    // week 1 -> last ISO week of previous year
+
     const last = lastIsoWeekOfYear(y - 1);
     return `${y - 1}-W${String(last).padStart(2, "0")}`;
   }
@@ -34,9 +32,8 @@ export function previousPeriod(p: string) {
 }
 
 function lastIsoWeekOfYear(y: number) {
-  // ISO week 52 or 53
   const d = new Date(Date.UTC(y, 11, 31));
-  // Thursday belongs to its week’s year
+
   const day = d.getUTCDay();
   const thu = new Date(d);
   thu.setUTCDate(d.getUTCDate() - ((day + 6) % 7) + 3);

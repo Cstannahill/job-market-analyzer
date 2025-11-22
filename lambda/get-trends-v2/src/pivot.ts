@@ -1,5 +1,5 @@
 type Mode = "Remote" | "Hybrid" | "On-site" | "All";
-type PivotMode = Exclude<Mode, "All">; // what we actually show
+type PivotMode = Exclude<Mode, "All">;
 
 type Seniority = "Junior" | "Mid" | "Senior" | "Lead" | "Unknown";
 
@@ -7,7 +7,6 @@ export function pivotModeSeniority(rows: any[]) {
   const modes: PivotMode[] = ["Remote", "Hybrid", "On-site"];
   const levels: Seniority[] = ["Junior", "Mid", "Senior", "Lead", "Unknown"];
 
-  // init matrix
   const cell = new Map<string, { job_count: number; salaries: number[] }>();
   const keyOf = (m: Mode, s: Seniority) => `${m}|${s}`;
 
@@ -30,7 +29,6 @@ export function pivotModeSeniority(rows: any[]) {
     return a.length % 2 ? a[mid] : (a[mid - 1] + a[mid]) / 2;
   };
 
-  // row/col totals
   const rowTotals: Record<
     PivotMode,
     { job_count: number; salary_median?: number }

@@ -10,7 +10,6 @@ import type { JobStats } from "@job-market-analyzer/types";
 const SKILLS_TABLE = "job-postings-skills";
 const TECHNOLOGIES_TABLE = "job-postings-technologies";
 
-// Initialize DynamoDB client
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
@@ -18,25 +17,19 @@ interface SkillCounts {}
 interface TechnologyCounts {}
 type JobPostingStats = JobStats & { id: string };
 
-/**
- * Lambda handler for API Gateway
- * Returns all job postings from DynamoDB
- */
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   console.log("Request received:", JSON.stringify(event, null, 2));
 
-  // Enable CORS
   const headers = {
     "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*", // Allow all origins (restrict in production)
+    "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "GET, OPTIONS",
   };
 
   try {
-    // Handle OPTIONS request (CORS preflight)
     if (event.httpMethod === "OPTIONS") {
       return {
         statusCode: 200,
@@ -51,12 +44,10 @@ export const handler = async (
     let stats: JobPostingStats | null = null;
 
     if (statsKey) {
-      // Use GetCommand when a specific key is configured
       const cmdInput: any = { TableName, Key: { id: statsKey } };
       const response = await docClient.send(new GetCommand(cmdInput));
       stats = (response.Item || null) as JobPostingStats | null;
     } else {
-      // No key configured — fall back to scanning the table and returning the first item (if any)
       const response = await docClient.send(
         new ScanCommand({ TableName, Limit: 1 })
       );
@@ -74,11 +65,11 @@ export const handler = async (
         headers,
         body: JSON.stringify({
           success: true,
-          data: stats, // ✅ actual object, not pre-stringified
+          data: stats,
         }),
       };
     }
-    // If we get here, no stats item was found — return 404 with an explicit body.
+
     return {
       statusCode: 404,
       headers,
