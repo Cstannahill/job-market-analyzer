@@ -39,7 +39,6 @@ export default function SkillCard({ skill, onClick, isSelected }: SkillCardProps
     const regionLabel = skill.region || 'global';
     const seniorityLabel = skill.seniority || 'all';
 
-    // Title cleaning + proper-case rules (keep short names uppercase)
     const raw = String(skill.skill ?? '');
     let title = raw.includes('#') ? raw.split('#').pop() || raw : raw;
     if (title.length > 3) title = toProperCase(title);
@@ -57,7 +56,7 @@ export default function SkillCard({ skill, onClick, isSelected }: SkillCardProps
             aria-labelledby={`skill-${skill.id}`}
             className="relative w-full text-left rounded-xl transition transform hover:scale-[1.01] focus:scale-[1.01] bg-slate-900/60 hover:bg-slate-900/70 ring-0 focus:outline-none focus-visible:ring-4 focus-visible:ring-purple-600/30 p-3 flex items-start gap-4"
         >
-            <div className="flex-none w-12 h-12 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-500 flex items-center justify-center shadow">
+            <div className="flex-none w-12 h-12 rounded-lg bg-linear-to-br from-purple-600 to-indigo-500 flex items-center justify-center shadow">
                 <span className="text-white font-extrabold uppercase select-none">{(skill.skill || '').slice(0, 2)}</span>
             </div>
 
@@ -103,7 +102,7 @@ export default function SkillCard({ skill, onClick, isSelected }: SkillCardProps
 
             <div className="flex-none text-right pl-4">
                 <div className="text-[11px] text-slate-400">Demand</div>
-                <div className="mt-1 text-lg sm:text-xl font-mono font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-300 to-indigo-300">
+                <div className="mt-1 text-lg sm:text-xl font-mono font-semibold bg-clip-text text-transparent bg-linear-to-r from-purple-300 to-indigo-300">
                     {Number(skill.count ?? 0)}
                 </div>
                 <div className="mt-1 text-[12px] text-slate-400">Remote: <span className="text-slate-300">{skill.remotePercentage ?? 0}%</span></div>

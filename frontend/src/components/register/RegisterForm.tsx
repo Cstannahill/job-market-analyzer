@@ -7,29 +7,6 @@ import TechCity from "@/assets/techcity.avif";
 import { useAuthLoading } from '@/stores/authStore';
 import { authService } from '@/services/authService';
 
-/**
- * RegisterForm Component
- * 
- * Architectural Responsibilities:
- * - Captures user registration data with validation
- * - Enforces password strength requirements
- * - Delegates registration to AuthContext
- * - Provides user feedback throughout registration flow
- * - Handles email verification instructions
- * 
- * State Management Strategy:
- * - Form state isolated to component (single responsibility)
- * - Success state triggers informational UI (not navigation)
- * - Error state provides actionable feedback
- * - Loading state prevents duplicate submissions
- * 
- * Security Considerations:
- * - Client-side password validation (defense in depth)
- * - Clear error messages without revealing system details
- * - Password confirmation prevents typos
- * - No sensitive data stored in component state after submission
- */
-
 interface FormData {
     name: string;
     email: string;
@@ -48,24 +25,21 @@ export function RegisterForm() {
     const navigate = useNavigate();
     const loading = useAuthLoading();
 
-    // Form state
     const [formData, setFormData] = useState<FormData>(initialFormData);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
     const [loadingState, setLoadingState] = useState(false);
 
-    // Handle input changes
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
             ...prev,
             [name]: value,
         }));
-        // Clear error when user starts typing
+
         if (error) setError('');
     };
 
-    // Password strength validation
     const validatePassword = (password: string): { valid: boolean; message: string } => {
         if (password.length < 8) {
             return { valid: false, message: 'Password must be at least 8 characters long' };
@@ -90,15 +64,14 @@ export function RegisterForm() {
         return { valid: true, message: '' };
     };
 
-    // Comprehensive form validation
     const validateForm = (): boolean => {
-        // Name validation
+
         if (!formData.name.trim()) {
             setError('Name is required');
             return false;
         }
 
-        // Email validation
+
         if (!formData.email.trim()) {
             setError('Email is required');
             return false;
@@ -110,14 +83,14 @@ export function RegisterForm() {
             return false;
         }
 
-        // Password validation
+
         const passwordValidation = validatePassword(formData.password);
         if (!passwordValidation.valid) {
             setError(passwordValidation.message);
             return false;
         }
 
-        // Password confirmation
+
         if (formData.password !== formData.confirmPassword) {
             setError('Passwords do not match');
             return false;
@@ -132,27 +105,27 @@ export function RegisterForm() {
         setError('');
         setSuccess(false);
 
-        // Validate form
+
         if (!validateForm()) {
             return;
         }
 
         try {
-            // Delegate registration to context
+
             const result = await authService.register({
                 email: formData.email.trim(),
                 password: formData.password,
                 name: formData.name.trim(),
             });
 
-            // Registration successful - redirect to verification page
+
             setSuccess(true);
             setLoadingState(false);
             setFormData(initialFormData);
             if (result && result.message) {
                 console.log("Verification Sent!")
             }
-            // Redirect to email verification with email in state
+
             setTimeout(() => {
                 navigate('/verify-email', {
                     state: {
@@ -170,7 +143,6 @@ export function RegisterForm() {
         }
     };
 
-    // Success state UI
     if (success) {
         return (
             <div className="grid min-h-svh lg:grid-cols-2">
@@ -214,7 +186,6 @@ export function RegisterForm() {
         );
     }
 
-    // Registration form UI
     return (
         <div className="grid min-h-svh lg:grid-cols-3">
             <div className="flex flex-col gap-4 p-6 md:p-10">
@@ -326,7 +297,7 @@ export function RegisterForm() {
                 <img
                     src={TechCity}
                     alt="Trend Dev Visualization"
-                    className="absolute inset-0 h-full w-full object-cover rounded-lg border-1 border-stone-700"
+                    className="absolute inset-0 h-full w-full object-cover rounded-lg border border-stone-700"
                 />
             </div>
         </div>

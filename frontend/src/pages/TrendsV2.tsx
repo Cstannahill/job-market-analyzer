@@ -176,9 +176,7 @@ function DetailSection({
             <Suspense fallback={<DetailPanelSkeleton />}>
                 <TechDetailPanel data={detail} />
             </Suspense>
-            {/* ) : (
-                <DetailPanelSkeleton loading={loading} />
-            )} */}
+
         </section>
     );
 }

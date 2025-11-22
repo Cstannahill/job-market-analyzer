@@ -7,25 +7,8 @@ export const OPENROUTER_KEYS = [
   process.env.OPENROUTER_KEY_4,
   process.env.OPENROUTER_KEY_5,
 ].filter(Boolean) as string[];
-let globalCooldownUntil = 0; // ms epoch when any call is allowed again
+let globalCooldownUntil = 0;
 
-// export function setGlobalCooldownUntil(tsMs: number) {
-//   globalCooldownUntil = Math.max(globalCooldownUntil, tsMs);
-//   console.warn(
-//     `[WARN] Global cooldown until ${new Date(
-//       globalCooldownUntil
-//     ).toISOString()}`
-//   );
-// }
-
-// export async function waitForGlobalWindow() {
-//   const now = Date.now();
-//   if (now < globalCooldownUntil) {
-//     const waitMs = globalCooldownUntil - now + 3000;
-//     console.warn(`[WARN] Waiting for global window ${waitMs}ms`);
-//     await sleep(waitMs);
-//   }
-// }
 export function maskKey(k: string) {
   if (!k) return "(none)";
   return k.slice(0, 8) + "…redacted…" + k.slice(-4);

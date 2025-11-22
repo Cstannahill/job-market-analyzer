@@ -20,8 +20,8 @@ function LandingPage() {
   } = useQuery({
     queryKey: ['job-postings-stats'],
     queryFn: () => getJobPostingsStats(),
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 60, // 1 hour
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 60,
     retry: 1,
   });
 

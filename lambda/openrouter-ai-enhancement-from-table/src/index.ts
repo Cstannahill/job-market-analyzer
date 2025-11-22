@@ -2,7 +2,6 @@ import { processBatches } from "./aiService.js";
 import { getUnprocessedJobsFromDynamo } from "./dbService.js";
 import { v4 as uuid } from "uuid";
 
-// Environment variables / config
 const MAX_ITEMS_PER_RUN = Number(process.env.MAX_ITEMS_PER_RUN || 100);
 const OPENROUTER_MODEL =
   process.env.OPENROUTER_MODEL || "qwen/qwen3-coder:free";

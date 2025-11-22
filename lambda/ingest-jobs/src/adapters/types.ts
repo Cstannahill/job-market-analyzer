@@ -7,7 +7,7 @@ export interface SourceAdapter {
   fetch(opts: {
     page?: number;
     company?: string;
-    since?: string; // ISO date lower bound, adapter decides how to apply
+    since?: string;
     maxPages?: number;
   }): Promise<CanonicalJobPosting[]>;
 }

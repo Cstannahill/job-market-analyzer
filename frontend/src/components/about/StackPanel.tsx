@@ -1,12 +1,7 @@
-import { Card, } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 
-
-/* -------------------------
-   StackPanel (updated to show svg icons)
-   - expects icon SVGs in /public/icons/
---------------------------*/
 export const StackPanel: React.FC<{
-    stackItems: { name: string; iconPath?: string, type: "frontend" | "backend" | "storage" }[]; // iconPath relative to /public
+    stackItems: { name: string; iconPath?: string, type: "frontend" | "backend" | "storage" }[];
     principles: string[];
 }> = ({ stackItems, principles }) => {
 
@@ -31,7 +26,6 @@ export const StackPanel: React.FC<{
                             loading="lazy"
                             decoding="async"
                             onError={(e) => {
-                                // hide image if it fails to load
                                 (e.target as HTMLImageElement).style.display = "none";
                             }}
                         />
@@ -55,7 +49,7 @@ export const StackPanel: React.FC<{
 
                 {frontendItems.length > 0 && (
                     <>
-                        <p className="text-md  text-foreground my-1 border-b-1 py-0 font-bold text-center ">Frontend</p>
+                        <p className="text-md  text-foreground my-1 border-b py-0 font-bold text-center ">Frontend</p>
                         <ul className="flex flex-wrap justify-center gap-4 p-4 border-b-2 border-border">
                             {frontendItems}
                         </ul>
@@ -63,14 +57,14 @@ export const StackPanel: React.FC<{
                 )}
                 {backendItems.length > 0 && (
                     <div>
-                        <p className="text-md  text-foreground my-1 border-b-1 py-0 font-bold text-center ">Backend</p>
+                        <p className="text-md  text-foreground my-1 border-b py-0 font-bold text-center ">Backend</p>
                         <ul className="flex flex-wrap justify-center gap-4 p-4 border-b-2 border-border">
                             {backendItems}</ul>
                     </div>
                 )}
                 {storageItems.length > 0 && (
                     <div>
-                        <p className="text-md  text-foreground my-1 border-b-1 py-0 font-bold text-center ">Storage</p>
+                        <p className="text-md  text-foreground my-1 border-b py-0 font-bold text-center ">Storage</p>
                         <ul className="flex flex-wrap justify-center gap-4 p-4">
                             {storageItems}
                         </ul>
@@ -100,8 +94,7 @@ export const StackPanel: React.FC<{
                     </ul>
                 </div>
             </Card>
-
-
-        </Card></>
+        </Card>
+    </>
     );
 };

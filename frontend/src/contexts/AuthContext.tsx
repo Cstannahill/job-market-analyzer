@@ -1,22 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { authService, type UserProfile, type RegisterData, type LoginData } from '../services/authService';
 
-/**
- * Authentication Context
- * 
- * Provides global authentication state to React component tree
- * 
- * Design Pattern: Context + Custom Hook
- * - Centralizes auth state management
- * - Prevents prop drilling
- * - Enables easy auth checks in any component
- * 
- * State Management:
- * - user: Current user profile or null
- * - loading: True during async auth operations
- * - initialized: True after initial auth check completes
- */
-
 interface AuthContextValue {
     user: UserProfile | null;
     loading: boolean;
@@ -39,27 +23,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const [loading, setLoading] = useState(false);
     const [initialized, setInitialized] = useState(false);
 
-    /**
-     * Initialize auth state on mount
-     * Checks if user has valid session and loads profile
-     */
     useEffect(() => {
         const initAuth = async () => {
             try {
-                // Check if user has valid tokens
                 if (authService.isAuthenticated()) {
-                    // Try to load cached profile first (instant)
                     const cached = authService.getCachedUserProfile();
                     if (cached) {
                         setUser(cached);
                     }
 
-                    // Fetch fresh profile from API
                     try {
                         const profile = await authService.getCurrentUser();
                         setUser(profile);
                     } catch (error) {
-                        // If API call fails, clear invalid session
                         console.error('Failed to load user profile:', error);
                         setUser(null);
                     }
@@ -74,9 +50,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         initAuth();
     }, []);
 
-    /**
-     * Login user
-     */
+
     const login = async (data: LoginData) => {
         setLoading(true);
         try {
@@ -87,9 +61,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
     };
 
-    /**
-     * Register new user
-     */
+
     const register = async (data: RegisterData) => {
         setLoading(true);
         try {
@@ -99,9 +71,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
     };
 
-    /**
-     * Logout user
-     */
     const logout = async () => {
         setLoading(true);
         try {
@@ -112,9 +81,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
     };
 
-    /**
-     * Refresh user profile from API
-     */
+
     const refreshUser = async () => {
         if (!authService.isAuthenticated()) {
             setUser(null);
@@ -144,10 +111,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-/**
- * Custom hook to access auth context
- * Throws error if used outside AuthProvider
- */
+
 // eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
     const context = useContext(AuthContext);

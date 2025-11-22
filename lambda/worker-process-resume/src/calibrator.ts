@@ -31,7 +31,7 @@ export function calibrateResumeInsights(
   if (Array.isArray(out.topRoles)) {
     out.topRoles = out.topRoles.map((r) => {
       const title = r.title.toLowerCase();
-      // force role down based on years + signals
+
       if (opts.years < MIN_MID && title.includes("senior")) {
         r.title = r.title.replace(/senior/i, "Junior");
         r.fitScore = Math.min(r.fitScore, 55);
@@ -40,19 +40,17 @@ export function calibrateResumeInsights(
         r.fitScore = Math.min(r.fitScore, opts.hasLeadershipSignals ? 68 : 62);
       }
       requireEvidence(r);
-      // cap silly numbers
+
       if (r.fitScore > 92) r.fitScore = 92;
       if (r.fitScore < 0) r.fitScore = 0;
       return r;
     });
   }
 
-  // downgrade confidence if placeholders exist
   const hasPlaceholders =
     JSON.stringify(out).match(/\bX%|100% reduction|TBD|YYY\b/i) != null;
   if (hasPlaceholders) out.confidence = "medium";
 
-  // ATS false if crazy claims or graphics-y hints
   const ats = out.atsAndFormat ?? { isATSFriendly: true, recommendations: [] };
   if (hasPlaceholders) {
     ats.isATSFriendly = false;

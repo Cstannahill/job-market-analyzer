@@ -23,7 +23,7 @@ type Props = {
 };
 
 function formatCurrency(n?: number | null) {
-    if (n == null) return 'N/A'; // handles null or undefined
+    if (n == null) return 'N/A';
     const rounded = Math.round(n);
     return `$${rounded.toLocaleString()}`;
 }
@@ -39,11 +39,11 @@ function percentChange(oldVal = 0, newVal = 0) {
 }
 
 export default function SkillDetailPanel({ skill, history = [] }: Props) {
-    // hooks must be declared unconditionally (always)
+
     const [sortBy, setSortBy] = useState<'value' | 'name'>('value');
     const [copied, setCopied] = useState(false);
 
-    // co-occurring skills array limited & sorted (safe if skill is null)
+
     const cooccurring = useMemo(() => {
         const raw = Object.entries(skill?.cooccurringSkills ?? {}).map(([name, value]) => ({
             name,
@@ -54,7 +54,7 @@ export default function SkillDetailPanel({ skill, history = [] }: Props) {
         return raw.slice(0, 8);
     }, [skill?.cooccurringSkills, sortBy]);
 
-    // spark/trend data (ensure chronological order), safe when history empty
+
     const sparkData = useMemo(() => {
         const mapped = (history || []).map((h) => ({
             date: h.lastUpdated ?? '',
@@ -64,7 +64,7 @@ export default function SkillDetailPanel({ skill, history = [] }: Props) {
         return mapped;
     }, [history]);
 
-    // compute percent change comparing latest two points
+
     const trendChange = useMemo(() => {
         if (sparkData.length < 2) return 0;
         const prev = sparkData[sparkData.length - 2].count;
@@ -72,10 +72,10 @@ export default function SkillDetailPanel({ skill, history = [] }: Props) {
         return Math.round(percentChange(prev, latest));
     }, [sparkData]);
 
-    // last updated string (safe even when skill null)
+
     const lastUpdated = skill?.lastUpdated ?? (sparkData.length ? sparkData[sparkData.length - 1].date : '');
 
-    // CSV export handler (guarded to require skill)
+
     function exportCSV() {
         if (!skill) return;
         const rows: string[][] = [];
@@ -98,7 +98,7 @@ export default function SkillDetailPanel({ skill, history = [] }: Props) {
         URL.revokeObjectURL(url);
     }
 
-    // copy skill name (guarded)
+
     async function copySkill() {
         if (!skill) return;
         try {
@@ -112,10 +112,10 @@ export default function SkillDetailPanel({ skill, history = [] }: Props) {
 
     const barData = cooccurring.map((c) => ({ name: c.name, value: c.value }));
 
-    // If no skill selected, show a small placeholder (hooks still declared above)
+
     if (!skill) return <div className="text-sm text-slate-400">No skill selected.</div>;
 
-    // --- UI (same as before, now type-safe) ---
+
     return (
         <Card className="h-full bg-slate-900/60 ring-1 ring-slate-800">
             <CardContent className="pt-3 pb-4 px-4 sm:px-5 h-full flex flex-col gap-4">
@@ -222,9 +222,7 @@ export default function SkillDetailPanel({ skill, history = [] }: Props) {
                     </div>
                 </div>
 
-                {/* MAIN BODY: Trend chart + co-occurring */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start flex-1">
-                    {/* Trend (big) */}
                     <div className="lg:col-span-2 bg-slate-800/30 rounded-md p-3">
                         <div className="flex items-center justify-between">
                             <h5 className="text-sm font-medium text-slate-200">Trend (counts)</h5>

@@ -1,4 +1,4 @@
-// src/components/resumes/manageResumes/ManageResumes.tsx
+
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getUserResumes } from "@/services/resumeService";
@@ -30,7 +30,7 @@ function sortByUploadedAtDesc(a: ResumeRecord, b: ResumeRecord) {
 export const ManageResumes = () => {
     const user = useAuthUser();
     const userId = user?.userId ?? "";
-    const [index, setIndex] = useState(0); // current visible resume (0-based)
+    const [index, setIndex] = useState(0);
 
     const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
         queryKey: ["get-user-resumes", userId],
@@ -45,17 +45,17 @@ export const ManageResumes = () => {
         },
     });
 
-    // Flatten + guards
+
     const items = data?.items ?? [];
     const total = items.length;
     const current = items[index];
 
-    // Keep index in bounds when data refetches/changes
+
     useEffect(() => {
         if (index > total - 1) setIndex(Math.max(total - 1, 0));
     }, [total, index]);
 
-    // Keyboard navigation (← →)
+
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             if (e.key === "ArrowLeft") setIndex((i) => Math.max(i - 1, 0));
@@ -65,7 +65,7 @@ export const ManageResumes = () => {
         return () => window.removeEventListener("keydown", onKey);
     }, [total]);
 
-    // Build Select options (originalFileName with SK fallback for uniqueness)
+
     const selectOptions = useMemo(
         () =>
             items.map((r, i) => ({
@@ -111,14 +111,14 @@ export const ManageResumes = () => {
         );
     }
 
-    // Pagination helpers (client-side, pageSize = 1)
-    // const page = index + 1;
-    // const totalPages = total;
+
+
+
     const canPrev = index > 0;
     const canNext = index < total - 1;
     const goPrev = () => canPrev && setIndex((i) => i - 1);
     const goNext = () => canNext && setIndex((i) => i + 1);
-    // const goPage = (p: number) => setIndex(Math.min(Math.max(p - 1, 0), total - 1));
+
 
     return (
         <div className="w-full mx-auto p-4 sm:p-6 md:p-8">

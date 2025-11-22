@@ -1,9 +1,5 @@
-// lambdas/aggregate-skill-trends-v2/handler.ts
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-  DynamoDBDocumentClient,
-  BatchGetCommand,
-} from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, BatchGetCommand } from "@aws-sdk/lib-dynamodb";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 import type {
@@ -582,6 +578,3 @@ function parseFlexibleDate(value: string): Date | null {
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
-
-
-

@@ -7,12 +7,10 @@ export const handlePreflight = async (
   const origin = event.headers.Origin || event.headers.origin;
   const headers = buildCorsHeaders(origin);
   let decodedKey: string = "ID not processed";
-  // Handle OPTIONS preflight
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers, body: "" };
   }
 
-  // GET /resumes/compare/{id}
   if (event.httpMethod === "GET") {
     try {
       const id = event.pathParameters?.id;

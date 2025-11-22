@@ -1,4 +1,3 @@
-// Minimal trends service and normalization helpers
 import axios from "axios";
 import type {
   SkillTrend,
@@ -19,7 +18,6 @@ function safeJsonParse<T = unknown>(
   try {
     return JSON.parse(input) as T;
   } catch (err) {
-    // keep the error visible for debugging
     console.debug("safeJsonParse failed:", (err as Error).message);
     return fallback;
   }
@@ -84,10 +82,8 @@ function parseKeyPairs(key?: string) {
   return out;
 }
 
-/** Clean and normalize messy token strings into tokens */
 function cleanTokenString(input?: unknown): string[] {
   if (input == null) return [];
-  // If it's already an array, flatten + normalize items
   if (Array.isArray(input)) {
     return Array.from(
       new Set(
@@ -102,34 +98,23 @@ function cleanTokenString(input?: unknown): string[] {
 
   let s = String(input);
 
-  // Common patterns: '#skill|#python|region#other' or 'skill#python' or 'python,java'
-  // Replace separators with comma
   s = s.replace(/[|/;]+/g, ",");
-  // Remove stray '#' and common key words
   s = s.replace(/#/g, ",");
-  // Remove 'skill'/'region'/'seniority' tokens that occur alone
   s = s.replace(/\b(skill|region|seniority|type|pk|sk)\b/gi, "");
-  // Split on commas and whitespace
   const tokens = s
     .split(",")
     .map((t) => t.trim())
     .filter((t) => t.length > 0 && t.toLowerCase() !== "null");
 
-  // dedupe, keep first N tokens
   return Array.from(new Set(tokens)).slice(0, 10);
 }
-
-/** Clean a possible dynamo map of counts (cooccurringSkills) */
-
 export function normalizeRow(row: Record<string, unknown>): SkillTrend {
   const pk = String((row.PK || row.pk) ?? "");
   const sk = String((row.SK || row.sk) ?? "");
 
-  // Prefer explicit fields, fallback to parsed PK/SK pairs
   const pkPairs = parseKeyPairs(pk);
   const skPairs = parseKeyPairs(sk);
 
-  // skill name: prefer explicit field, else extract from parsed pairs (skill key)
   let rawSkill = String(
     row.skill ?? row.Skill ?? pkPairs.skill ?? skPairs.skill ?? ""
   );
@@ -137,8 +122,6 @@ export function normalizeRow(row: Record<string, unknown>): SkillTrend {
     rawSkill = pkPairs.skill || skPairs.skill || rawSkill;
   }
 
-  // Remove stray prefixes like "skill#" in skill
-  // If skill looks like "skill#python" => extract last segment
   if (rawSkill.includes("#")) {
     const parts = rawSkill
       .split("#")
@@ -147,7 +130,6 @@ export function normalizeRow(row: Record<string, unknown>): SkillTrend {
     rawSkill = parts.length ? parts[parts.length - 1] : rawSkill;
   }
 
-  // Region / seniority — explicit preferred, then parsed pairs
   let region =
     String(
       row.region ?? row.Region ?? skPairs.region ?? pkPairs.region ?? ""
@@ -162,20 +144,16 @@ export function normalizeRow(row: Record<string, unknown>): SkillTrend {
         ""
     ) || "";
 
-  /// Clean token lists for industries, tags etc.
-  // Use the original helpers (pre-existing in the file) so they're not unused.
   const topIndustries = parseTopIndustries(
     row.topIndustries ?? row.top_industries ?? row.industries ?? []
   );
 
-  // prefer the Dynamo map parser already defined earlier
   const cooccurringSkills = parseDynamoMapCounts(
     row.cooccurringSkills ?? row.cooccurring_skills ?? {}
   );
 
   const count = Number(row.count ?? row.Count ?? 0) || 0;
 
-  // use the normalize helper you already defined
   const remotePercentage = normalizeRemotePercentage(
     row.remotePercentage ?? row.remote_percentage ?? 0
   );
@@ -184,7 +162,6 @@ export function normalizeRow(row: Record<string, unknown>): SkillTrend {
 
   const id = `${pk}|${sk}`;
 
-  // Final small cleanups for region and seniority tokens
   region = cleanTokenString(region)[0] ?? region ?? "global";
   seniority = cleanTokenString(seniority)[0] ?? seniority ?? "all";
 
@@ -200,11 +177,9 @@ export function normalizeRow(row: Record<string, unknown>): SkillTrend {
     avgSalary,
     cooccurringSkills,
     topIndustries,
-    // copy any other fields your SkillTrend expects, using cleaned values
   } as SkillTrend;
 }
 
-// Helper type guards
 function isLambdaProxy(obj: unknown): obj is LambdaProxy {
   return (
     !!obj &&
@@ -245,7 +220,6 @@ async function fetchJson(path: string): Promise<unknown> {
     }
     return payload;
   } catch (err) {
-    // ensure the caught error is used to satisfy linter rules and for debugging
     console.debug(
       "Axios request failed for",
       path,
@@ -279,8 +253,6 @@ export async function fetchTop(
   if (params.region) qs.set("region", params.region);
   if (params.seniority) qs.set("seniority", params.seniority);
   if (params.limit) qs.set("limit", String(params.limit));
-  // Use the deployed API under the shared API gateway. Do not include an extra '/api' prefix.
-  // If a region is provided, call the region endpoint; otherwise fall back to technology endpoint.
   const path = params.region
     ? `/region?${qs.toString()}`
     : `/technology?${qs.toString()}`;
@@ -296,7 +268,6 @@ export async function fetchTop(
 }
 
 export async function fetchSkill(skill: string) {
-  // Use the skill detail path as a path parameter on the trends resource
   const path = `/skill/${encodeURIComponent(skill)}`;
   const data = await fetchJson(path);
   const arr: unknown[] = Array.isArray(data)

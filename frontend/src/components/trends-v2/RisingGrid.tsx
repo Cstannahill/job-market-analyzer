@@ -1,4 +1,3 @@
-// src/features/trends-v2/RisingGrid.tsx
 import type { TopTechnologiesItem } from '@job-market-analyzer/types/trendsv2';
 import React from "react";
 import { toProperCase } from "@/lib/stringHelpers";

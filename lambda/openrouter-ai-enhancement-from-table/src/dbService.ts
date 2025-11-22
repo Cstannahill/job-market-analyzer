@@ -70,19 +70,19 @@ export function validateEnrichedData(
     technologies: Array.isArray(data.technologies)
       ? data.technologies
           .filter((t: unknown): t is string => typeof t === "string")
-          .map((t) => t.trim())
+          .map((t: string) => t.trim())
           .filter(Boolean)
       : [],
     skills: Array.isArray(data.skills)
       ? data.skills
           .filter((s: unknown): s is string => typeof s === "string")
-          .map((s) => s.trim())
+          .map((s: string) => s.trim())
           .filter(Boolean)
       : [],
     requirements: Array.isArray(data.requirements)
       ? data.requirements
           .filter((r: unknown): r is string => typeof r === "string")
-          .map((r) => r.trim())
+          .map((r: string) => r.trim())
           .filter(Boolean)
       : [],
     years_exp_req:
@@ -97,9 +97,10 @@ export function validateEnrichedData(
     )
       ? data.seniority_level
       : "Mid",
-    location: typeof fallbackLocation === "string"
-      ? fallbackLocation.trim() || "Unknown"
-      : "Unknown",
+    location:
+      typeof fallbackLocation === "string"
+        ? fallbackLocation.trim() || "Unknown"
+        : "Unknown",
     company_name:
       typeof data.company_name === "string"
         ? data.company_name.trim()

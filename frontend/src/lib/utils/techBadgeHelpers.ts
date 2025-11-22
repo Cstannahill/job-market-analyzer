@@ -6,7 +6,6 @@ const moduleLoaders = import.meta.glob("/src/assets/icons/*.{svg,SVG}", {
 export function normalizeLookup(name: string) {
   const lower = name.toLowerCase();
 
-  // Special cases - consolidated for readability
   const specialCases: Record<string, string> = {
     rails: "rails",
     "ruby on rails": "rails",
@@ -54,7 +53,6 @@ export function normalizeLookup(name: string) {
 
   if (specialCases[lower]) return specialCases[lower];
 
-  // Pattern-based special cases
   if (
     (lower.includes("continuous") && lower.includes("integration")) ||
     (lower.includes("continuous") && lower.includes("delivery"))
@@ -118,7 +116,6 @@ export function normalizeLookup(name: string) {
   if (lower.includes("juniper")) return "juniper";
   if (lower.includes("spring") || lower === "springboot") return "spring";
 
-  // Default normalization
   return name
     .toLowerCase()
     .replace(/^c#$/, "csharp")

@@ -6,20 +6,6 @@ import type {
 } from "aws-lambda";
 import type { UserProfile } from "@job-market-analyzer/types/auth";
 
-/**
- * Post-Confirmation Trigger
- *
- * Architectural Purpose:
- * - Automatically creates DynamoDB user profile when Cognito user is confirmed
- * - Maintains data consistency between authentication and application layers
- * - Executes synchronously in Cognito flow, ensuring profile exists before first login
- *
- * Design Decisions:
- * - Idempotent: Safe to retry if DynamoDB write fails
- * - No email sending: Keeps function focused on data persistence
- * - Minimal error handling: Cognito requires success return or user confirmation fails
- */
-
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
@@ -46,7 +32,7 @@ export const handler: PostConfirmationTriggerHandler = async (
   const userProfile: UserProfile = {
     userId: sub,
     email,
-    name: name || email.split("@")[0], // Fallback to email prefix
+    name: name || email.split("@")[0],
     createdAt: now,
     updatedAt: now,
     preferences: {
@@ -60,22 +46,20 @@ export const handler: PostConfirmationTriggerHandler = async (
       new PutCommand({
         TableName: TABLE_NAME,
         Item: userProfile,
-        // Prevent overwriting if profile already exists (idempotency)
+
         ConditionExpression: "attribute_not_exists(userId)",
       })
     );
 
     console.log("User profile created successfully:", { userId: sub });
   } catch (error: any) {
-    // If condition fails, profile already exists - this is acceptable
     if (error.name === "ConditionalCheckFailedException") {
       console.log("User profile already exists:", { userId: sub });
     } else {
       console.error("Failed to create user profile:", error);
-      throw error; // Propagate error to fail user confirmation
+      throw error;
     }
   }
 
-  // Cognito requires returning the event object
   return event;
 };

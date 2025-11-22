@@ -1,16 +1,14 @@
 
 export interface TechBadgeProps {
-    name: string; // e.g. "React", "Python", "RabbitMQ"
+    name: string;
     className?: string;
-    size?: number; // px
+    size?: number;
 };
 
 const iconFor = (name: string) => {
-    // normalized keys -> file names
     const key = name.toLowerCase().replace(/\s+/g, "-").replace(/\.+/g, "");
     try {
         console.log(key);
-        // Vite resolves static imports; this is a dynamic require-like pattern
         console.log(`/assets/icons/${key}.svg`)
         return new URL(`/assets/icons/${key}.svg`, import.meta.url).href;
     } catch {

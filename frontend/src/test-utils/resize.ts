@@ -1,4 +1,3 @@
-// Small test helper to interact with the ResizeObserver mock installed in setupTests.ts
 export function setTestResize(width: number, height: number) {
   const RO = globalThis.ResizeObserver as
     | (typeof ResizeObserver & {
@@ -8,7 +7,6 @@ export function setTestResize(width: number, height: number) {
     | undefined;
   if (!RO) throw new Error("ResizeObserver mock is not installed");
   RO.__setSize?.({ width, height });
-  // notify observers immediately so components react in the same tick
   RO.__notifyAll?.();
 }
 

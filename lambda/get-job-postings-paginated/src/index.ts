@@ -8,7 +8,6 @@ import {
 import { slugifyTech } from "./utils.js";
 import type { BaseJobListing } from "@job-market-analyzer/types";
 
-// Initialize DynamoDB client
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
@@ -62,9 +61,7 @@ const normalizeList = (value: unknown): string[] => {
         if (Array.isArray(parsed)) {
           return normalizeList(parsed);
         }
-      } catch {
-        // fall through
-      }
+      } catch {}
     }
     return [trimmed];
   }
@@ -93,10 +90,13 @@ const toBaseJobListing = (job: JobPosting): BaseJobListing => {
     "unknown-job"
   );
   const jobTitle = coerceString(job.job_title ?? "", "Unknown role");
-  const description = coerceString(job.job_description ?? job.description ?? "");
+  const description = coerceString(
+    job.job_description ?? job.description ?? ""
+  );
   const location = coerceString(job.location ?? "", "Unknown");
   const processedDate =
-    coerceString(job.processed_date ?? job.date ?? "") || new Date().toISOString();
+    coerceString(job.processed_date ?? job.date ?? "") ||
+    new Date().toISOString();
   const remoteStatus = coerceString(job.remote_status ?? "", "Unknown");
 
   const benefits = normalizeList(job.benefits);
@@ -119,7 +119,9 @@ const toBaseJobListing = (job: JobPosting): BaseJobListing => {
     industry: industry.length ? industry : undefined,
     requirements: requirements.length ? requirements : undefined,
     salary_mentioned:
-      typeof job.salary_mentioned === "boolean" ? job.salary_mentioned : undefined,
+      typeof job.salary_mentioned === "boolean"
+        ? job.salary_mentioned
+        : undefined,
     salary_range: coerceOptionalString(job.salary_range),
     seniority_level: coerceOptionalString(job.seniority_level),
     skills: skills.length ? skills : undefined,
@@ -261,7 +263,6 @@ export const handler = async (
       }
     }
 
-    // tech query
     if (techParam) {
       const techSlug = slugifyTech(techParam);
       const collected: JobPosting[] = [];
@@ -278,7 +279,7 @@ export const handler = async (
             ":p": `${StatusValue}#`,
           },
           Limit: limit,
-          ScanIndexForward, // ASC=>oldest first, DESC=>newest first
+          ScanIndexForward,
           ...(techIndexCursor && { ExclusiveStartKey: techIndexCursor }),
         });
 
@@ -323,13 +324,12 @@ export const handler = async (
           hasMore: !!next,
           status: StatusValue,
           sortOrder: ScanIndexForward ? "ASC" : "DESC",
-          techSlug, // helpful for the client
+          techSlug,
           source: "tech-index",
         }),
       };
     }
 
-    // Query DynamoDB using GSI with pagination
     const expressionAttributeNames: Record<string, string> = {
       "#status": "status",
     };
@@ -369,7 +369,7 @@ export const handler = async (
       ExpressionAttributeNames: expressionAttributeNames,
       ExpressionAttributeValues: expressionAttributeValues,
       Limit: limit,
-      ScanIndexForward, // true for ASC, false for DESC (newest first)
+      ScanIndexForward,
       ...(startKey && { ExclusiveStartKey: startKey }),
       ...(filterExpressions.length && {
         FilterExpression: filterExpressions.join(" AND "),
@@ -413,7 +413,9 @@ export const handler = async (
     }
 
     console.log(
-      `Retrieved ${pagedItems.length} filtered items, hasMore: ${!!encodedLastKey}`
+      `Retrieved ${
+        pagedItems.length
+      } filtered items, hasMore: ${!!encodedLastKey}`
     );
 
     return {
@@ -443,51 +445,3 @@ export const handler = async (
     };
   }
 };
-
-/**
- * SETUP NOTES:
- *
- * 1. GSI SETUP:
- *    - Index Name: status-processed_date-index
- *    - Partition Key: status (string)
- *    - Sort Key: processed_date (string)
- *    - All items should have a status field (e.g., "Active", "Archived", etc.)
- *
- * 2. ENVIRONMENT VARIABLES:
- *    Add to your Lambda environment:
- *    - GSI_NAME: "status-processed_date-index"
- *    - DYNAMODB_TABLE_NAME: "JobPostings"
- *
- * 3. PERFORMANCE BENEFITS:
- *    - Query on status partition key for efficient data retrieval
- *    - Results sorted by processed_date automatically
- *    - Better RCU efficiency than Scan
- *    - Supports ascending/descending sort via ScanIndexForward
- *    - Can efficiently filter by status (Active, Archived, etc.)
- *
- * 4. QUERY PARAMETERS:
- *    ?status=Active&limit=50&sortOrder=DESC&lastKey=<encoded_key>
- *    - status: Filter by status value (default: "Active")
- *    - limit: 1-100 items per page (default: 20)
- *    - sortOrder: "ASC" or "DESC" (default: DESC for newest first)
- *    - lastKey: pagination cursor (base64-encoded)
- *
- * 5. EXAMPLE REQUESTS:
- *    - Get first 20 active jobs (newest first):
- *      GET /jobs
- *
- *    - Get 50 active jobs oldest first:
- *      GET /jobs?limit=50&sortOrder=ASC
- *
- *    - Get archived jobs (paginated):
- *      GET /jobs?status=Archived&limit=25
- *
- *    - Get next page of results:
- *      GET /jobs?lastKey=<encoded_key>&limit=20
- *
- * 6. DATA REQUIREMENTS:
- *    All items must have:
- *    - Id (primary key)
- *    - status (for GSI partition key)
- *    - processed_date (for GSI sort key)
- */

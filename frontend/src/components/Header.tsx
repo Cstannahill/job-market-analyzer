@@ -8,7 +8,6 @@ import { Moon, Sun } from 'lucide-react';
 export const Header: React.FC = () => {
     const { theme, toggleTheme } = useTheme();
     return (
-        // modern header constrained to page width: sticky so it stays in flow and won't span full window
         <header className="w-full sticky top-0 z-40" role="banner">
             <a
                 href="#main-content"
@@ -18,7 +17,6 @@ export const Header: React.FC = () => {
             </a>
 
             <div className="container header-container mx-auto px-4 py-3 flex items-center gap-4 backdrop-blur-sm bg-white/40 dark:bg-gray-900/40 shadow-sm rounded-md transition-colors duration-300">
-                {/* left: logo */}
                 <div className="flex items-center gap-4">
                     <img src={"/"} className="h-10 w-10 rounded-md bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 flex items-center justify-center text-white font-bold shadow-md" alt="TrendDev Logo" />
                     <Link to="/" className="inline-flex items-center gap-3 no-underline focus:outline-none">
@@ -31,14 +29,11 @@ export const Header: React.FC = () => {
                     </Link>
                 </div>
 
-                {/* center: nav (takes available space and centers its content) */}
                 <div className="flex-1 flex justify-center">
                     <Nav />
                 </div>
 
-                {/* right: controls */}
                 <div className="flex items-center gap-4">
-                    {/* Theme Toggle Button (rounded, subtle) */}
                     <button
                         onClick={toggleTheme}
                         className="inline-flex items-center justify-center h-9 w-9 rounded-full bg-white/60 dark:bg-gray-800/60 hover:bg-white/80 dark:hover:bg-gray-800/80 border border-white/10 dark:border-black/20 shadow-sm focus:outline-none focus:ring-2 focus:ring-zinc-400 transition-all"

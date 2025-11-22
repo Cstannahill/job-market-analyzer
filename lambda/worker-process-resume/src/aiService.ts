@@ -27,23 +27,18 @@ if (!SELECTED_MODEL) {
   );
 }
 function extractTextFromBedrockResponse(response: any): string {
-  // Try several likely places and join content parts safely
   try {
-    // 1) Common Converse shape: response.output.message.content -> array of { text }
     const contentArray =
       response?.output?.message?.content ?? response?.output?.content ?? null;
 
     if (contentArray) {
-      // If it's a string, return it
       if (typeof contentArray === "string") return contentArray;
 
-      // If array-like, join text parts
       if (Array.isArray(contentArray)) {
         const parts = contentArray.map((p) => {
           if (!p) return "";
           if (typeof p === "string") return p;
           if (typeof p === "object") {
-            // common shape: { text: '...' } or { type: 'output_text', content: [{ text }] }
             if (typeof (p as any).text === "string") return (p as any).text;
             if (Array.isArray((p as any).content)) {
               return (p as any).content
@@ -60,7 +55,6 @@ function extractTextFromBedrockResponse(response: any): string {
         if (joined) return joined;
       }
 
-      // If it's an object with .text
       if (
         typeof contentArray === "object" &&
         typeof (contentArray as any).text === "string"
@@ -69,10 +63,8 @@ function extractTextFromBedrockResponse(response: any): string {
       }
     }
 
-    // 2) Sometimes response.output is an object with other nested fields, try stringifying fallback
     if (response?.output) return JSON.stringify(response.output);
 
-    // 3) Last resort - stringify entire response
     return JSON.stringify(response);
   } catch (err) {
     return "";
@@ -146,7 +138,7 @@ Return compact JSON (no pretty-printing or extra whitespace) object with these k
   "achievements": [ { "headline": string, "metric": string | null, "suggestedBullet": string } ],
   "resumeEdits": {
     "titleAndSummary": { "headline": string, "professionalSummary": string },
-    "improvedBullets": [ { "old": string | null, "new": string } ]  // produce up to 5 rewritten bullets that use metrics
+    "improvedBullets": [ { "old": string | null, "new": string } ]  
   },
   "marketAlignment": {
     "matchedSkills": [ { "skill": string, "demand": number, "onResume": true, "percentile": number } ],
@@ -338,13 +330,11 @@ End of instructions.
       throw new Error("No textual content returned from Bedrock response");
     }
 
-    // Strip fences + normalize whitespace
     const cleaned = rawText
       .replace(/^```(?:json)?\s*/i, "")
       .replace(/\s*```$/i, "")
       .trim();
 
-    // Extract first balanced JSON object/array (robust)
     const jsonCandidate = extractFirstBalancedJson(cleaned);
     if (!jsonCandidate) {
       await updateInsights({
@@ -381,7 +371,6 @@ End of instructions.
       throw new Error("Failed to parse JSON from model output");
     }
 
-    // Optional lightweight shape check (replace with zod for stricter validation)
     if (typeof parsed !== "object" || parsed === null) {
       await updateInsights({
         resumeId,
@@ -393,7 +382,6 @@ End of instructions.
       throw new Error("Parsed JSON is not an object/array");
     }
 
-    // Persist pretty JSON
     await updateInsights({
       resumeId,
       insightId: `INSIGHT#${insightId}`,
@@ -464,7 +452,6 @@ Return ONLY valid JSON with no markdown formatting, nothing else:
       : "{}";
 
   try {
-    // Strip markdown code blocks if present
     let jsonString = content.trim();
     if (jsonString.startsWith("```json")) {
       jsonString = jsonString.replace(/^```json\n?/, "").replace(/\n?```$/, "");
@@ -478,6 +465,6 @@ Return ONLY valid JSON with no markdown formatting, nothing else:
   } catch (e) {
     console.error("Failed to parse LLM response:", e);
     console.error("Raw response was:", content);
-    return extractedSkills; // fallback to raw extraction
+    return extractedSkills;
   }
 }

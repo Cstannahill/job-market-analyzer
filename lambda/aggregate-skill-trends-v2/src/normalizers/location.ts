@@ -1,4 +1,3 @@
-// lambdas/aggregate-skill-trends-v2/normalizers/location.ts
 const US_STATES = new Set([
   "AL",
   "AK",

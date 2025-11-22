@@ -1,4 +1,3 @@
-// api-v2/handler.ts
 import type {
   APIGatewayProxyEvent,
   APIGatewayProxyResult,
@@ -41,7 +40,6 @@ import type {
 type ApiEvent = APIGatewayProxyEvent | APIGatewayProxyEventV2;
 type ApiResult = APIGatewayProxyResult | APIGatewayProxyStructuredResultV2;
 
-// ====== ENV ======
 const TRENDS_TABLE = process.env.TRENDS_TABLE || "skill-trends-v2";
 const TOTALS_TABLE = process.env.TOTALS_TABLE || "job-postings-totals";
 const TIME_INDEX = process.env.TIME_INDEX || "TimeIndex";
@@ -49,7 +47,6 @@ const REGION_INDEX = process.env.REGION_INDEX || "RegionIndex";
 
 const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
-// ====== HTTP ======
 const headers = {
   "Content-Type": "application/json",
   "Access-Control-Allow-Origin": "*",
@@ -153,8 +150,6 @@ export const handler = async (event: ApiEvent): Promise<ApiResult> => {
   }
 };
 
-// ====== Routes ======
-
 async function getTopTechnologies(opts: {
   region: string;
   period: string;
@@ -200,7 +195,6 @@ async function getTopTechnologies(opts: {
 
   if (!keys.length) return [];
 
-  // BatchGet base items
   const batches: any[] = [];
   for (let i = 0; i < keys.length; i += 100) {
     const slice = keys.slice(i, i + 100);
@@ -265,7 +259,6 @@ async function getTopTechnologies(opts: {
     });
   }
 
-  // group by tech and choose representative row
   const byTechMap = new Map<string, any[]>();
   for (const r of regionRows) {
     const k = r.skill_canonical;
@@ -345,10 +338,6 @@ async function getRisingTechnologies(opts: {
   return rising;
 }
 
-/**
- * Technology detail breakdown for a region & period.
- * FIXED: Now returns work_mode with proper seniority mapping
- */
 async function getTechnologyDetail(opts: {
   tech: string;
   region: string;
@@ -393,7 +382,6 @@ async function getTechnologyDetail(opts: {
     ]),
   });
 
-  // Find summary row (All, All)
   let summary =
     rows.find((r) => r.work_mode === "All" && r.seniority === "All") ?? null;
 
@@ -415,17 +403,15 @@ async function getTechnologyDetail(opts: {
     });
   }
 
-  // Group by work_mode x seniority for proper breakdown
   const byWorkModeSeniority = groupBy(
     rows.filter((r) => r.work_mode !== "All" && r.seniority !== "All"),
     (r) => `${r.work_mode}|${r.seniority}`
   );
 
-  // Create work_mode breakdown with seniority levels
   const by_work_mode = Array.from(byWorkModeSeniority.entries())
     .map(([key, list]) => {
       const [work_mode, seniority] = key.split("|");
-      const row = list[0]; // Should only be one row per combination
+      const row = list[0];
 
       return {
         work_mode,
@@ -439,14 +425,12 @@ async function getTechnologyDetail(opts: {
       };
     })
     .sort((a, b) => {
-      // Sort by work_mode first, then by job_count desc
       if (a.work_mode !== b.work_mode) {
         return a.work_mode.localeCompare(b.work_mode);
       }
       return (b.job_count ?? 0) - (a.job_count ?? 0);
     });
 
-  // Aggregate by seniority level across all work modes
   const bySeniority = groupBy(
     rows.filter((r) => r.seniority !== "All"),
     (r) => r.seniority
@@ -456,7 +440,6 @@ async function getTechnologyDetail(opts: {
     .map(([level, list]) => {
       const totalJobs = sum(list, "job_count");
 
-      // Use weighted median for more accurate salary representation
       const salaryData = list
         .filter((r) => typeof r.salary_median === "number" && r.job_count > 0)
         .map((r) => ({ value: r.salary_median, weight: r.job_count }));
@@ -509,20 +492,15 @@ async function getTechnologyDetail(opts: {
   };
 }
 
-/**
- * IMPROVED: Better aggregation using weighted medians for salaries
- */
 function synthesizeSummary(rows: any) {
   const job_count = sum(rows, "job_count");
   const total = job_count || 1;
 
-  // Calculate remote share
   const remoteCount = rows
     .filter((r: any) => r.work_mode === "Remote")
     .reduce((t: number, r: any) => t + (r.job_count ?? 0), 0);
   const remote_share = remoteCount / total;
 
-  // Use weighted median for salaries based on job_count
   const salaryData = rows
     .filter((r: any) => typeof r.salary_median === "number" && r.job_count > 0)
     .map((r: any) => ({ value: r.salary_median, weight: r.job_count }));
@@ -541,7 +519,6 @@ function synthesizeSummary(rows: any) {
 
   const salary_p95 = weightedMedian(p95Data);
 
-  // Calculate weighted average shares
   const regional_share =
     rows
       .filter(
@@ -558,7 +535,6 @@ function synthesizeSummary(rows: any) {
       .reduce((sum: number, r: any) => sum + r.global_share * r.job_count, 0) /
     total;
 
-  // Aggregate co-occurrence and metadata
   const cooccurring_skills = mostCommon(rows, "cooccurring_skills", 15);
   const industry_distribution = mostCommon(rows, "industry_distribution", 15);
   const top_titles = mostCommon(rows, "top_titles", 10);

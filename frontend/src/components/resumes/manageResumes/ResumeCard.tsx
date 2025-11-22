@@ -24,7 +24,7 @@ import { Mail, FileText, CalendarClock, MapPin, FileType, Award, ChevronRight } 
 import type { ResumeRecord } from "@job-market-analyzer/types";
 import Bullet from "@/assets/lists/24.svg";
 
-// --- small helpers ---
+//
 const formatIso = (iso?: string | null) =>
     iso ? new Date(iso).toLocaleString() : "—";
 
@@ -47,7 +47,7 @@ const levelToPct = (level?: string) => {
 type Props = {
     resume: ResumeRecord;
     className?: string;
-    // optional actions
+
     onOpenOriginal?: (s3Key: string) => void;
     onSetPrimary?: (resume: ResumeRecord) => void;
 };
@@ -76,7 +76,7 @@ export function ResumeCard({
 
     const techs = skills?.technologies ?? [];
     const softs = skills?.softSkills ?? [];
-    const techBadges = techs.slice(0, 24); // keep it tidy on card
+    const techBadges = techs.slice(0, 24);
     const remainingTechCount = Math.max(techs.length - techBadges.length, 0);
 
     return (
@@ -775,7 +775,7 @@ export function ResumeCard({
     );
 }
 
-// Minimal phone icon (to avoid another import)
+
 function PhoneMini() {
     return (
         <svg

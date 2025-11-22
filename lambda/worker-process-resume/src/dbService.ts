@@ -46,7 +46,6 @@ export async function updateInsights(insightsItem: InsightsItem) {
 }
 
 export const updateResume = async (resumeItem: any) => {
-  // Always include status, since we know it must be "processed" here
   const fields: Record<string, any> = {
     contactInfo: resumeItem.contactInfo,
     skills: resumeItem.skills,
@@ -57,12 +56,10 @@ export const updateResume = async (resumeItem: any) => {
     updatedAt: resumeItem.updatedAt,
   };
 
-  // Filter out undefined values
   const definedFields = Object.fromEntries(
     Object.entries(fields).filter(([_, v]) => v !== undefined)
   );
 
-  // Build dynamic UpdateExpression
   const expressionParts: string[] = [];
   const attributeNames: Record<string, string> = {};
   const attributeValues: Record<string, any> = {};
@@ -153,7 +150,7 @@ export const getResumeById = async (resumeId: string) => {
 export const getResumeByS3Key = async (s3Key: string) => {
   const params = {
     TableName: RESUME_TABLE,
-    IndexName: "s3KeyIndex", // <-- must match your GSI name
+    IndexName: "s3KeyIndex",
     KeyConditionExpression: "s3Key = :s3Key",
     ExpressionAttributeValues: {
       ":s3Key": s3Key,
@@ -175,7 +172,7 @@ export const getTopTechnologies = async () => {
     const resp = await docClient.send(
       new ScanCommand({
         TableName: "job-postings-technologies",
-        // We only need Id and postingCount for this endpoint
+
         ProjectionExpression: "#Id, postingCount",
         ExpressionAttributeNames: { "#Id": "Id" },
         ExclusiveStartKey,
@@ -186,7 +183,7 @@ export const getTopTechnologies = async () => {
 
     for (const item of items) {
       const id = (item.Id ?? "").trim();
-      // coerce to number; ignore falsy/NaN/<=0
+
       const count = Number(item.postingCount ?? 0);
       if (id && Number.isFinite(count) && count > 0) {
         technologies.push({ technology: id, demand: count });
@@ -196,13 +193,11 @@ export const getTopTechnologies = async () => {
     ExclusiveStartKey = resp.LastEvaluatedKey;
   } while (ExclusiveStartKey);
 
-  // Sort desc by count and take top N
   technologies.sort((a, b) => b.demand - a.demand);
   const topSkills = technologies.slice(0, limit);
 
-  // Return a compact JSON object (LLM-friendly)
   const body = {
-    topSkills, // [{ skill: "javascript", count: 1655 }, ...]
+    topSkills,
   };
   return body;
 };

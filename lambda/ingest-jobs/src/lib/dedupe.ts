@@ -1,4 +1,3 @@
-// lib/dedupe.ts
 import crypto from "crypto";
 
 const COMPANY_SUFFIXES =
@@ -8,7 +7,7 @@ const PUNCT = /[.,/#!$%^&*;:{}=\-_`~()]/g;
 const COMPANY_ALIASES: Record<string, string> = {
   "meta platforms": "meta",
   "google llc": "google",
-  alphabet: "google", // optional
+  alphabet: "google",
 };
 
 const COUNTRY_ALIASES: Record<string, string> = {
@@ -85,7 +84,7 @@ const STATE_NAMES: Record<string, string> = {
   illinois: "il",
   texas: "tx",
   washington: "wa",
-  florida: "fl", // add as needed
+  florida: "fl",
 };
 
 export function normCompany(input: string): string {
@@ -100,8 +99,8 @@ export function normCompany(input: string): string {
 export function normTitle(input: string): string {
   if (!input) return "";
   let s = input.toLowerCase().trim();
-  s = s.replace(/[\[\(].*?[\]\)]/g, " "); // drop [Remote], (Contract)
-  s = s.replace(/-\s*[a-z0-9\s]+$/i, " "); // drop trailing team info: "- Reality Labs"
+  s = s.replace(/[\[\(].*?[\]\)]/g, " ");
+  s = s.replace(/-\s*[a-z0-9\s]+$/i, " ");
   s = s.replace(PUNCT, " ").replace(/\s+/g, " ").trim();
   return s;
 }
@@ -135,9 +134,9 @@ function normCountryToken(s?: string) {
 function normRegionToken(s?: string) {
   const t = cleanToken(s);
   if (!t) return "";
-  if (STATE_ABBR[t]) return t; // already an abbr
-  if (STATE_NAMES[t]) return STATE_NAMES[t]; // full name -> abbr
-  // Sometimes strings like "California, United States" come in; try first word
+  if (STATE_ABBR[t]) return t;
+  if (STATE_NAMES[t]) return STATE_NAMES[t];
+
   const first = t.split(" ")[0];
   if (STATE_ABBR[first]) return first;
   return t;
@@ -149,7 +148,6 @@ export function normLocation(
   region?: string,
   country?: string
 ): { token: string; city?: string; region?: string; country?: string } {
-  // Prefer structured inputs if present
   if (city || region || country) {
     const c = cleanToken(city);
     const r = normRegionToken(region);
@@ -163,11 +161,9 @@ export function normLocation(
     };
   }
 
-  // Parse common raw patterns like "San Francisco, CA, US" or "Remote - United States"
-  const r = (raw || "").replace(/\u00A0/g, " "); // nbsp
+  const r = (raw || "").replace(/\u00A0/g, " ");
   const lowered = r.toLowerCase().trim();
 
-  // Split on commas first, fall back to hyphen
   let parts = lowered
     .split(",")
     .map((p) => p.trim())
@@ -188,13 +184,10 @@ export function normLocation(
     s = normRegionToken(parts[1]);
     co = normCountryToken(parts[2]);
   } else if (parts.length === 2) {
-    // e.g., "San Francisco, CA" (assume US if unspecified)
     c = cleanToken(parts[0]);
     s = normRegionToken(parts[1]);
     co = "us";
   } else {
-    // One token: could be "Remote - United States" already split above, or just a country
-    // Try to detect US/UK/CA etc.
     const countryGuess = normCountryToken(lowered);
     if (countryGuess && COUNTRY_ALIASES[countryGuess]) {
       co = COUNTRY_ALIASES[countryGuess];
@@ -229,7 +222,6 @@ export function makeHash(opts: {
   return sha1(key);
 }
 
-// Convenience: build from raw provider fields
 export function hashFromProviderFields(input: {
   company?: string;
   title?: string;
@@ -266,7 +258,6 @@ export function hashFromProviderFields(input: {
   };
 }
 
-// Optional: description fingerprint
 export function descSig(description?: string): string {
   if (!description) return "";
   const s = description.toLowerCase().replace(/\s+/g, " ").slice(0, 1500);

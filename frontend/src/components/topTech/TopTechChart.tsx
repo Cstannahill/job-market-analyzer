@@ -19,8 +19,8 @@ const TopTechChart: React.FC = () => {
     } = useQuery({
         queryKey: ['job-postings-stats'],
         queryFn: () => getJobPostingsStats(),
-        staleTime: 1000 * 60 * 5, // 5 minutes
-        gcTime: 1000 * 60 * 30, // 30 minutes
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 30,
         retry: 1,
     });
     // console.log('Job Postings Stats:', stats);

@@ -16,7 +16,7 @@ import { incrementKeyUsage } from "./keyHelper.js";
 const OPENROUTER_TIMEOUT_MS = Number(
   process.env.OPENROUTER_TIMEOUT_MS || 10000
 );
-const LOG_LEVEL = (process.env.LOG_LEVEL || "info").toLowerCase(); // "debug" | "info" | "warn" | "error"
+const LOG_LEVEL = (process.env.LOG_LEVEL || "info").toLowerCase();
 const DEBUG_PAYLOADS = process.env.DEBUG_PAYLOADS || 0;
 const OPENROUTER_MODEL =
   process.env.OPENROUTER_MODEL || "qwen/qwen3-coder:free";
@@ -78,14 +78,13 @@ Return a JSON array with ${jobRecords.length} objects in the same order, followi
 
 //#region Single-shot OpenRouter caller (no retries, no splitting)
 async function callOpenRouterOnce(payload: any) {
-  const apiKey = await getNextApiKeyAsync(); // rotate keys sequentially (no parallel)
+  const apiKey = await getNextApiKeyAsync();
   const masked = maskKey(apiKey);
   const slot = ((keyIndexOf(apiKey) ?? 0) + 1) as 1 | 2 | 3 | 4 | 5;
   let countForThisKey = 0;
   try {
     countForThisKey = await incrementKeyUsage(slot);
   } catch (e) {
-    // don't block requests if metrics table hiccups
     logWarn("key-usage increment failed (continuing):", e);
   }
   const start = now();
@@ -99,7 +98,7 @@ async function callOpenRouterOnce(payload: any) {
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
-          // suggested headers by OpenRouter to improve trust/limits:
+
           "HTTP-Referer": process.env.SITE_URL ?? "https://your.app",
           "X-Title": process.env.SITE_TITLE ?? "Job Market Analyzer",
         },
@@ -116,7 +115,7 @@ async function callOpenRouterOnce(payload: any) {
 
     if (status === 429) {
       logWarn(`OpenRouter 429 (no retry) | key=${masked}`);
-      err.__rate_limited__ = true; // bubble for logging; we still fail the batch
+      err.__rate_limited__ = true;
     } else {
       logWarn(`OpenRouter error (no retry) | status=${status} | key=${masked}`);
     }
@@ -215,7 +214,6 @@ RESPONSE FORMAT:
 Return a JSON array with one object per job, maintaining the same order as input.`;
   const userPrompt = buildUserPrompt(jobRecords);
 
-  // token logging (no gating here)
   estimateTokensWithPromptBuilder(jobRecords, buildUserPrompt, {
     label: `run:${run} model:${OPENROUTER_MODEL}`,
     systemPrompt,
@@ -316,18 +314,15 @@ const YEARS_PATTERNS: YearsPattern[] = [
     format: (match) => `at least ${match[1]} years`,
   },
   {
-    regex:
-      /\b(\d{1,2})\s*(?:\+|plus)\s+years?(?:\s+of)?\s+experience\b/i,
+    regex: /\b(\d{1,2})\s*(?:\+|plus)\s+years?(?:\s+of)?\s+experience\b/i,
     format: (match) => `${match[1]}+ years`,
   },
   {
-    regex:
-      /\b(\d{1,2})\s+years?(?:\s+of)?\s+experience\b/i,
+    regex: /\b(\d{1,2})\s+years?(?:\s+of)?\s+experience\b/i,
     format: (match) => `${match[1]} years`,
   },
   {
-    regex:
-      /\b(\d{1,2})\s*(?:\+|plus)?\s*yrs?(?:\s+of)?\s+experience\b/i,
+    regex: /\b(\d{1,2})\s*(?:\+|plus)?\s*yrs?(?:\s+of)?\s+experience\b/i,
     format: (match) => `${match[1]} years`,
   },
 ];
@@ -364,7 +359,7 @@ function applyRateLimitHeaders(h: Record<string, any>, apiKey: string) {
   if (resetRaw) {
     const n = Number(resetRaw);
     if (!Number.isNaN(n)) {
-      resetMs = n > 1e12 ? n : n * 1000; // treat small numbers as seconds
+      resetMs = n > 1e12 ? n : n * 1000;
     } else {
       const d = Date.parse(String(resetRaw));
       if (!Number.isNaN(d)) resetMs = d;
@@ -422,10 +417,8 @@ export async function processBatches(
     );
 
     try {
-      // single-shot call for the whole batch
       const enriched = await enrichWithOpenRouter(batch, run);
 
-      // save immediately per item (batch-scoped, not end-of-run)
       let s = 0,
         f = 0;
       for (const data of enriched) {
@@ -440,7 +433,6 @@ export async function processBatches(
       success += s;
       failed += f;
     } catch (err: any) {
-      // Any error (incl. 429) → fail entire batch, no retries/splitting.
       logError(
         `batch#${batchNo} failed (no retry) ids=[${ids.join(",")}]`,
         err?.response?.data ?? err
@@ -450,7 +442,6 @@ export async function processBatches(
 
     i += BATCH_SIZE;
 
-    // sequential pacing (one batch at a time)
     if (i < jobRecords.length) {
       logInfo(`batch#${batchNo} pause ${BATCH_PAUSE_MS}ms before next batch`);
       await sleep(BATCH_PAUSE_MS);

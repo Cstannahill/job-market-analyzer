@@ -1,4 +1,3 @@
-// src/services/trendsV2Service.ts
 import type {
   GetTopTechnologiesResponse,
   GetRisingTechnologiesResponse,

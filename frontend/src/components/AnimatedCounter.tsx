@@ -24,7 +24,6 @@ export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
             const elapsed = currentTime - startTime;
             const progress = Math.min(elapsed / duration, 1);
 
-            // Easing function (ease-out)
             const easeOut = 1 - Math.pow(1 - progress, 3);
             const currentValue = startValue + (endValue - startValue) * easeOut;
 
@@ -34,7 +33,7 @@ export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
             if (progress < 1) {
                 frameRef.current = requestAnimationFrame(animate);
             } else {
-                setCount(endValue); // Ensure we end exactly at the target
+                setCount(endValue);
             }
         };
 

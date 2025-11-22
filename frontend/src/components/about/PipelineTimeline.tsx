@@ -25,8 +25,8 @@ export const PipelineTimeline: React.FC<{
                             role="button"
                             aria-expanded={isOpen}
                         >
-                            <div className="flex-shrink-0">
-                                <div className="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm bg-gradient-to-br from-chart-1 to-chart-3 text-primary-foreground shadow">
+                            <div className="shrink-0">
+                                <div className="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm bg-linear-to-br from-chart-1 to-chart-3 text-primary-foreground shadow">
                                     {i + 1}
                                 </div>
                             </div>

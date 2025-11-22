@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
 
-/**
- * Hook that returns true when the viewport matches Tailwind's `lg` breakpoint for mobile (max-width: 1023px).
- */
 export default function useIsMobile(): boolean {
   const [isMobile, setIsMobile] = useState<boolean>(
     typeof window !== "undefined"

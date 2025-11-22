@@ -39,7 +39,6 @@ export const JobPostingCard: React.FC<JobPostingCardProps> = ({ posting }) => {
                 <MetaPillContainer posting={posting} date={formatDate(posting.processed_date)} />
                 <CardHeader style={{ padding: "0.25rem", margin: "0rem .25rem" }} className="job-card-header">
                     <div className="flex flex-row justify-around">
-                        {/* <Badge className="company-badge col-6" aria-hidden> */}
                         <CompanyBadgeSvgr name={companyName.toLowerCase()} roundStyle="md" size={50} />
                         {/* </Badge> */}
                         <div style={{ display: 'flex', flexDirection: 'column' }}>

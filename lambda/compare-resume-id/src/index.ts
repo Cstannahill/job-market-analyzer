@@ -1,4 +1,3 @@
-// index.ts (enqueue API)
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
@@ -18,12 +17,10 @@ export const handler = async (
   const origin = event.headers.origin || event.headers.Origin;
   const cors = buildCorsHeaders(origin);
 
-  // CORS preflight
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers: cors, body: "" };
   }
 
-  // Only allow POST here
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, headers: cors, body: "" };
   }

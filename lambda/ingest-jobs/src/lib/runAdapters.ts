@@ -1,4 +1,3 @@
-// src/lib/runAdapters.ts
 import { adapters } from "../adapters/index.js";
 import type { CanonicalJobPosting } from "@job-market-analyzer/types/canonical-job";
 
@@ -23,7 +22,6 @@ export interface AdapterRunResult {
   };
 }
 
-// Filter out invalid company slugs (404s) before fetch
 async function filterValidBoards(
   slugs: string[],
   adapter: "greenhouse" | "lever",
@@ -97,7 +95,6 @@ export async function runAdapters({
       if (name === "greenhouse" || name === "lever") {
         let slugs = companySlugs.length ? companySlugs : [];
         if (slugs.length > 0) {
-          // Dynamically verify boards to avoid 404 noise
           slugs = await filterValidBoards(slugs, name, log);
         }
 

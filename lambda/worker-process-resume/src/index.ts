@@ -1,4 +1,3 @@
-// worker.ts
 import { SQSEvent } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, UpdateCommand } from "@aws-sdk/lib-dynamodb";
@@ -6,7 +5,6 @@ import { processFile } from "./fileProcessor.js";
 
 const JOBS_TABLE = process.env.JOBS_TABLE!;
 
-// Use DocumentClient and let it marshal for you
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
   marshallOptions: {
     removeUndefinedValues: true,
@@ -14,7 +12,6 @@ const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
   },
 });
 
-// simple deep scrub to avoid undefined in nested structures
 function stripUndefined<T>(obj: T): T {
   if (Array.isArray(obj)) {
     return obj
@@ -42,18 +39,16 @@ export const handler = async (event: SQSEvent) => {
 
     const pk = `JOB#${jobId}`;
 
-    // mark processing
     await ddb.send(
       new UpdateCommand({
         TableName: JOBS_TABLE,
-        Key: { PK: pk, SK: pk }, // ✅ plain JS
+        Key: { PK: pk, SK: pk },
         UpdateExpression: "SET #status = :s, #updatedAt = :t",
         ExpressionAttributeNames: {
           "#status": "status",
           "#updatedAt": "updatedAt",
         },
         ExpressionAttributeValues: {
-          // ✅ plain JS
           ":s": "processing",
           ":t": new Date().toISOString(),
         },
@@ -67,7 +62,7 @@ export const handler = async (event: SQSEvent) => {
       await ddb.send(
         new UpdateCommand({
           TableName: JOBS_TABLE,
-          Key: { PK: pk, SK: pk }, // ✅ plain JS (no marshall)
+          Key: { PK: pk, SK: pk },
           UpdateExpression: "SET #status = :s, #updatedAt = :t, #result = :r",
           ExpressionAttributeNames: {
             "#status": "status",
@@ -75,7 +70,6 @@ export const handler = async (event: SQSEvent) => {
             "#result": "result",
           },
           ExpressionAttributeValues: {
-            // ✅ plain JS (no marshall)
             ":s": "succeeded",
             ":t": new Date().toISOString(),
             ":r": clean,
@@ -89,15 +83,14 @@ export const handler = async (event: SQSEvent) => {
       await ddb.send(
         new UpdateCommand({
           TableName: JOBS_TABLE,
-          Key: { PK: pk, SK: pk }, // ✅ plain JS
+          Key: { PK: pk, SK: pk },
           UpdateExpression: "SET #status = :s, #updatedAt = :t, #err = :e",
           ExpressionAttributeNames: {
             "#status": "status",
             "#updatedAt": "updatedAt",
-            "#err": "error", // alias reserved word
+            "#err": "error",
           },
           ExpressionAttributeValues: {
-            // ✅ plain JS
             ":s": "failed",
             ":t": new Date().toISOString(),
             ":e": message,
@@ -105,7 +98,7 @@ export const handler = async (event: SQSEvent) => {
         })
       );
 
-      throw e; // keep SQS retry/DLQ behavior
+      throw e;
     }
   }
 };

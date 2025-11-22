@@ -92,7 +92,6 @@ export const Nav: React.FC = () => {
                 </ul>
             </div >
 
-            {/* Mobile nav (sheet/drawer) from shared MobileNav component */}
             <div className="lg:hidden ml-auto">
                 <MobileNav links={NavLinks} resumeLinks={ResumeLinks} />
             </div>

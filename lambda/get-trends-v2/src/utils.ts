@@ -7,7 +7,6 @@ const headers = {
   "Access-Control-Allow-Methods": "GET, OPTIONS",
 };
 
-// ====== utils ======
 export function ok(body: any): APIGatewayProxyResult {
   return { statusCode: 200, headers, body: JSON.stringify(body) };
 }
@@ -58,23 +57,16 @@ export function medianOf(nums: number[]) {
   return a[Math.floor(a.length / 2)];
 }
 
-/**
- * Calculate weighted median - more accurate for salary aggregations
- * where different segments have different job counts
- */
 export function weightedMedian(
   data: Array<{ value: number; weight: number }>
 ): number | undefined {
   if (!data.length) return undefined;
 
-  // Sort by value
   const sorted = data.slice().sort((a, b) => a.value - b.value);
 
-  // Calculate total weight
   const totalWeight = sorted.reduce((sum, d) => sum + d.weight, 0);
   if (totalWeight === 0) return undefined;
 
-  // Find the median by cumulative weight
   const halfWeight = totalWeight / 2;
   let cumulativeWeight = 0;
 
@@ -85,7 +77,6 @@ export function weightedMedian(
     }
   }
 
-  // Fallback to last value (shouldn't reach here)
   return sorted[sorted.length - 1].value;
 }
 
@@ -115,7 +106,6 @@ export function uniqBy<T>(arr: T[], key: (t: T) => string) {
 }
 
 export function pickPreferredRow(rows: any[]) {
-  // prefer All work_mode AND All seniority; if multiple, pick largest job_count
   const allAll = rows.filter(
     (r) => r.work_mode === "All" && r.seniority === "All"
   );
@@ -123,13 +113,11 @@ export function pickPreferredRow(rows: any[]) {
     return allAll.sort((a, b) => (b.job_count ?? 0) - (a.job_count ?? 0))[0];
   }
 
-  // Next prefer All work_mode (any seniority)
   const allMode = rows.filter((r) => r.work_mode === "All");
   if (allMode.length) {
     return allMode.sort((a, b) => (b.job_count ?? 0) - (a.job_count ?? 0))[0];
   }
 
-  // else pick the largest job_count row
   return rows.sort((a, b) => (b.job_count ?? 0) - (a.job_count ?? 0))[0];
 }
 

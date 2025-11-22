@@ -1,4 +1,3 @@
-// src/features/trends-v2/TopList.tsx
 import TechCard from './TechCard';
 import type { TopTechnologiesItem } from '@job-market-analyzer/types/trendsv2';
 

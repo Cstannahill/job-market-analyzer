@@ -16,29 +16,26 @@ export function coerceInsights(raw: unknown): unknown | undefined {
     return val;
   };
 
-  // Already an object/array?
   if (typeof raw === "object") return raw;
 
   if (typeof raw === "string") {
     const trimmed = raw.trim();
 
-    // Fast path: looks like JSON
     if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
       try {
         return renameThreeLine(JSON.parse(trimmed));
-      } catch {
-        /* fall through */
+      } catch (err) {
+        console.error(err);
       }
     }
 
-    // Repair common smart quotes and try again
     const fixed = trimmed
-      .replace(/[\u201C\u201D]/g, '"') // “ ”
-      .replace(/[\u2018\u2019]/g, "'"); // ‘ ’
+      .replace(/[\u201C\u201D]/g, '"')
+      .replace(/[\u2018\u2019]/g, "'");
     try {
       return renameThreeLine(JSON.parse(fixed));
-    } catch {
-      /* give up */
+    } catch (err) {
+      console.error(err);
     }
   }
 

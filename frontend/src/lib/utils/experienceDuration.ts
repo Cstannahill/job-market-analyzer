@@ -15,16 +15,15 @@ const MONTHS = {
   dec: 11,
 } as const;
 
-const SEP = /\s*[-–—]\s*/; // hyphen, en dash, em dash
+const SEP = /\s*[-–—]\s*/;
 
 function parseMonthYear(s: string): Date | null {
   const t = s.trim().toLowerCase();
 
   if (t === "present" || t === "current" || t === "now") {
-    return new Date(); // today
+    return new Date();
   }
 
-  // "Apr 2024" / "April 2024"
   let m = t.match(/^([a-z]+)\s+(\d{4})$/i);
   if (m) {
     const mmKey = m[1].slice(0, 3) as keyof typeof MONTHS;
@@ -32,11 +31,9 @@ function parseMonthYear(s: string): Date | null {
     if (month != null) return new Date(Number(m[2]), month, 1);
   }
 
-  // "2024" only (assume January)
   m = t.match(/^(\d{4})$/);
   if (m) return new Date(Number(m[1]), 0, 1);
 
-  // Last resort: native Date (handles e.g. "April 2024")
   const dt = new Date(s);
   return isNaN(dt.getTime())
     ? null
@@ -44,10 +41,9 @@ function parseMonthYear(s: string): Date | null {
 }
 
 function monthDiff(a: Date, b: Date): number {
-  // difference in whole months, clamped at 0
   const am = a.getFullYear() * 12 + a.getMonth();
   const bm = b.getFullYear() * 12 + b.getMonth();
-  return Math.max(0, bm - am + 1); // +1 to count inclusive months (Apr–Apr = 1)
+  return Math.max(0, bm - am + 1);
 }
 
 export type ExperienceItem = {
@@ -55,14 +51,14 @@ export type ExperienceItem = {
   title?: string;
   company?: string;
   location?: string;
-  description?: string[]; // etc
+  description?: string[];
 };
 
 export type ExperienceWithDuration = ExperienceItem & {
   startISO: string | null;
   endISO: string | null;
   durationMonths: number | null;
-  durationLabel: string | null; // e.g., "18 months"
+  durationLabel: string | null;
 };
 
 export function enrichExperienceDurations<T extends ExperienceItem>(
@@ -74,10 +70,9 @@ export function enrichExperienceDurations<T extends ExperienceItem>(
   return items.map((it) => {
     const raw = (it.duration ?? "").trim();
 
-    // Split into "start – end" with tolerant separator
     const [startRaw, endRaw] = raw.split(SEP);
     const start = parseMonthYear(startRaw || "");
-    const end = parseMonthYear(endRaw || "present"); // default end to present if missing
+    const end = parseMonthYear(endRaw || "present");
 
     if (!start || !end) {
       return {
@@ -94,7 +89,6 @@ export function enrichExperienceDurations<T extends ExperienceItem>(
       };
     }
 
-    // If end < start (bad data), clamp to start
     const endClamped = end < start ? start : end;
 
     const months = monthDiff(start, endClamped);
@@ -108,8 +102,6 @@ export function enrichExperienceDurations<T extends ExperienceItem>(
   });
 }
 
-// Optional: compute total months (naive sum)
-// If you want to avoid double-counting overlapping roles, see the overlap-aware version below.
 export function totalMonthsNaive(items: ExperienceWithDuration[]): number {
   return items.reduce((acc, x) => acc + (x.durationMonths ?? 0), 0);
 }
@@ -139,7 +131,6 @@ export function totalMonthsMerged(items: ExperienceWithDuration[]): number {
     }
     const [ls, le] = merged[merged.length - 1];
     if (s <= new Date(le.getFullYear(), le.getMonth(), 28)) {
-      // overlap/contiguous → extend
       merged[merged.length - 1] = [ls, e > le ? e : le];
     } else {
       merged.push([s, e]);

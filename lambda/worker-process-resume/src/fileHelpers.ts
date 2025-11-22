@@ -28,11 +28,9 @@ export const streamToBuffer = async (stream: Readable): Promise<Buffer> =>
     stream.on("error", reject);
   });
 
-// Normalizes whatever getS3Object returns into a Buffer.
 export async function normalizeS3PayloadToBuffer(
   s3Object: unknown
 ): Promise<Buffer> {
-  // Case 1: helper returned a tmp file path
   if (
     s3Object &&
     typeof s3Object === "object" &&
@@ -42,11 +40,9 @@ export async function normalizeS3PayloadToBuffer(
     return fs.readFileSync((s3Object as any).filePath as string);
   }
 
-  // Case 2: Buffer or Uint8Array
   if (Buffer.isBuffer(s3Object)) return s3Object as Buffer;
   if (s3Object instanceof Uint8Array) return Buffer.from(s3Object);
 
-  // Case 3: { Body: Readable | Uint8Array | Buffer } like raw GetObjectCommand
   if (s3Object && typeof s3Object === "object" && "Body" in (s3Object as any)) {
     const body = (s3Object as any).Body;
     if (Buffer.isBuffer(body)) return body;

@@ -1,8 +1,8 @@
 import { AWS_LOGO, CPP_LOGO, GCP_LOGO, GO_LOGO, JAVASCRIPT_LOGO, KUBERNETES_LOGO, POSTGRES_LOGO, PYTHON_LOGO, REACT_LOGO, TD_LOGO, TYPESCRIPT_LOGO, type LogoSpec } from "@/components/shared/logos";
 import { motion, type Variants } from "motion/react"
-const OUTLINE_DURATION = 2.0;       // how long the stroke draw takes
-const OUTLINE_DELAY_STEP = 0.5;     // spacing between shapes
-const FILL_OVERLAP = 0.15;          // small overlap so it feels snappy
+const OUTLINE_DURATION = 2.0;
+const OUTLINE_DELAY_STEP = 0.5;
+const FILL_OVERLAP = 0.15;
 const draw: Variants = {
     hidden: { pathLength: 0, opacity: 0 },
     visible: (seqIndex: number = 0) => {
@@ -45,15 +45,13 @@ export function MotionLogo({
                 style={{ borderRadius: "1rem" }}
             >
                 {logo.paths.map((p, pathIndex) => {
-                    // sequential index across logos & paths
-                    const seqIndex = logoIndex * 3 + pathIndex; // 10 = arbitrary separation
+                    const seqIndex = logoIndex * 3 + pathIndex;
 
                     const outlineDelay = seqIndex * OUTLINE_DELAY_STEP;
                     const fillDelay = outlineDelay + OUTLINE_DURATION - FILL_OVERLAP;
 
                     return (
                         <g key={pathIndex}>
-                            {/* Fill: delayed until outline mostly done */}
                             <motion.path
                                 d={p.d}
                                 transform={p.transform}
@@ -63,7 +61,6 @@ export function MotionLogo({
                                 style={{ fill: p.fill, stroke: "transparent" }}
                             />
 
-                            {/* Outline: draws with pathLength */}
                             <motion.path
                                 d={p.d}
                                 transform={p.transform}

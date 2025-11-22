@@ -5,13 +5,11 @@ export function synthesizeSummary(rows: any) {
   const job_count = sum(rows, "job_count");
   const total = job_count || 1;
 
-  // Calculate remote share
   const remoteCount = rows
     .filter((r: any) => r.work_mode === "Remote")
     .reduce((t: number, r: any) => t + (r.job_count ?? 0), 0);
   const remote_share = remoteCount / total;
 
-  // Use weighted median for salaries based on job_count
   const salaryData = rows
     .filter((r: any) => typeof r.salary_median === "number" && r.job_count > 0)
     .map((r: any) => ({ value: r.salary_median, weight: r.job_count }));
@@ -30,7 +28,6 @@ export function synthesizeSummary(rows: any) {
 
   const salary_p95 = weightedMedian(p95Data);
 
-  // Calculate weighted average shares
   const regional_share =
     rows
       .filter(
@@ -47,7 +44,6 @@ export function synthesizeSummary(rows: any) {
       .reduce((sum: number, r: any) => sum + r.global_share * r.job_count, 0) /
     total;
 
-  // Aggregate co-occurrence and metadata
   const cooccurring_skills = mostCommon(rows, "cooccurring_skills", 15);
   const industry_distribution = mostCommon(rows, "industry_distribution", 15);
   const top_titles = mostCommon(rows, "top_titles", 10);
@@ -73,7 +69,6 @@ export function synthesizeSummary(rows: any) {
 
 export function summarizeSkillData(skills: EnrichedSkillData[]) {
   return {
-    // Core salary context
     salaryRanges: skills.map((s) => ({
       skill: s.technology,
       junior:
@@ -91,7 +86,6 @@ export function summarizeSkillData(skills: EnrichedSkillData[]) {
       marketDemand: s.job_count,
     })),
 
-    // Skill stacks (co-occurring skills)
     skillStacks: skills.map((s) => ({
       skill: s.technology,
       commonlyPairedWith: Object.entries(s.cooccurring_skills)
@@ -104,7 +98,6 @@ export function summarizeSkillData(skills: EnrichedSkillData[]) {
         })),
     })),
 
-    // Role insights
     commonRoles: skills.map((s) => ({
       skill: s.technology,
       topRoles: Object.entries(s.top_titles)
