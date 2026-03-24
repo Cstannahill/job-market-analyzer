@@ -1,29 +1,30 @@
 // build-lambdas.js
 
-const { execSync } = require("child_process");
+import { execSync } from "child_process";
 
 const lambdaDirectories = [
-  "aggregate-skill-trends",
-  "auth-get-current-user",
-  "auth-login",
-  "auth-logout",
-  "auth-register",
-  "auth-verify-email",
-  "bedrock-ai-extractor",
-  "bedrock-ai-enhancement-from-table",
+  "aggregate-skill-trends-v2",
+  "auth/auth-forgot-password",
+  "auth/auth-get-current-user",
+  "auth/auth-login",
+  "auth/auth-logout",
+  "auth/auth-register",
+  "auth/auth-reset-password",
+  "auth/auth-verify-email",
   "calculate-job-stats",
-  "clean-jobs-bucket",
   "cognito-post-confirmation",
   "compare-resume-id",
-  "get-job-postings",
   "get-job-postings-paginated",
+  "get-job-postings-paginated-neon",
   "get-job-postings-stats",
+  "get-job-processing-status",
+  "get-trends-v2",
   "get-user-resumes",
-  "get-skill-trends",
   "ingest-jobs",
-  "job-posting-aggregator",
+  "normalize-tables",
+  "openrouter-ai-enhancement-from-table",
   "resume-presigned-url",
-  "skill-extractor-ai",
+  "worker-process-resume",
 ];
 
 function buildLambdas() {
