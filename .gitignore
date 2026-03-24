@@ -10,7 +10,8 @@
 # Common lockfiles
 pnpm-lock.yaml
 yarn.lock
-
+package-lock.json
+**/package-lock.json
 # Ignore local lambdas packaged output
 lambda.zip
 .vscode/
@@ -20,3 +21,9 @@ lambda.zip
 portfolio/
 
 frontend/screenshots/
+.bashrc
+.gitlab-ci.yml
+PROJECT_EVALUATION.md
+**/*.zip
+**/*.tgz
+.vscode/
