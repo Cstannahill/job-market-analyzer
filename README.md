@@ -82,12 +82,10 @@ Refer to each lambda's `package.json` for the exact `build` and `package` comman
 ## CI / CD recommendations
 
 - Centralize packaging step in CI (GitHub Actions example):
-
   - Checkout repository
   - Setup Node
   - For each lambda: npm ci --prefix <lambda>, npm run build --prefix <lambda>, node ./zip.js <lambda>
   - Upload the resulting `lambda.zip` as a release artifact or push to S3
-
   * Use a CD job to deploy via AWS CLI or SDK (e.g., `aws lambda update-function-code --function-name <name> --zip-file fileb://lambda.zip`)
 
 - Use `npm ci` (not `npm install`) in CI for deterministic installs.
@@ -645,8 +643,6 @@ job-market-analyzer
 │   └── vitest.config.ts
 ├── lambda
 │   ├── aggregate-skill-trends-v2
-│   │   ├── aggregate-skill-trends-v2.zip
-│   │   ├── lambda.zip
 │   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── src
@@ -666,7 +662,6 @@ job-market-analyzer
 │   │   └── tsup.config.ts
 │   ├── auth
 │   │   ├── auth-forgot-password
-│   │   │   ├── auth-forgot-password.zip
 │   │   │   ├── package-lock.json
 │   │   │   ├── package.json
 │   │   │   ├── src
@@ -674,8 +669,6 @@ job-market-analyzer
 │   │   │   ├── tsconfig.json
 │   │   │   └── tsup.config.ts
 │   │   ├── auth-get-current-user
-│   │   │   ├── auth-get-current-user.zip
-│   │   │   ├── lambda.zip
 │   │   │   ├── package-lock.json
 │   │   │   ├── package.json
 │   │   │   ├── src
@@ -683,8 +676,6 @@ job-market-analyzer
 │   │   │   ├── tsconfig.json
 │   │   │   └── tsup.config.ts
 │   │   ├── auth-login
-│   │   │   ├── auth-login.zip
-│   │   │   ├── lambda.zip
 │   │   │   ├── package-lock.json
 │   │   │   ├── package.json
 │   │   │   ├── src
@@ -692,8 +683,6 @@ job-market-analyzer
 │   │   │   ├── tsconfig.json
 │   │   │   └── tsup.config.ts
 │   │   ├── auth-logout
-│   │   │   ├── auth-logout.zip
-│   │   │   ├── lambda.zip
 │   │   │   ├── package-lock.json
 │   │   │   ├── package.json
 │   │   │   ├── src
@@ -701,8 +690,6 @@ job-market-analyzer
 │   │   │   ├── tsconfig.json
 │   │   │   └── tsup.config.ts
 │   │   ├── auth-register
-│   │   │   ├── auth-register.zip
-│   │   │   ├── lambda.zip
 │   │   │   ├── package-lock.json
 │   │   │   ├── package.json
 │   │   │   ├── src
@@ -710,7 +697,6 @@ job-market-analyzer
 │   │   │   ├── tsconfig.json
 │   │   │   └── tsup.config.ts
 │   │   ├── auth-reset-password
-│   │   │   ├── auth-reset-password.zip
 │   │   │   ├── package-lock.json
 │   │   │   ├── package.json
 │   │   │   ├── src
@@ -718,8 +704,6 @@ job-market-analyzer
 │   │   │   ├── tsconfig.json
 │   │   │   └── tsup.config.ts
 │   │   └── auth-verify-email
-│   │       ├── auth-verify-email.zip
-│   │       ├── lambda.zip
 │   │       ├── package-lock.json
 │   │       ├── package.json
 │   │       ├── src
@@ -727,7 +711,6 @@ job-market-analyzer
 │   │       ├── tsconfig.json
 │   │       └── tsup.config.ts
 │   ├── calculate-job-stats
-│   │   ├── calculate-job-stats.zip
 │   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── src
@@ -735,8 +718,6 @@ job-market-analyzer
 │   │   ├── tsconfig.json
 │   │   └── tsup.config.ts
 │   ├── cognito-post-confirmation
-│   │   ├── cognito-post-confirmation.zip
-│   │   ├── lambda.zip
 │   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── src
@@ -744,9 +725,6 @@ job-market-analyzer
 │   │   ├── tsconfig.json
 │   │   └── tsup.config.ts
 │   ├── compare-resume-id
-│   │   ├── compare-resume-id.zip
-│   │   ├── lambda.zip
-│   │   ├── old-compare-lambda.zip
 │   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── src
@@ -756,8 +734,6 @@ job-market-analyzer
 │   │   ├── tsconfig.json
 │   │   └── tsup.config.ts
 │   ├── get-job-postings-paginated
-│   │   ├── get-job-postings-paginated.zip
-│   │   ├── lambda.zip
 │   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── src
@@ -773,8 +749,6 @@ job-market-analyzer
 │   │   ├── tsconfig.json
 │   │   └── tsup.config.ts
 │   ├── get-job-postings-stats
-│   │   ├── get-job-postings-stats.zip
-│   │   ├── lambda.zip
 │   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── src
@@ -782,8 +756,6 @@ job-market-analyzer
 │   │   ├── tsconfig.json
 │   │   └── tsup.config.ts
 │   ├── get-job-processing-status
-│   │   ├── get-job-processing-status.zip
-│   │   ├── lambda.zip
 │   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── src
@@ -793,8 +765,6 @@ job-market-analyzer
 │   │   ├── tsconfig.json
 │   │   └── tsup.config.ts
 │   ├── get-trends-v2
-│   │   ├── get-trends-v2.zip
-│   │   ├── lambda.zip
 │   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── src
@@ -805,8 +775,6 @@ job-market-analyzer
 │   │   ├── tsconfig.json
 │   │   └── tsup.config.ts
 │   ├── get-user-resumes
-│   │   ├── get-user-resumes.zip
-│   │   ├── lambda.zip
 │   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── src
@@ -817,10 +785,6 @@ job-market-analyzer
 │   │   └── tsup.config.ts
 │   ├── ingest-jobs
 │   │   ├── README.md
-│   │   ├── ingest-jobs-11-10-25_17-20.zip
-│   │   ├── ingest-jobs.zip
-│   │   ├── job-market-analyzer-types-0.1.0.tgz
-│   │   ├── lambda.zip
 │   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── samconfig.toml
@@ -850,7 +814,6 @@ job-market-analyzer
 │   │   ├── tsconfig.json
 │   │   └── tsup.config.ts
 │   ├── normalize-tables
-│   │   ├── normalize-tables.zip
 │   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── src
@@ -876,7 +839,6 @@ job-market-analyzer
 │   │   │   ├── llama-4-scout.json
 │   │   │   ├── qwen-2.5-72b-instruct.json
 │   │   │   └── qwen3-coder.json
-│   │   ├── openrouter-ai-enhancement-from-table.zip
 │   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── src
@@ -892,10 +854,8 @@ job-market-analyzer
 │   │   ├── tsconfig.json
 │   │   └── tsup.config.ts
 │   ├── resume-presigned-url
-│   │   ├── lambda.zip
 │   │   ├── package-lock.json
 │   │   ├── package.json
-│   │   ├── resume-presigned-url.zip
 │   │   ├── src
 │   │   │   ├── dynamoService.ts
 │   │   │   └── index.ts
@@ -930,12 +890,10 @@ job-market-analyzer
 │       │   └── utils.ts
 │       ├── tsconfig.json
 │       ├── tsup.config.ts
-│       └── worker-process-resume.zip
 ├── package-lock.json
 ├── package.json
 ├── packages
 │   └── shared-types
-│       ├── job-market-analyzer-types-0.1.0.tgz
 │       ├── package.json
 │       ├── src
 │       │   ├── auth.ts
